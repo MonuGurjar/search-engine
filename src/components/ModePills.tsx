@@ -8,11 +8,7 @@ type Props = {
 
 export function ModePills({ active, onChange, compact = false }: Props) {
   return (
-    <div
-      className={`flex flex-wrap items-center gap-2 sm:gap-2.5 ${
-        compact ? 'justify-start' : 'justify-center'
-      }`}
-    >
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
       {MODES.map(({ id, label, Icon }) => {
         const selected = id === active
         return (

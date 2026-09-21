@@ -60,7 +60,7 @@ export function Results({ query, mode, onSearch }: Props) {
 
   return (
     <section className="relative flex min-h-[calc(100vh-210px)] flex-col justify-between">
-      <div className="w-full max-w-5xl px-5 sm:px-10 lg:px-14">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-4 sm:px-10">
         {hasQuery ? (
           <>
             {/* Meta status line */}
@@ -98,14 +98,14 @@ export function Results({ query, mode, onSearch }: Props) {
           </>
         ) : (
           /* Exploration state when scrolling down before typing a query */
-          <div className="pt-6 sm:pt-10">
+          <div className="pt-6 text-center sm:pt-10">
             <p className="void-label text-xs tracking-widest text-void-faint">
               Explore Without Being Tracked
             </p>
             <h3 className="mt-2 font-display text-2xl font-light text-void-ink sm:text-3xl">
               Curated queries for the curious mind
             </h3>
-            <div className="mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
               {EXPLORATION_TOPICS.map((topic) => (
                 <button
                   key={topic}
@@ -120,7 +120,7 @@ export function Results({ query, mode, onSearch }: Props) {
         )}
       </div>
 
-      {/* End of results mark — pushed to the bottom of the page */}
+      {/* End of results mark — pushed down to the bottom of the viewport */}
       <div className="mt-auto flex flex-col items-center gap-2.5 pt-20 pb-10 text-center">
         <Wordmark size={22} />
         <p className="void-label text-[10px] text-void-faint">The end of the void</p>

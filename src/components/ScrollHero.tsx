@@ -37,14 +37,13 @@ function calculateMetrics() {
       heroSearchLeft: 390,
       heroSearchY: 510,
       targetSearchLeft: 56,
-      targetSearchY: 72,
+      targetSearchY: 70,
       targetSearchScale: 0.92,
       pillsWidth: 720,
       heroPillsLeft: 360,
       heroPillsY: 570,
-      targetPillsLeft: 56,
       targetPillsY: 124,
-      targetPillsScale: 0.92,
+      targetPillsScale: 0.9,
     }
   }
 
@@ -87,13 +86,12 @@ function calculateMetrics() {
   const targetSearchY = isMobile ? 64 : 70
   const targetSearchScale = isMobile ? 0.9 : 0.92
 
-  // Category pills geometry
+  // Category pills geometry (stays horizontally centered)
   const pillsWidth = Math.min(740, w - (isMobile ? 32 : 64))
   const heroPillsLeft = (w - pillsWidth) / 2
   const heroPillsY = heroSearchY + 48 + (isMobile ? 12 : 16)
-  const targetPillsLeft = targetLeft
   const targetPillsY = isMobile ? 116 : 124
-  const targetPillsScale = isMobile ? 0.9 : 0.92
+  const targetPillsScale = isMobile ? 0.9 : 0.9
 
   return {
     transitionDistance,
@@ -112,7 +110,6 @@ function calculateMetrics() {
     pillsWidth,
     heroPillsLeft,
     heroPillsY,
-    targetPillsLeft,
     targetPillsY,
     targetPillsScale,
   }
@@ -155,9 +152,9 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
       const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
 
-      // When user scrolls deeper into search results past transitionDistance,
-      // the compact header scrolls up naturally with the document flow.
-      const scrollOffset = Math.max(0, sy - m.transitionDistance)
+      // When on results page and user scrolls deeper through the results
+      const resultsScroll = Math.max(0, sy - m.transitionDistance)
+      const resultsShift = smoothstep(0, 1, Math.min(1, resultsScroll / 150))
 
       // Turn off pulse when leaving hero
       const shouldPulse = rawT < 0.25
@@ -170,40 +167,47 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       // 1. VOID Wordmark transform (center hero -> top-left header)
       if (wordmarkRef.current) {
         const dx = m.dxAt1 * t
-        const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t - scrollOffset
+        const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
         const scale = 1.0 + (m.markScaleRatio - 1.0) * t
         wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 2. Top nav bar scrolls up with document when past transition
+      // 2. Top nav bar stays fixed at top-right
       if (navRef.current) {
-        navRef.current.style.transform = `translate3d(0, -${scrollOffset.toFixed(2)}px, 0)`
+        navRef.current.style.transform = 'translate3d(0, 0, 0)'
       }
 
-      // 3. Tagline (fades out and shifts gently upward)
+      // 3. Tagline (fades out during hero scroll)
       if (taglineRef.current) {
         const op = Math.max(0, 1 - rawT / 0.22)
         const ty = -14 * (1 - op)
         taglineRef.current.style.opacity = op.toFixed(3)
-        taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty - scrollOffset).toFixed(2)}px, 0)`
+        taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty).toFixed(2)}px, 0)`
         taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
       }
 
-      // 4. SearchBar (glides from center hero -> LEFT-ALIGNED compact top header)
+      // 4. SearchBar:
+      // - Initial results page state (resultsScroll = 0): CENTERED! (as in media_1790027061322.jpg)
+      // - ONLY when user scrolls down on results page (resultsShift > 0): smoothly shifts to the left under VOID!
       if (searchRef.current) {
-        const curX = m.heroSearchLeft + (m.targetSearchLeft - m.heroSearchLeft) * t
-        const curY = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t - scrollOffset
+        const targetX = m.heroSearchLeft + (m.targetSearchLeft - m.heroSearchLeft) * resultsShift
+        const curY = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
         const scale = 1.0 + (m.targetSearchScale - 1.0) * t
-        searchRef.current.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        searchRef.current.style.transform = `translate3d(${targetX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
         searchRef.current.style.width = `${m.searchWidth}px`
       }
 
-      // 5. ModePills (glides from center hero -> LEFT-ALIGNED below search bar)
+      // 5. ModePills:
+      // - Stays horizontally centered!
+      // - On results page initial state: centered under search bar (as in media_1790027061322.jpg)
+      // - When user scrolls down results: scrolls up and away with the results content
       if (pillsRef.current) {
-        const curX = m.heroPillsLeft + (m.targetPillsLeft - m.heroPillsLeft) * t
-        const curY = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - scrollOffset
+        const curY = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - resultsScroll
         const scale = 1.0 + (m.targetPillsScale - 1.0) * t
-        pillsRef.current.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        const op = Math.max(0, 1 - resultsScroll / 90)
+        pillsRef.current.style.transform = `translate3d(${m.heroPillsLeft.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        pillsRef.current.style.opacity = op.toFixed(3)
+        pillsRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
         pillsRef.current.style.width = `${m.pillsWidth}px`
       }
 
@@ -319,7 +323,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* SearchBar Container — glides to the left under VOID on scroll */}
+      {/* SearchBar Container — centered on results page, only shifts left when scrolling down results */}
       <div
         ref={searchRef}
         className="absolute left-0 top-0 pointer-events-none"
@@ -339,12 +343,12 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* ModePills Container — glides to the left under SearchBar on scroll */}
+      {/* ModePills Container — always centered horizontally under search bar */}
       <div
         ref={pillsRef}
         className="absolute left-0 top-0 pointer-events-none"
         style={{
-          transformOrigin: 'top left',
+          transformOrigin: 'top center',
           transform: `translate3d(${initialMetrics.heroPillsLeft}px, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
           width: `${initialMetrics.pillsWidth}px`,
         }}
