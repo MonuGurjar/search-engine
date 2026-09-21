@@ -44,14 +44,14 @@ export default function App() {
           aria-hidden
         />
 
-        {/* Results / Exploration area positioned cleanly below the fixed header */}
+        {/* Results / Exploration area with spacious, unpressed top breathing room */}
         <div
-          className="pt-[115px] sm:pt-[125px]"
+          className="pt-[150px] sm:pt-[165px]"
           style={{
             WebkitMaskImage:
-              'linear-gradient(to bottom, transparent 0px, transparent 75px, black 115px, black 100%)',
+              'linear-gradient(to bottom, transparent 0px, transparent 88px, black 135px, black 100%)',
             maskImage:
-              'linear-gradient(to bottom, transparent 0px, transparent 75px, black 115px, black 100%)',
+              'linear-gradient(to bottom, transparent 0px, transparent 88px, black 135px, black 100%)',
           }}
         >
           <Results query={query} mode={mode} onSearch={runSearch} />

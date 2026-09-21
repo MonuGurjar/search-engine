@@ -8,7 +8,7 @@ type Props = {
 
 export function ModePills({ active, onChange, compact = false }: Props) {
   return (
-    <div className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full py-1">
+    <div className="flex flex-nowrap items-center justify-center gap-2 sm:gap-2.5 overflow-x-auto max-w-full py-1">
       {MODES.map(({ id, label, Icon }) => {
         const selected = id === active
         return (
@@ -16,10 +16,10 @@ export function ModePills({ active, onChange, compact = false }: Props) {
             key={id}
             onClick={() => onChange(id)}
             aria-pressed={selected}
-            className={`group flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-full text-void-ink backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-0.5 cursor-pointer ${
+            className={`group flex shrink-0 items-center gap-2 rounded-full text-void-ink backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-0.5 cursor-pointer ${
               compact
-                ? 'px-3 sm:px-3.5 py-1 text-[12px] sm:text-[13px]'
-                : 'px-3.5 sm:px-4 py-1.5 text-[13px] sm:text-[14px]'
+                ? 'px-3.5 sm:px-4 py-1.5 text-[13px]'
+                : 'px-4 sm:px-5 py-2 text-[13.5px] sm:text-[14.5px]'
             }`}
             style={{
               background: 'rgba(255,255,255,0.95)',
@@ -30,7 +30,7 @@ export function ModePills({ active, onChange, compact = false }: Props) {
             }}
           >
             <Icon
-              className={compact ? 'size-3.5 sm:size-4' : 'size-4'}
+              className="size-4 shrink-0"
               style={{ color: selected ? 'var(--color-void-green)' : 'var(--color-void-ink)' }}
             />
             <span className="font-medium tracking-wide">{label}</span>

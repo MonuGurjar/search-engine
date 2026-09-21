@@ -34,11 +34,11 @@ function calculateMetrics() {
       dyAt1: 38,
       heroTaglineY: 338,
       heroSearchY: 510,
-      heroPillsY: 560,
+      heroPillsY: 566,
       targetSearchY: 18,
-      targetPillsY: 66,
-      targetSearchScale: 0.88,
-      targetPillsScale: 0.88,
+      targetPillsY: 72,
+      targetSearchScale: 0.9,
+      targetPillsScale: 1.0,
     }
   }
 
@@ -61,8 +61,6 @@ function calculateMetrics() {
   const markScaleRatio = targetMark / heroMark
 
   const targetLeft = isMobile ? 20 : isLg ? 56 : 40
-  // On desktop, top row elements (VOID, SearchBar, Settings) share vertical center ~38px
-  const targetTopRowY = isMobile ? 18 : 18
   const targetMarkCenterX = targetLeft + 46
   const targetMarkCenterY = isMobile ? 28 : 38
 
@@ -76,14 +74,16 @@ function calculateMetrics() {
 
   // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
   const heroSearchY = sphereBottom + (isMobile ? 14 : 20)
-  // Category pills sit neatly below the thin search bar
-  const heroPillsY = heroSearchY + 46 + (isMobile ? 10 : 14)
+  // Category pills sit comfortably below the thin search bar with 18px gap
+  const heroPillsY = heroSearchY + 50 + (isMobile ? 14 : 18)
 
   // In final state (Panel 4): SearchBar aligns horizontally in the top bar row on desktop
   const targetSearchY = isMobile ? 56 : 18
-  const targetPillsY = isMobile ? 102 : 66
-  const targetSearchScale = isMobile ? 0.9 : 0.88
-  const targetPillsScale = isMobile ? 0.9 : 0.88
+  // Category pills placed comfortably below SearchBar (at 72px desktop / 106px mobile)
+  const targetPillsY = isMobile ? 106 : 72
+  const targetSearchScale = isMobile ? 0.92 : 0.9
+  // Do NOT squish pills with CSS scale — keep natural 1.0 scale
+  const targetPillsScale = 1.0
 
   return {
     transitionDistance,
@@ -170,7 +170,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 4. ModePills (hero -> below compact search bar, perfectly centered)
+      // 4. ModePills (hero -> below compact search bar, perfectly centered, scale 1.0)
       if (pillsRef.current) {
         const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t
         const scale = 1.0 + (m.targetPillsScale - 1.0) * t

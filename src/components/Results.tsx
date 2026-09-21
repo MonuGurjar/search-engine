@@ -60,22 +60,22 @@ export function Results({ query, mode, onSearch }: Props) {
 
   return (
     <section className="relative min-h-[calc(100vh-200px)]">
-      <div className="mx-auto w-full max-w-5xl px-6 pt-6 sm:px-10">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-4 sm:px-10">
         {hasQuery ? (
           <>
-            {/* Meta status line */}
-            <p className="text-[13px] text-void-faint">
+            {/* Meta status line with comfortable spacing */}
+            <p className="text-[13.5px] text-void-muted/80 tracking-wide">
               {results.length}+ private results for{' '}
-              <span className="font-medium text-void-muted">“{query}”</span> in {modeLabel} · no
+              <span className="font-medium text-void-ink">“{query}”</span> in {modeLabel} · no
               history saved
             </p>
 
-            {/* Results list */}
-            <ol className="mt-4 flex flex-col divide-y divide-void-line/60">
+            {/* Results list with generous, open vertical rhythm */}
+            <ol className="mt-6 sm:mt-8 flex flex-col divide-y divide-void-line/60">
               {results.map((r, i) => (
-                <li key={i} className="group py-6">
-                  <div className="flex items-center gap-2 text-[13px] text-void-muted">
-                    <span className="grid size-5 place-items-center rounded-full bg-void-green/12 text-[10px] font-medium text-void-green">
+                <li key={i} className="group py-7 sm:py-8">
+                  <div className="flex items-center gap-2.5 text-[13.5px] text-void-muted">
+                    <span className="grid size-5 place-items-center rounded-full bg-void-green/15 text-[11px] font-semibold text-void-green">
                       {r.domain[0].toUpperCase()}
                     </span>
                     <span>
@@ -85,11 +85,11 @@ export function Results({ query, mode, onSearch }: Props) {
                   </div>
                   <a
                     href="#"
-                    className="mt-1.5 block font-display text-xl font-normal text-void-ink transition-colors group-hover:text-void-green"
+                    className="mt-2 block font-display text-[22px] sm:text-2xl font-normal tracking-tight text-void-ink transition-colors group-hover:text-void-green leading-snug"
                   >
                     {r.title}
                   </a>
-                  <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-void-muted">
+                  <p className="mt-2 max-w-3xl text-[15px] sm:text-base leading-relaxed text-void-muted">
                     {r.snippet}
                   </p>
                 </li>
@@ -98,7 +98,7 @@ export function Results({ query, mode, onSearch }: Props) {
           </>
         ) : (
           /* Exploration state when scrolling down before typing a query */
-          <div className="py-8 text-center sm:py-12">
+          <div className="py-12 text-center sm:py-16">
             <p className="void-label text-xs tracking-widest text-void-faint">
               Explore Without Being Tracked
             </p>
