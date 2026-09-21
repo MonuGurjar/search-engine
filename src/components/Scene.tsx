@@ -89,10 +89,10 @@ export function Scene() {
       const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
       const scrollOffset = Math.max(0, sy - transitionDistance)
 
-      // Initial hero sphere center geometry
-      const sphereD = Math.min(520, Math.max(260, w * 0.46))
-      const sphereTopRatio = isMobile ? 0.06 : w <= 768 ? 0.07 : 0.08
-      const sphereHeroCenterY = h * sphereTopRatio + sphereD / 2
+      // Sphere geometry matching ScrollHero (capped to 48% viewport height)
+      const sphereD = Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
+      const sphereTopRatio = isMobile ? 0.05 : w <= 768 ? 0.06 : 0.07
+      const sphereHeroCenterY = Math.round(h * sphereTopRatio + sphereD / 2)
 
       // Target position behind top-left VOID Wordmark in header
       const targetLeft = isMobile ? 20 : isLg ? 56 : 40
@@ -182,7 +182,7 @@ export function Scene() {
       {/* floating middle sphere / planet with atmospheric halo */}
       <div
         ref={sphereRef}
-        className="absolute left-1/2 top-[6%] sm:top-[7%] md:top-[8%]"
+        className="absolute left-1/2 top-[5%] sm:top-[6%] md:top-[7%]"
         style={{
           transformOrigin: 'center center',
           transform:
@@ -209,7 +209,7 @@ export function Scene() {
             alt=""
             aria-hidden
             fetchPriority="high"
-            className="h-[46vw] max-h-[520px] min-h-[260px] w-[46vw] max-w-[520px] min-w-[260px] object-contain drop-shadow-[0_10px_35px_rgba(120,196,150,0.22)] select-none pointer-events-none"
+            className="h-[44vw] max-h-[min(480px,48vh)] min-h-[220px] w-[44vw] max-w-[min(480px,48vh)] min-w-[220px] object-contain drop-shadow-[0_10px_35px_rgba(120,196,150,0.22)] select-none pointer-events-none"
             style={{
               animation: 'void-halo-pulse 11s ease-in-out infinite',
             }}

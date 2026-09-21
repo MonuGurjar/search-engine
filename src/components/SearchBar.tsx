@@ -22,23 +22,25 @@ export function SearchBar({ value, onChange, onSubmit, compact = false, autoFocu
       onSubmit={handleSubmit}
       className="w-full rounded-full backdrop-blur-xl transition-all duration-300 ease-out"
       style={{
-        background: 'rgba(255,255,255,0.72)',
+        background: 'rgba(255,255,255,0.74)',
         border: `1px solid ${focused ? 'rgba(47,125,84,0.5)' : 'rgba(214,222,224,0.9)'}`,
         boxShadow: focused
-          ? '0 22px 60px -24px rgba(37,54,60,0.4), 0 2px 8px rgba(37,54,60,0.06)'
-          : '0 16px 46px -26px rgba(37,54,60,0.32), 0 1px 4px rgba(37,54,60,0.05)',
+          ? '0 18px 48px -20px rgba(37,54,60,0.38), 0 2px 8px rgba(37,54,60,0.06)'
+          : '0 12px 36px -22px rgba(37,54,60,0.28), 0 1px 4px rgba(37,54,60,0.04)',
       }}
     >
       <div
         className={`flex items-center ${
-          compact ? 'gap-2.5 pl-4 pr-1.5 py-1.5' : 'gap-3 pl-5 pr-2 py-2 sm:gap-4 sm:pl-7 sm:pr-3 sm:py-3'
+          compact
+            ? 'gap-2 pl-3.5 pr-1.5 py-1'
+            : 'gap-3 pl-4 sm:pl-6 pr-1.5 sm:pr-2 py-1.5 sm:py-2'
         }`}
       >
         <SearchIcon
           className={
             compact
-              ? 'size-5 text-void-muted shrink-0'
-              : 'size-5 text-void-muted shrink-0 sm:size-6'
+              ? 'size-4 text-void-muted shrink-0'
+              : 'size-5 text-void-muted shrink-0'
           }
         />
         <input
@@ -50,7 +52,7 @@ export function SearchBar({ value, onChange, onSubmit, compact = false, autoFocu
           placeholder="Search the web..."
           aria-label="Search the web"
           className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-void-faint text-void-ink ${
-            compact ? 'text-[15px] py-1' : 'text-base py-1.5 sm:text-lg sm:py-2'
+            compact ? 'text-[14px] py-0.5' : 'text-base py-1 sm:text-[16px] sm:py-1'
           }`}
         />
         <span
@@ -61,15 +63,15 @@ export function SearchBar({ value, onChange, onSubmit, compact = false, autoFocu
         <button
           type="submit"
           aria-label="Search"
-          className={`shrink-0 grid place-items-center rounded-full text-white transition-all duration-200 ease-out hover:scale-[1.05] active:scale-95 ${
-            compact ? 'size-10' : 'size-11 sm:size-14'
+          className={`shrink-0 grid place-items-center rounded-full text-white transition-all duration-200 ease-out hover:scale-[1.05] active:scale-95 cursor-pointer ${
+            compact ? 'size-8' : 'size-9 sm:size-10'
           }`}
           style={{
             background: 'linear-gradient(160deg, #38966a 0%, #2f7d54 60%, #276848 100%)',
-            boxShadow: '0 10px 24px -8px rgba(47,125,84,0.55)',
+            boxShadow: '0 8px 18px -6px rgba(47,125,84,0.5)',
           }}
         >
-          <SearchIcon className={compact ? 'size-[18px]' : 'size-5 sm:size-6'} />
+          <SearchIcon className={compact ? 'size-3.5' : 'size-4 sm:size-[18px]'} />
         </button>
       </div>
     </form>

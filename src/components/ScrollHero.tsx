@@ -29,16 +29,16 @@ function calculateMetrics() {
       transitionDistance: 800,
       heroMark: 104,
       markScaleRatio: 0.25,
-      heroWordmarkY: 330,
+      heroWordmarkY: 270,
       dxAt1: -618,
       dyAt1: 37,
-      heroTaglineY: 398,
-      heroSearchY: 462,
-      heroPillsY: 542,
+      heroTaglineY: 338,
+      heroSearchY: 510,
+      heroPillsY: 572,
       targetSearchY: 74,
-      targetPillsY: 132,
+      targetPillsY: 130,
       targetSearchScale: 0.88,
-      targetPillsScale: 0.9,
+      targetPillsScale: 0.88,
     }
   }
 
@@ -49,9 +49,12 @@ function calculateMetrics() {
 
   const transitionDistance = h * (isMobile ? 0.75 : 0.88)
 
-  const sphereD = Math.min(520, Math.max(260, w * 0.46))
-  const sphereTopRatio = isMobile ? 0.06 : w <= 768 ? 0.07 : 0.08
-  const sphereCenterY = Math.round(h * sphereTopRatio + sphereD / 2)
+  // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
+  const sphereD = Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
+  const sphereTopRatio = isMobile ? 0.05 : w <= 768 ? 0.06 : 0.07
+  const sphereTop = Math.round(h * sphereTopRatio)
+  const sphereCenterY = Math.round(sphereTop + sphereD / 2)
+  const sphereBottom = sphereTop + sphereD
 
   const heroMark = isMobile ? 68 : 104
   const targetMark = 26
@@ -67,9 +70,13 @@ function calculateMetrics() {
   const dxAt1 = targetMarkCenterX - heroCenterX
   const dyAt1 = targetMarkCenterY
 
+  // Tagline sits directly under hero wordmark within the sphere core
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
-  const heroSearchY = heroTaglineY + 20 + (isMobile ? 28 : 40)
-  const heroPillsY = heroSearchY + 56 + (isMobile ? 18 : 22)
+
+  // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
+  const heroSearchY = sphereBottom + (isMobile ? 14 : 20)
+  // Category pills sit neatly below the thin search bar
+  const heroPillsY = heroSearchY + 48 + (isMobile ? 12 : 16)
 
   const targetSearchY = isMobile ? 66 : 74
   const targetPillsY = isMobile ? 120 : 130
@@ -290,7 +297,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* SearchBar Container */}
+      {/* SearchBar Container — positioned downward below the full sphere */}
       <div className="absolute left-1/2 top-0 w-full max-w-3xl -translate-x-1/2 px-5 sm:px-6">
         <div
           ref={searchRef}
@@ -310,7 +317,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* ModePills Container — max-w-4xl and compact sizing ensures all pills fit on one line */}
+      {/* ModePills Container — positioned just below the thin search bar */}
       <div className="absolute left-1/2 top-0 w-full max-w-4xl -translate-x-1/2 px-4 sm:px-6">
         <div
           ref={pillsRef}
