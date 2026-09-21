@@ -50,13 +50,15 @@ function calculateMetrics() {
   const transitionDistance = h * (isMobile ? 0.75 : 0.88)
 
   // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
-  const sphereD = Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
-  const sphereTopRatio = isMobile ? 0.05 : w <= 768 ? 0.06 : 0.07
+  const sphereD = isMobile
+    ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
+    : Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
+  const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
   const sphereTop = Math.round(h * sphereTopRatio)
   const sphereCenterY = Math.round(sphereTop + sphereD / 2)
   const sphereBottom = sphereTop + sphereD
 
-  const heroMark = isMobile ? 68 : 104
+  const heroMark = isMobile ? 64 : 104
   const targetMark = 26
   const markScaleRatio = targetMark / heroMark
 
@@ -73,14 +75,14 @@ function calculateMetrics() {
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
 
   // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
-  const heroSearchY = sphereBottom + (isMobile ? 14 : 20)
-  // Category pills sit comfortably below the thin search bar with 18px gap
-  const heroPillsY = heroSearchY + 50 + (isMobile ? 14 : 18)
+  const heroSearchY = sphereBottom + (isMobile ? 18 : 20)
+  // Category pills sit comfortably below the thin search bar
+  const heroPillsY = heroSearchY + (isMobile ? 48 : 50) + (isMobile ? 14 : 18)
 
   // In final state (Panel 4): SearchBar aligns horizontally in the top bar row on desktop
-  const targetSearchY = isMobile ? 56 : 18
-  // Category pills placed comfortably below SearchBar (at 72px desktop / 106px mobile)
-  const targetPillsY = isMobile ? 106 : 72
+  const targetSearchY = isMobile ? 54 : 18
+  // Category pills placed comfortably below SearchBar (at 72px desktop / 104px mobile)
+  const targetPillsY = isMobile ? 104 : 72
   const targetSearchScale = isMobile ? 0.92 : 0.9
   // Do NOT squish pills with CSS scale — keep natural 1.0 scale
   const targetPillsScale = 1.0
@@ -122,7 +124,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   // Responsive mark size for hero
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)')
-    const updateSize = () => setMarkSize(mq.matches ? 68 : 104)
+    const updateSize = () => setMarkSize(mq.matches ? 64 : 104)
     updateSize()
     mq.addEventListener('change', updateSize)
     return () => mq.removeEventListener('change', updateSize)
@@ -222,11 +224,11 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
       {/* Top navigation row (About, Privacy, Features, Settings) */}
-      <header className="relative z-40 flex items-center justify-between px-5 py-4 sm:px-10 sm:py-5 lg:px-14">
+      <header className="relative z-40 flex items-center justify-between px-4 py-3 sm:px-10 sm:py-5 lg:px-14">
         {/* Spacer matching compact Wordmark width in header */}
         <div className="h-[26px] w-[95px]" aria-hidden />
 
-        <nav className="pointer-events-auto flex items-center gap-6 sm:gap-9">
+        <nav className="pointer-events-auto flex items-center gap-4 sm:gap-9">
           <div className="hidden items-center gap-7 sm:flex">
             {LINKS.map((l) => (
               <a
@@ -239,13 +241,13 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
             ))}
           </div>
           <button
-            className="group flex items-center gap-2 rounded-full bg-void-glass px-4 py-2 text-sm text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
+            className="group flex items-center gap-1.5 sm:gap-2 rounded-full bg-void-glass px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
             style={{
               border: '1px solid rgba(214,222,224,0.95)',
               boxShadow: '0 8px 22px -16px rgba(37,54,60,0.4)',
             }}
           >
-            <GearIcon className="size-[18px] text-void-muted transition-all duration-300 group-hover:rotate-45 group-hover:text-void-green" />
+            <GearIcon className="size-4 sm:size-[18px] text-void-muted transition-all duration-300 group-hover:rotate-45 group-hover:text-void-green" />
             <span>Settings</span>
           </button>
         </nav>
@@ -324,7 +326,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       {/* Scroll indicator (bouncing chevron) */}
       <div
         ref={scrollIndicatorRef}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 sm:bottom-4"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 sm:bottom-4"
       >
         <button
           onClick={handleScrollDown}

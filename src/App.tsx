@@ -39,14 +39,13 @@ export default function App() {
       <main className="relative z-10 flex-1">
         {/* Scroll transition spacer */}
         <div
-          className="pointer-events-none w-full"
-          style={{ height: 'calc(100vh * 0.88)' }}
+          className="pointer-events-none w-full h-[75vh] sm:h-[88vh]"
           aria-hidden
         />
 
         {/* Results / Exploration area with spacious, unpressed top breathing room */}
         <div
-          className="pt-[150px] sm:pt-[165px]"
+          className="pt-[155px] sm:pt-[165px]"
           style={{
             WebkitMaskImage:
               'linear-gradient(to bottom, transparent 0px, transparent 88px, black 135px, black 100%)',

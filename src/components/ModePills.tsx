@@ -8,7 +8,13 @@ type Props = {
 
 export function ModePills({ active, onChange, compact = false }: Props) {
   return (
-    <div className="flex flex-nowrap items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full py-1 px-1 sm:px-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div
+      className={`flex items-center py-1 transition-all duration-200 ${
+        compact
+          ? 'flex-nowrap justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-3 sm:px-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          : 'flex-wrap sm:flex-nowrap justify-center gap-2 max-w-[340px] sm:max-w-none mx-auto'
+      }`}
+    >
       {MODES.map(({ id, label, Icon }) => {
         const selected = id === active
         return (
