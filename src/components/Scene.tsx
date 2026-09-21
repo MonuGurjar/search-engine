@@ -15,18 +15,18 @@ function smoothstep(min: number, max: number, value: number) {
   return x * x * (3 - 2 * x)
 }
 
-type Props = {
-  hasQuery?: boolean
-}
-
 /**
  * Layered, living VOID environment.
  * The responsive artwork serves as the base plate;
  * floating middle sphere, mint halo, drifting clouds, floating particles, light rays
  * and reflection shimmer sit on top. Mouse + scroll drive restrained parallax via smoothed
  * CSS custom properties (--mx / --my / --sy) so every layer stays on the GPU.
+ *
+ * During scroll, the middle sphere co-animates with the VOID Wordmark:
+ * scaling down from 1.0 -> 0.15, translating towards the top-left header,
+ * and fading from 1.0 -> ~0.12 opacity to become a subtle celestial aura.
  */
-export function Scene({ hasQuery = false }: Props) {
+export function Scene() {
   const root = useRef<HTMLDivElement>(null)
   const sphereRef = useRef<HTMLDivElement>(null)
   const haloRef = useRef<HTMLDivElement>(null)
@@ -76,7 +76,7 @@ export function Scene({ hasQuery = false }: Props) {
 
       el.style.setProperty('--mx', cx.toFixed(4))
       el.style.setProperty('--my', cy.toFixed(4))
-      el.style.setProperty('--sy', csy.toFixed(2))
+      el.style.setProperty('--sy', Math.min(csy, 600).toFixed(2))
 
       // Scroll-driven sphere co-animation
       const w = window.innerWidth
@@ -85,8 +85,9 @@ export function Scene({ hasQuery = false }: Props) {
       const isLg = w >= 1024
 
       const transitionDistance = h * (isMobile ? 0.75 : 0.88)
-      const rawT = hasQuery ? 1 : Math.min(1, Math.max(0, sy / transitionDistance))
+      const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
       const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
+      const scrollOffset = Math.max(0, sy - transitionDistance)
 
       // Initial hero sphere center geometry
       const sphereD = Math.min(520, Math.max(260, w * 0.46))
@@ -104,7 +105,7 @@ export function Scene({ hasQuery = false }: Props) {
       const targetOpacity = 0.12
 
       const dx = (targetCenterX - w / 2) * t
-      const dy = (targetCenterY - sphereHeroCenterY) * t
+      const dy = (targetCenterY - sphereHeroCenterY) * t - (t >= 0.99 ? scrollOffset : 0)
       const scale = 1.0 + (targetScale - 1.0) * t
       const op = 1.0 + (targetOpacity - 1.0) * t
 
@@ -135,7 +136,7 @@ export function Scene({ hasQuery = false }: Props) {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('scroll', onScroll)
     }
-  }, [hasQuery])
+  }, [])
 
   return (
     <div
@@ -145,10 +146,10 @@ export function Scene({ hasQuery = false }: Props) {
     >
       {/* base landscape plate — responsive desktop vs mobile */}
       <div
-        className="absolute inset-[-4%]"
+        className="absolute inset-[-6%]"
         style={{
           transform:
-            'translate3d(calc(var(--mx) * -14px), calc((var(--my) * -14px) - (var(--sy) * 0.08px)), 0) scale(1.06)',
+            'translate3d(calc(var(--mx) * -14px), calc((var(--my) * -14px) - (var(--sy) * 0.05px)), 0) scale(1.08)',
         }}
       >
         <picture className="h-full w-full">

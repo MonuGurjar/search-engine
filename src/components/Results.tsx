@@ -16,7 +16,7 @@ const EXPLORATION_TOPICS = [
   'Ancient libraries',
 ]
 
-/** Deterministic mock results */
+/** Deterministic mock results — ready for a live backend */
 function mockResults(query: string) {
   const q = query.trim()
   if (!q) return []
@@ -59,8 +59,8 @@ export function Results({ query, mode, onSearch }: Props) {
   const modeLabel = MODES.find((m) => m.id === mode)?.label ?? 'Web'
 
   return (
-    <section className="relative">
-      <div className="mx-auto w-full max-w-5xl px-6 pt-0 sm:px-10">
+    <section className="relative min-h-[calc(100vh-200px)]">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-6 sm:px-10">
         {hasQuery ? (
           <>
             {/* Meta status line */}
@@ -71,9 +71,9 @@ export function Results({ query, mode, onSearch }: Props) {
             </p>
 
             {/* Results list */}
-            <ol className="mt-3 flex flex-col divide-y divide-void-line/60">
+            <ol className="mt-4 flex flex-col divide-y divide-void-line/60">
               {results.map((r, i) => (
-                <li key={i} className="group py-5">
+                <li key={i} className="group py-6">
                   <div className="flex items-center gap-2 text-[13px] text-void-muted">
                     <span className="grid size-5 place-items-center rounded-full bg-void-green/12 text-[10px] font-medium text-void-green">
                       {r.domain[0].toUpperCase()}
@@ -98,14 +98,14 @@ export function Results({ query, mode, onSearch }: Props) {
           </>
         ) : (
           /* Exploration state when scrolling down before typing a query */
-          <div className="py-6 text-center sm:py-8">
+          <div className="py-8 text-center sm:py-12">
             <p className="void-label text-xs tracking-widest text-void-faint">
               Explore Without Being Tracked
             </p>
             <h3 className="mt-2 font-display text-2xl font-light text-void-ink sm:text-3xl">
               Curated queries for the curious mind
             </h3>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
               {EXPLORATION_TOPICS.map((topic) => (
                 <button
                   key={topic}
@@ -120,7 +120,7 @@ export function Results({ query, mode, onSearch }: Props) {
         )}
 
         {/* End of results mark */}
-        <div className="flex flex-col items-center gap-3 py-12 text-center sm:py-16">
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
           <Wordmark size={22} />
           <p className="void-label text-[10px] text-void-faint">The end of the void</p>
         </div>

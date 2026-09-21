@@ -6,7 +6,6 @@ import { Wordmark } from './Wordmark'
 
 type Props = {
   query: string
-  hasQuery?: boolean
   mode: string
   onMode: (id: string) => void
   onSearch: (q: string) => void
@@ -35,11 +34,11 @@ function calculateMetrics() {
       dyAt1: 37,
       heroTaglineY: 398,
       heroSearchY: 462,
-      heroPillsY: 536,
-      targetSearchY: 64,
-      targetPillsY: 116,
-      targetSearchScale: 0.85,
-      targetPillsScale: 0.88,
+      heroPillsY: 542,
+      targetSearchY: 74,
+      targetPillsY: 132,
+      targetSearchScale: 0.88,
+      targetPillsScale: 0.9,
     }
   }
 
@@ -70,12 +69,11 @@ function calculateMetrics() {
 
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
   const heroSearchY = heroTaglineY + 20 + (isMobile ? 28 : 40)
-  const heroPillsY = heroSearchY + 54 + (isMobile ? 16 : 20)
+  const heroPillsY = heroSearchY + 56 + (isMobile ? 18 : 22)
 
-  // Compact header target positions (compact, visually tight header)
-  const targetSearchY = isMobile ? 58 : 64
-  const targetPillsY = isMobile ? 108 : 116
-  const targetSearchScale = isMobile ? 0.88 : 0.84
+  const targetSearchY = isMobile ? 66 : 74
+  const targetPillsY = isMobile ? 120 : 130
+  const targetSearchScale = isMobile ? 0.88 : 0.86
   const targetPillsScale = isMobile ? 0.88 : 0.88
 
   return {
@@ -95,12 +93,13 @@ function calculateMetrics() {
   }
 }
 
-export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, onHome }: Props) {
+export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   const [value, setValue] = useState(query)
   const [pulse, setPulse] = useState(true)
   const [markSize, setMarkSize] = useState(104)
+  const [compact, setCompact] = useState(false)
 
-  const headerBgRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLElement>(null)
   const wordmarkRef = useRef<HTMLDivElement>(null)
   const taglineRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -128,57 +127,62 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
     const tick = () => {
       const m = calculateMetrics()
       const sy = window.scrollY
-
-      // If viewing search results, header is pinned in compact state (t = 1)
-      const rawT = hasQuery ? 1 : Math.min(1, Math.max(0, sy / m.transitionDistance))
+      const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
       const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
 
-      // Pulse ring off when leaving hero
-      const shouldPulse = !hasQuery && rawT < 0.25
+      // When user scrolls deeper into search results past transitionDistance,
+      // the compact header scrolls up naturally with the document flow.
+      const scrollOffset = Math.max(0, sy - m.transitionDistance)
+
+      // Turn off pulse when leaving hero
+      const shouldPulse = rawT < 0.25
       setPulse((prev) => (prev !== shouldPulse ? shouldPulse : prev))
+
+      // Compact state for pills and searchbar
+      const isCompact = rawT > 0.45
+      setCompact((prev) => (prev !== isCompact ? isCompact : prev))
 
       // 1. VOID Wordmark transform (center hero -> top-left header)
       if (wordmarkRef.current) {
         const dx = m.dxAt1 * t
-        const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
+        const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t - scrollOffset
         const scale = 1.0 + (m.markScaleRatio - 1.0) * t
         wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 2. Tagline (fades out and lifts gently upward)
+      // 2. Top nav bar scrolls up with document when past transition
+      if (navRef.current) {
+        navRef.current.style.transform = `translate3d(0, -${scrollOffset.toFixed(2)}px, 0)`
+      }
+
+      // 3. Tagline (fades out and shifts gently upward)
       if (taglineRef.current) {
-        const op = hasQuery ? 0 : Math.max(0, 1 - rawT / 0.22)
+        const op = Math.max(0, 1 - rawT / 0.22)
         const ty = -14 * (1 - op)
         taglineRef.current.style.opacity = op.toFixed(3)
-        taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty).toFixed(2)}px, 0)`
+        taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty - scrollOffset).toFixed(2)}px, 0)`
         taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
       }
 
-      // 3. SearchBar (hero center -> compact top header)
+      // 4. SearchBar (hero center -> compact top header, then scrolls with results)
       if (searchRef.current) {
-        const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
+        const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t - scrollOffset
         const scale = 1.0 + (m.targetSearchScale - 1.0) * t
         searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 4. ModePills (hero -> below compact search bar in one centered row)
+      // 5. ModePills (hero -> below compact search bar, then scrolls with results)
       if (pillsRef.current) {
-        const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t
+        const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - scrollOffset
         const scale = 1.0 + (m.targetPillsScale - 1.0) * t
         pillsRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 5. Scroll indicator (fades out quickly)
+      // 6. Scroll indicator (fades out quickly)
       if (scrollIndicatorRef.current) {
-        const op = hasQuery ? 0 : Math.max(0, 1 - rawT / 0.12)
+        const op = Math.max(0, 1 - rawT / 0.12)
         scrollIndicatorRef.current.style.opacity = op.toFixed(3)
         scrollIndicatorRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
-      }
-
-      // 6. Header background frost blur strip
-      if (headerBgRef.current) {
-        const op = hasQuery ? 1 : Math.max(0, Math.min(1, (rawT - 0.65) / 0.35))
-        headerBgRef.current.style.opacity = op.toFixed(3)
       }
 
       rafId = requestAnimationFrame(tick)
@@ -186,14 +190,23 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [hasQuery])
+  }, [])
 
   function handleSubmit(q: string) {
     onSearch(q)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
+    const transitionDistance =
+      typeof window !== 'undefined' ? window.innerHeight * (isMobile ? 0.75 : 0.88) : 800
+    if (typeof window !== 'undefined' && window.scrollY < transitionDistance) {
+      window.scrollTo({ top: transitionDistance + 10, behavior: 'smooth' })
+    }
   }
 
   function handleHomeClick() {
     onHome()
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   function handleScrollDown() {
@@ -209,21 +222,12 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      {/* Compact frosted header backdrop (covers only the height the header visually needs) */}
-      <div
-        ref={headerBgRef}
-        className="absolute inset-x-0 top-0 h-[154px] opacity-0 backdrop-blur-xl transition-opacity duration-150 sm:h-[158px]"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(238,242,243,0.94) 0%, rgba(238,242,243,0.85) 80%, rgba(238,242,243,0) 100%)',
-          borderBottom: '1px solid rgba(216,222,224,0.35)',
-        }}
-        aria-hidden
-      />
-
       {/* Top navigation row (About, Privacy, Features, Settings) */}
-      <header className="relative z-40 flex items-center justify-between px-5 py-4 sm:px-10 sm:py-5 lg:px-14">
-        {/* Placeholder spacer matching Wordmark width in header */}
+      <header
+        ref={navRef}
+        className="relative z-40 flex items-center justify-between px-5 py-5 sm:px-10 sm:py-6 lg:px-14"
+      >
+        {/* Spacer matching compact Wordmark width in header */}
         <div className="h-[26px] w-[95px]" aria-hidden />
 
         <nav className="pointer-events-auto flex items-center gap-6 sm:gap-9">
@@ -239,7 +243,7 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
             ))}
           </div>
           <button
-            className="group flex items-center gap-2 rounded-full bg-void-glass px-4 py-2 text-sm text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white"
+            className="group flex items-center gap-2 rounded-full bg-void-glass px-4 py-2 text-sm text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
             style={{
               border: '1px solid rgba(214,222,224,0.95)',
               boxShadow: '0 8px 22px -16px rgba(37,54,60,0.4)',
@@ -257,9 +261,7 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
           ref={wordmarkRef}
           style={{
             transformOrigin: 'center center',
-            transform: hasQuery
-              ? `translate3d(${initialMetrics.dxAt1}px, ${initialMetrics.dyAt1}px, 0) scale(${initialMetrics.markScaleRatio})`
-              : `translate3d(0, ${initialMetrics.heroWordmarkY}px, 0) scale(1)`,
+            transform: `translate3d(0, ${initialMetrics.heroWordmarkY}px, 0) scale(1)`,
           }}
           className="relative inline-flex items-center justify-center"
         >
@@ -280,8 +282,6 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
           style={{
             transformOrigin: 'center top',
             transform: `translate3d(0, ${initialMetrics.heroTaglineY}px, 0)`,
-            opacity: hasQuery ? 0 : 1,
-            visibility: hasQuery ? 'hidden' : 'visible',
           }}
         >
           <p className="void-label whitespace-nowrap text-center text-[12px] text-void-muted/90 select-none sm:text-sm">
@@ -296,50 +296,49 @@ export function ScrollHero({ query, hasQuery = false, mode, onMode, onSearch, on
           ref={searchRef}
           style={{
             transformOrigin: 'center top',
-            transform: hasQuery
-              ? `translate3d(0, ${initialMetrics.targetSearchY}px, 0) scale(${initialMetrics.targetSearchScale})`
-              : `translate3d(0, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
+            transform: `translate3d(0, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
           }}
         >
           <div className="pointer-events-auto">
-            <SearchBar value={value} onChange={setValue} onSubmit={handleSubmit} />
+            <SearchBar
+              value={value}
+              onChange={setValue}
+              onSubmit={handleSubmit}
+              compact={compact}
+            />
           </div>
         </div>
       </div>
 
-      {/* ModePills Container — max-w-4xl and centered relative to search bar */}
-      <div className="absolute left-1/2 top-0 w-full max-w-4xl -translate-x-1/2 px-2 sm:px-4">
+      {/* ModePills Container — max-w-4xl and compact sizing ensures all pills fit on one line */}
+      <div className="absolute left-1/2 top-0 w-full max-w-4xl -translate-x-1/2 px-4 sm:px-6">
         <div
           ref={pillsRef}
           style={{
             transformOrigin: 'center top',
-            transform: hasQuery
-              ? `translate3d(0, ${initialMetrics.targetPillsY}px, 0) scale(${initialMetrics.targetPillsScale})`
-              : `translate3d(0, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
+            transform: `translate3d(0, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
           }}
         >
-          <div className="pointer-events-auto flex justify-center">
-            <ModePills active={mode} onChange={onMode} />
+          <div className="pointer-events-auto">
+            <ModePills active={mode} onChange={onMode} compact={compact} />
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator (bouncing chevron) — only on homepage */}
-      {!hasQuery && (
-        <div
-          ref={scrollIndicatorRef}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 sm:bottom-4"
+      {/* Scroll indicator (bouncing chevron) */}
+      <div
+        ref={scrollIndicatorRef}
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 sm:bottom-4"
+      >
+        <button
+          onClick={handleScrollDown}
+          className="pointer-events-auto flex flex-col items-center gap-1 text-void-muted transition-colors hover:text-void-ink cursor-pointer sm:gap-1.5"
+          aria-label="Scroll to explore"
         >
-          <button
-            onClick={handleScrollDown}
-            className="pointer-events-auto flex flex-col items-center gap-1 text-void-muted transition-colors hover:text-void-ink cursor-pointer sm:gap-1.5"
-            aria-label="Scroll to explore"
-          >
-            <ChevronDown className="size-4 animate-bounce" style={{ animationDuration: '2.4s' }} />
-            <span className="void-label text-[10px]">Scroll to Explore</span>
-          </button>
-        </div>
-      )}
+          <ChevronDown className="size-4 animate-bounce" style={{ animationDuration: '2.4s' }} />
+          <span className="void-label text-[10px]">Scroll to Explore</span>
+        </button>
+      </div>
     </div>
   )
 }
