@@ -10,16 +10,28 @@ const prefersReduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+function smoothstep(min: number, max: number, value: number) {
+  const x = Math.max(0, Math.min(1, (value - min) / (max - min)))
+  return x * x * (3 - 2 * x)
+}
+
 /**
- * Layered, living VOID environment. The responsive artwork serves as the base plate;
+ * Layered, living VOID environment.
+ * The responsive artwork serves as the base plate;
  * floating middle sphere, mint halo, drifting clouds, floating particles, light rays
  * and reflection shimmer sit on top. Mouse + scroll drive restrained parallax via smoothed
  * CSS custom properties (--mx / --my / --sy) so every layer stays on the GPU.
+ *
+ * During scroll, the middle sphere co-animates with the VOID Wordmark:
+ * scaling down from 1.0 -> 0.15, translating towards the top-left header,
+ * and fading from 1.0 -> ~0.12 opacity to become a subtle celestial aura.
  */
 export function Scene() {
   const root = useRef<HTMLDivElement>(null)
+  const sphereRef = useRef<HTMLDivElement>(null)
+  const haloRef = useRef<HTMLDivElement>(null)
 
-  // particle field — density scales down on small / touch screens
+  // Particle field — density scales down on small / touch screens
   const particles = useMemo(() => {
     const wide = typeof window !== 'undefined' && window.innerWidth > 900
     const count = prefersReduced() ? 0 : wide ? 46 : 20
@@ -36,7 +48,7 @@ export function Scene() {
 
   useEffect(() => {
     const el = root.current
-    if (!el || prefersReduced()) return
+    if (!el) return
 
     let tx = 0, ty = 0, cx = 0, cy = 0
     let sy = 0, csy = 0
@@ -51,18 +63,73 @@ export function Scene() {
     }
 
     const tick = () => {
-      cx += (tx - cx) * 0.06
-      cy += (ty - cy) * 0.06
-      csy += (sy - csy) * 0.1
+      const isReduced = prefersReduced()
+      if (!isReduced) {
+        cx += (tx - cx) * 0.06
+        cy += (ty - cy) * 0.06
+        csy += (sy - csy) * 0.1
+      } else {
+        cx = 0
+        cy = 0
+        csy = sy
+      }
+
       el.style.setProperty('--mx', cx.toFixed(4))
       el.style.setProperty('--my', cy.toFixed(4))
       el.style.setProperty('--sy', csy.toFixed(2))
+
+      // Scroll-driven sphere co-animation
+      const w = window.innerWidth
+      const h = window.innerHeight
+      const isMobile = w <= 640
+      const isLg = w >= 1024
+
+      const transitionDistance = h * (isMobile ? 0.75 : 0.88)
+      const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
+      const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
+
+      // Initial hero sphere center geometry
+      const sphereD = Math.min(520, Math.max(260, w * 0.46))
+      const sphereTopRatio = isMobile ? 0.06 : w <= 768 ? 0.07 : 0.08
+      const sphereHeroCenterY = h * sphereTopRatio + sphereD / 2
+
+      // Target position behind top-left VOID Wordmark in header
+      const targetLeft = isMobile ? 20 : isLg ? 56 : 40
+      const targetTop = isMobile ? 20 : 24
+      const targetCenterX = targetLeft + 46
+      const targetCenterY = targetTop + 13
+
+      // Target scale & opacity
+      const targetScale = 0.15
+      const targetOpacity = 0.12
+
+      const dx = (targetCenterX - w / 2) * t
+      const dy = (targetCenterY - sphereHeroCenterY) * t
+      const scale = 1.0 + (targetScale - 1.0) * t
+      const op = 1.0 + (targetOpacity - 1.0) * t
+
+      // Restrained parallax fades out as sphere compacts
+      const parallaxFactor = 1 - t
+      const px = cx * -5 * parallaxFactor
+      const py = (cy * -5 - csy * 0.14) * parallaxFactor
+
+      if (sphereRef.current) {
+        sphereRef.current.style.transform = `translate3d(calc(-50% + ${(dx + px).toFixed(2)}px), ${(dy + py).toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        sphereRef.current.style.opacity = op.toFixed(3)
+      }
+
+      if (haloRef.current) {
+        const haloOp = Math.max(0.2, 1 - 0.75 * t)
+        haloRef.current.style.opacity = haloOp.toFixed(3)
+      }
+
       raf = requestAnimationFrame(tick)
     }
 
     window.addEventListener('pointermove', onMove, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
     raf = requestAnimationFrame(tick)
+
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('pointermove', onMove)
@@ -113,15 +180,18 @@ export function Scene() {
 
       {/* floating middle sphere / planet with atmospheric halo */}
       <div
+        ref={sphereRef}
         className="absolute left-1/2 top-[6%] sm:top-[7%] md:top-[8%]"
         style={{
+          transformOrigin: 'center center',
           transform:
             'translate3d(calc(-50% + var(--mx) * -5px), calc(var(--my) * -5px - var(--sy) * 0.14px), 0)',
         }}
       >
         {/* mint coronal halo aura */}
         <div
-          className="absolute -inset-[12%] rounded-full mix-blend-screen pointer-events-none"
+          ref={haloRef}
+          className="absolute -inset-[12%] rounded-full mix-blend-screen pointer-events-none transition-opacity duration-200"
           style={{
             animation: 'void-halo-pulse 9s ease-in-out infinite',
             background:

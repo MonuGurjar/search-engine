@@ -1,21 +1,26 @@
-import { useState } from 'react'
-import { ArrowLeft } from './icons'
 import { MODES } from './modes'
-import { ModePills } from './ModePills'
-import { SearchBar } from './SearchBar'
 import { Wordmark } from './Wordmark'
 
 type Props = {
   query: string
   mode: string
-  onMode: (id: string) => void
   onSearch: (q: string) => void
-  onHome: () => void
 }
 
-/** Deterministic mock results — the architecture is ready for a real backend. */
+const EXPLORATION_TOPICS = [
+  'Cryptographic privacy',
+  'Deep sea geology',
+  'Autonomous AI agents',
+  'Orbital mechanics',
+  'Zero knowledge proofs',
+  'Ancient libraries',
+]
+
+/** Deterministic mock results — ready for a live backend */
 function mockResults(query: string) {
   const q = query.trim()
+  if (!q) return []
+
   const domains = [
     'wikipedia.org',
     'arxiv.org',
@@ -48,64 +53,74 @@ function mockResults(query: string) {
   }))
 }
 
-export function Results({ query, mode, onMode, onSearch, onHome }: Props) {
-  const [value, setValue] = useState(query)
+export function Results({ query, mode, onSearch }: Props) {
+  const hasQuery = Boolean(query.trim())
   const results = mockResults(query)
   const modeLabel = MODES.find((m) => m.id === mode)?.label ?? 'Web'
 
   return (
-    <section className="relative min-h-[calc(100vh-88px)]">
-      <div className="mx-auto w-full max-w-5xl px-6 pt-4 sm:px-10">
-        {/* search row */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onHome}
-            aria-label="Back to home"
-            className="hidden shrink-0 items-center gap-2 text-sm text-void-muted transition-colors hover:text-void-ink sm:flex"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
-          <div className="flex-1">
-            <SearchBar value={value} onChange={setValue} onSubmit={onSearch} compact />
+    <section className="relative min-h-[calc(100vh-200px)]">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-6 sm:px-10">
+        {hasQuery ? (
+          <>
+            {/* Meta status line */}
+            <p className="text-[13px] text-void-faint">
+              {results.length}+ private results for{' '}
+              <span className="font-medium text-void-muted">“{query}”</span> in {modeLabel} · no
+              history saved
+            </p>
+
+            {/* Results list */}
+            <ol className="mt-4 flex flex-col divide-y divide-void-line/60">
+              {results.map((r, i) => (
+                <li key={i} className="group py-6">
+                  <div className="flex items-center gap-2 text-[13px] text-void-muted">
+                    <span className="grid size-5 place-items-center rounded-full bg-void-green/12 text-[10px] font-medium text-void-green">
+                      {r.domain[0].toUpperCase()}
+                    </span>
+                    <span>
+                      {r.domain}
+                      {r.path}
+                    </span>
+                  </div>
+                  <a
+                    href="#"
+                    className="mt-1.5 block font-display text-xl font-normal text-void-ink transition-colors group-hover:text-void-green"
+                  >
+                    {r.title}
+                  </a>
+                  <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-void-muted">
+                    {r.snippet}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </>
+        ) : (
+          /* Exploration state when scrolling down before typing a query */
+          <div className="py-8 text-center sm:py-12">
+            <p className="void-label text-xs tracking-widest text-void-faint">
+              Explore Without Being Tracked
+            </p>
+            <h3 className="mt-2 font-display text-2xl font-light text-void-ink sm:text-3xl">
+              Curated queries for the curious mind
+            </h3>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+              {EXPLORATION_TOPICS.map((topic) => (
+                <button
+                  key={topic}
+                  onClick={() => onSearch(topic)}
+                  className="rounded-full border border-void-line/80 bg-white/70 px-4 py-2 text-sm text-void-ink backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green cursor-pointer"
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mt-5">
-          <div className="flex justify-center sm:justify-start">
-            <ModePills active={mode} onChange={onMode} compact />
-          </div>
-        </div>
-
-        {/* meta */}
-        <p className="mt-6 text-[13px] text-void-faint">
-          {results.length}+ private results for{' '}
-          <span className="text-void-muted">“{query}”</span> in {modeLabel} · no history saved
-        </p>
-
-        {/* results */}
-        <ol className="mt-4 flex flex-col divide-y divide-void-line/60">
-          {results.map((r, i) => (
-            <li key={i} className="group py-6">
-              <div className="flex items-center gap-2 text-[13px] text-void-muted">
-                <span className="grid size-5 place-items-center rounded-full bg-void-green/12 text-void-green text-[10px] font-medium">
-                  {r.domain[0].toUpperCase()}
-                </span>
-                <span>{r.domain}{r.path}</span>
-              </div>
-              <a
-                href="#"
-                className="mt-1.5 block font-display text-xl font-normal text-void-ink transition-colors group-hover:text-void-green"
-              >
-                {r.title}
-              </a>
-              <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-void-muted">
-                {r.snippet}
-              </p>
-            </li>
-          ))}
-        </ol>
-
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
+        {/* End of results mark */}
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
           <Wordmark size={22} />
           <p className="void-label text-[10px] text-void-faint">The end of the void</p>
         </div>
