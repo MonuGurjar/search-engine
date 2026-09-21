@@ -44,8 +44,16 @@ export default function App() {
           aria-hidden
         />
 
-        {/* Results / Exploration area positioned cleanly below the compact header */}
-        <div className="pt-[175px] sm:pt-[185px]">
+        {/* Results / Exploration area positioned cleanly below the fixed header */}
+        <div
+          className="pt-[115px] sm:pt-[125px]"
+          style={{
+            WebkitMaskImage:
+              'linear-gradient(to bottom, transparent 0px, transparent 75px, black 115px, black 100%)',
+            maskImage:
+              'linear-gradient(to bottom, transparent 0px, transparent 75px, black 115px, black 100%)',
+          }}
+        >
           <Results query={query} mode={mode} onSearch={runSearch} />
         </div>
       </main>

@@ -87,7 +87,6 @@ export function Scene() {
       const transitionDistance = h * (isMobile ? 0.75 : 0.88)
       const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
       const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
-      const scrollOffset = Math.max(0, sy - transitionDistance)
 
       // Sphere geometry matching ScrollHero (capped to 48% viewport height)
       const sphereD = Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
@@ -96,16 +95,15 @@ export function Scene() {
 
       // Target position behind top-left VOID Wordmark in header
       const targetLeft = isMobile ? 20 : isLg ? 56 : 40
-      const targetTop = isMobile ? 20 : 24
       const targetCenterX = targetLeft + 46
-      const targetCenterY = targetTop + 13
+      const targetCenterY = isMobile ? 28 : 38
 
       // Target scale & opacity
       const targetScale = 0.15
       const targetOpacity = 0.12
 
       const dx = (targetCenterX - w / 2) * t
-      const dy = (targetCenterY - sphereHeroCenterY) * t - (t >= 0.99 ? scrollOffset : 0)
+      const dy = (targetCenterY - sphereHeroCenterY) * t
       const scale = 1.0 + (targetScale - 1.0) * t
       const op = 1.0 + (targetOpacity - 1.0) * t
 

@@ -31,19 +31,14 @@ function calculateMetrics() {
       markScaleRatio: 0.25,
       heroWordmarkY: 270,
       dxAt1: -618,
-      dyAt1: 37,
+      dyAt1: 38,
       heroTaglineY: 338,
-      searchWidth: 660,
-      heroSearchLeft: 390,
       heroSearchY: 510,
-      targetSearchLeft: 56,
-      targetSearchY: 70,
-      targetSearchScale: 0.92,
-      pillsWidth: 720,
-      heroPillsLeft: 360,
-      heroPillsY: 570,
-      targetPillsY: 124,
-      targetPillsScale: 0.9,
+      heroPillsY: 560,
+      targetSearchY: 18,
+      targetPillsY: 66,
+      targetSearchScale: 0.88,
+      targetPillsScale: 0.88,
     }
   }
 
@@ -66,9 +61,10 @@ function calculateMetrics() {
   const markScaleRatio = targetMark / heroMark
 
   const targetLeft = isMobile ? 20 : isLg ? 56 : 40
-  const targetTop = isMobile ? 20 : 24
+  // On desktop, top row elements (VOID, SearchBar, Settings) share vertical center ~38px
+  const targetTopRowY = isMobile ? 18 : 18
   const targetMarkCenterX = targetLeft + 46
-  const targetMarkCenterY = targetTop + 13
+  const targetMarkCenterY = isMobile ? 28 : 38
 
   const heroCenterX = w / 2
   const heroWordmarkY = sphereCenterY
@@ -78,20 +74,16 @@ function calculateMetrics() {
   // Tagline sits directly under hero wordmark within the sphere core
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
 
-  // Search bar geometry
-  const searchWidth = Math.min(680, w - (isMobile ? 40 : 64))
-  const heroSearchLeft = (w - searchWidth) / 2
+  // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
   const heroSearchY = sphereBottom + (isMobile ? 14 : 20)
-  const targetSearchLeft = targetLeft
-  const targetSearchY = isMobile ? 64 : 70
-  const targetSearchScale = isMobile ? 0.9 : 0.92
+  // Category pills sit neatly below the thin search bar
+  const heroPillsY = heroSearchY + 46 + (isMobile ? 10 : 14)
 
-  // Category pills geometry (stays horizontally centered)
-  const pillsWidth = Math.min(740, w - (isMobile ? 32 : 64))
-  const heroPillsLeft = (w - pillsWidth) / 2
-  const heroPillsY = heroSearchY + 48 + (isMobile ? 12 : 16)
-  const targetPillsY = isMobile ? 116 : 124
-  const targetPillsScale = isMobile ? 0.9 : 0.9
+  // In final state (Panel 4): SearchBar aligns horizontally in the top bar row on desktop
+  const targetSearchY = isMobile ? 56 : 18
+  const targetPillsY = isMobile ? 102 : 66
+  const targetSearchScale = isMobile ? 0.9 : 0.88
+  const targetPillsScale = isMobile ? 0.9 : 0.88
 
   return {
     transitionDistance,
@@ -101,16 +93,11 @@ function calculateMetrics() {
     dxAt1,
     dyAt1,
     heroTaglineY,
-    searchWidth,
-    heroSearchLeft,
     heroSearchY,
-    targetSearchLeft,
-    targetSearchY,
-    targetSearchScale,
-    pillsWidth,
-    heroPillsLeft,
     heroPillsY,
+    targetSearchY,
     targetPillsY,
+    targetSearchScale,
     targetPillsScale,
   }
 }
@@ -121,7 +108,6 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   const [markSize, setMarkSize] = useState(104)
   const [compact, setCompact] = useState(false)
 
-  const navRef = useRef<HTMLElement>(null)
   const wordmarkRef = useRef<HTMLDivElement>(null)
   const taglineRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -152,10 +138,6 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
       const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
 
-      // When on results page and user scrolls deeper through the results
-      const resultsScroll = Math.max(0, sy - m.transitionDistance)
-      const resultsShift = smoothstep(0, 1, Math.min(1, resultsScroll / 150))
-
       // Turn off pulse when leaving hero
       const shouldPulse = rawT < 0.25
       setPulse((prev) => (prev !== shouldPulse ? shouldPulse : prev))
@@ -172,12 +154,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 2. Top nav bar stays fixed at top-right
-      if (navRef.current) {
-        navRef.current.style.transform = 'translate3d(0, 0, 0)'
-      }
-
-      // 3. Tagline (fades out during hero scroll)
+      // 2. Tagline (fades out and shifts gently upward)
       if (taglineRef.current) {
         const op = Math.max(0, 1 - rawT / 0.22)
         const ty = -14 * (1 - op)
@@ -186,32 +163,21 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
       }
 
-      // 4. SearchBar:
-      // - Initial results page state (resultsScroll = 0): CENTERED! (as in media_1790027061322.jpg)
-      // - ONLY when user scrolls down on results page (resultsShift > 0): smoothly shifts to the left under VOID!
+      // 3. SearchBar (hero center -> fixed top bar, perfectly centered)
       if (searchRef.current) {
-        const targetX = m.heroSearchLeft + (m.targetSearchLeft - m.heroSearchLeft) * resultsShift
-        const curY = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
+        const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
         const scale = 1.0 + (m.targetSearchScale - 1.0) * t
-        searchRef.current.style.transform = `translate3d(${targetX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-        searchRef.current.style.width = `${m.searchWidth}px`
+        searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 5. ModePills:
-      // - Stays horizontally centered!
-      // - On results page initial state: centered under search bar (as in media_1790027061322.jpg)
-      // - When user scrolls down results: scrolls up and away with the results content
+      // 4. ModePills (hero -> below compact search bar, perfectly centered)
       if (pillsRef.current) {
-        const curY = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - resultsScroll
+        const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t
         const scale = 1.0 + (m.targetPillsScale - 1.0) * t
-        const op = Math.max(0, 1 - resultsScroll / 90)
-        pillsRef.current.style.transform = `translate3d(${m.heroPillsLeft.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-        pillsRef.current.style.opacity = op.toFixed(3)
-        pillsRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
-        pillsRef.current.style.width = `${m.pillsWidth}px`
+        pillsRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 6. Scroll indicator (fades out quickly)
+      // 5. Scroll indicator (fades out quickly)
       if (scrollIndicatorRef.current) {
         const op = Math.max(0, 1 - rawT / 0.12)
         scrollIndicatorRef.current.style.opacity = op.toFixed(3)
@@ -256,10 +222,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
       {/* Top navigation row (About, Privacy, Features, Settings) */}
-      <header
-        ref={navRef}
-        className="relative z-40 flex items-center justify-between px-5 py-5 sm:px-10 sm:py-6 lg:px-14"
-      >
+      <header className="relative z-40 flex items-center justify-between px-5 py-4 sm:px-10 sm:py-5 lg:px-14">
         {/* Spacer matching compact Wordmark width in header */}
         <div className="h-[26px] w-[95px]" aria-hidden />
 
@@ -323,38 +286,38 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* SearchBar Container — centered on results page, only shifts left when scrolling down results */}
-      <div
-        ref={searchRef}
-        className="absolute left-0 top-0 pointer-events-none"
-        style={{
-          transformOrigin: 'top left',
-          transform: `translate3d(${initialMetrics.heroSearchLeft}px, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
-          width: `${initialMetrics.searchWidth}px`,
-        }}
-      >
-        <div className="pointer-events-auto w-full">
-          <SearchBar
-            value={value}
-            onChange={setValue}
-            onSubmit={handleSubmit}
-            compact={compact}
-          />
+      {/* SearchBar Container — horizontally centered at left-1/2, perfectly aligned */}
+      <div className="absolute left-1/2 top-0 w-full max-w-xl sm:max-w-2xl -translate-x-1/2 px-4 sm:px-6">
+        <div
+          ref={searchRef}
+          style={{
+            transformOrigin: 'center top',
+            transform: `translate3d(0, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
+          }}
+        >
+          <div className="pointer-events-auto">
+            <SearchBar
+              value={value}
+              onChange={setValue}
+              onSubmit={handleSubmit}
+              compact={compact}
+            />
+          </div>
         </div>
       </div>
 
-      {/* ModePills Container — always centered horizontally under search bar */}
-      <div
-        ref={pillsRef}
-        className="absolute left-0 top-0 pointer-events-none"
-        style={{
-          transformOrigin: 'top center',
-          transform: `translate3d(${initialMetrics.heroPillsLeft}px, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
-          width: `${initialMetrics.pillsWidth}px`,
-        }}
-      >
-        <div className="pointer-events-auto w-full">
-          <ModePills active={mode} onChange={onMode} compact={compact} />
+      {/* ModePills Container — horizontally centered directly below the search bar */}
+      <div className="absolute left-1/2 top-0 w-full max-w-xl sm:max-w-2xl -translate-x-1/2 px-2 sm:px-4">
+        <div
+          ref={pillsRef}
+          style={{
+            transformOrigin: 'center top',
+            transform: `translate3d(0, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
+          }}
+        >
+          <div className="pointer-events-auto flex justify-center">
+            <ModePills active={mode} onChange={onMode} compact={compact} />
+          </div>
         </div>
       </div>
 

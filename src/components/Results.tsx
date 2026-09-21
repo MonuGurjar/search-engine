@@ -59,8 +59,8 @@ export function Results({ query, mode, onSearch }: Props) {
   const modeLabel = MODES.find((m) => m.id === mode)?.label ?? 'Web'
 
   return (
-    <section className="relative flex min-h-[calc(100vh-210px)] flex-col justify-between">
-      <div className="mx-auto w-full max-w-5xl px-6 pt-4 sm:px-10">
+    <section className="relative min-h-[calc(100vh-200px)]">
+      <div className="mx-auto w-full max-w-5xl px-6 pt-6 sm:px-10">
         {hasQuery ? (
           <>
             {/* Meta status line */}
@@ -98,7 +98,7 @@ export function Results({ query, mode, onSearch }: Props) {
           </>
         ) : (
           /* Exploration state when scrolling down before typing a query */
-          <div className="pt-6 text-center sm:pt-10">
+          <div className="py-8 text-center sm:py-12">
             <p className="void-label text-xs tracking-widest text-void-faint">
               Explore Without Being Tracked
             </p>
@@ -110,7 +110,7 @@ export function Results({ query, mode, onSearch }: Props) {
                 <button
                   key={topic}
                   onClick={() => onSearch(topic)}
-                  className="rounded-full border border-void-line/80 bg-white/75 px-4 py-2 text-sm text-void-ink backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green cursor-pointer"
+                  className="rounded-full border border-void-line/80 bg-white/70 px-4 py-2 text-sm text-void-ink backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green cursor-pointer"
                 >
                   {topic}
                 </button>
@@ -118,12 +118,12 @@ export function Results({ query, mode, onSearch }: Props) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* End of results mark — pushed down to the bottom of the viewport */}
-      <div className="mt-auto flex flex-col items-center gap-2.5 pt-20 pb-10 text-center">
-        <Wordmark size={22} />
-        <p className="void-label text-[10px] text-void-faint">The end of the void</p>
+        {/* End of results mark */}
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
+          <Wordmark size={22} />
+          <p className="void-label text-[10px] text-void-faint">The end of the void</p>
+        </div>
       </div>
     </section>
   )
