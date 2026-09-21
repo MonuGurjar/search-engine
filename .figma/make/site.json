@@ -1,0 +1,11 @@
+{
+  "title": "VOID — A Quieter Way to Search",
+  "description": "A private, minimalist search engine designed for clarity and calm discovery.",
+  "robots": {
+    "index": true
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
