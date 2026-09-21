@@ -8,7 +8,11 @@ type Props = {
 
 export function ModePills({ active, onChange, compact = false }: Props) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+    <div
+      className={`flex flex-wrap items-center gap-2 sm:gap-2.5 ${
+        compact ? 'justify-start' : 'justify-center'
+      }`}
+    >
       {MODES.map(({ id, label, Icon }) => {
         const selected = id === active
         return (
@@ -16,8 +20,10 @@ export function ModePills({ active, onChange, compact = false }: Props) {
             key={id}
             onClick={() => onChange(id)}
             aria-pressed={selected}
-            className={`group flex items-center gap-2 rounded-full text-void-ink backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-0.5 ${
-              compact ? 'px-4 py-1.5 text-[13px]' : 'px-4 py-2 text-[13px] sm:px-5 sm:py-2.5 sm:text-[15px]'
+            className={`group flex items-center gap-2 rounded-full text-void-ink backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-0.5 cursor-pointer ${
+              compact
+                ? 'px-3.5 py-1.5 text-[13px]'
+                : 'px-4 py-2 text-[13px] sm:px-5 sm:py-2.5 sm:text-[15px]'
             }`}
             style={{
               background: 'rgba(255,255,255,0.96)',

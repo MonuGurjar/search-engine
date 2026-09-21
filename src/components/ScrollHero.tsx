@@ -33,12 +33,18 @@ function calculateMetrics() {
       dxAt1: -618,
       dyAt1: 37,
       heroTaglineY: 338,
+      searchWidth: 660,
+      heroSearchLeft: 390,
       heroSearchY: 510,
-      heroPillsY: 572,
-      targetSearchY: 74,
-      targetPillsY: 130,
-      targetSearchScale: 0.88,
-      targetPillsScale: 0.88,
+      targetSearchLeft: 56,
+      targetSearchY: 72,
+      targetSearchScale: 0.92,
+      pillsWidth: 720,
+      heroPillsLeft: 360,
+      heroPillsY: 570,
+      targetPillsLeft: 56,
+      targetPillsY: 124,
+      targetPillsScale: 0.92,
     }
   }
 
@@ -73,15 +79,21 @@ function calculateMetrics() {
   // Tagline sits directly under hero wordmark within the sphere core
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
 
-  // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
+  // Search bar geometry
+  const searchWidth = Math.min(680, w - (isMobile ? 40 : 64))
+  const heroSearchLeft = (w - searchWidth) / 2
   const heroSearchY = sphereBottom + (isMobile ? 14 : 20)
-  // Category pills sit neatly below the thin search bar
-  const heroPillsY = heroSearchY + 48 + (isMobile ? 12 : 16)
+  const targetSearchLeft = targetLeft
+  const targetSearchY = isMobile ? 64 : 70
+  const targetSearchScale = isMobile ? 0.9 : 0.92
 
-  const targetSearchY = isMobile ? 66 : 74
-  const targetPillsY = isMobile ? 120 : 130
-  const targetSearchScale = isMobile ? 0.88 : 0.86
-  const targetPillsScale = isMobile ? 0.88 : 0.88
+  // Category pills geometry
+  const pillsWidth = Math.min(740, w - (isMobile ? 32 : 64))
+  const heroPillsLeft = (w - pillsWidth) / 2
+  const heroPillsY = heroSearchY + 48 + (isMobile ? 12 : 16)
+  const targetPillsLeft = targetLeft
+  const targetPillsY = isMobile ? 116 : 124
+  const targetPillsScale = isMobile ? 0.9 : 0.92
 
   return {
     transitionDistance,
@@ -91,11 +103,17 @@ function calculateMetrics() {
     dxAt1,
     dyAt1,
     heroTaglineY,
+    searchWidth,
+    heroSearchLeft,
     heroSearchY,
-    heroPillsY,
+    targetSearchLeft,
     targetSearchY,
-    targetPillsY,
     targetSearchScale,
+    pillsWidth,
+    heroPillsLeft,
+    heroPillsY,
+    targetPillsLeft,
+    targetPillsY,
     targetPillsScale,
   }
 }
@@ -171,18 +189,22 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
       }
 
-      // 4. SearchBar (hero center -> compact top header, then scrolls with results)
+      // 4. SearchBar (glides from center hero -> LEFT-ALIGNED compact top header)
       if (searchRef.current) {
-        const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t - scrollOffset
+        const curX = m.heroSearchLeft + (m.targetSearchLeft - m.heroSearchLeft) * t
+        const curY = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t - scrollOffset
         const scale = 1.0 + (m.targetSearchScale - 1.0) * t
-        searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        searchRef.current.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        searchRef.current.style.width = `${m.searchWidth}px`
       }
 
-      // 5. ModePills (hero -> below compact search bar, then scrolls with results)
+      // 5. ModePills (glides from center hero -> LEFT-ALIGNED below search bar)
       if (pillsRef.current) {
-        const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - scrollOffset
+        const curX = m.heroPillsLeft + (m.targetPillsLeft - m.heroPillsLeft) * t
+        const curY = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t - scrollOffset
         const scale = 1.0 + (m.targetPillsScale - 1.0) * t
-        pillsRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        pillsRef.current.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        pillsRef.current.style.width = `${m.pillsWidth}px`
       }
 
       // 6. Scroll indicator (fades out quickly)
@@ -297,38 +319,38 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         </div>
       </div>
 
-      {/* SearchBar Container — positioned downward below the full sphere */}
-      <div className="absolute left-1/2 top-0 w-full max-w-3xl -translate-x-1/2 px-5 sm:px-6">
-        <div
-          ref={searchRef}
-          style={{
-            transformOrigin: 'center top',
-            transform: `translate3d(0, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
-          }}
-        >
-          <div className="pointer-events-auto">
-            <SearchBar
-              value={value}
-              onChange={setValue}
-              onSubmit={handleSubmit}
-              compact={compact}
-            />
-          </div>
+      {/* SearchBar Container — glides to the left under VOID on scroll */}
+      <div
+        ref={searchRef}
+        className="absolute left-0 top-0 pointer-events-none"
+        style={{
+          transformOrigin: 'top left',
+          transform: `translate3d(${initialMetrics.heroSearchLeft}px, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
+          width: `${initialMetrics.searchWidth}px`,
+        }}
+      >
+        <div className="pointer-events-auto w-full">
+          <SearchBar
+            value={value}
+            onChange={setValue}
+            onSubmit={handleSubmit}
+            compact={compact}
+          />
         </div>
       </div>
 
-      {/* ModePills Container — positioned just below the thin search bar */}
-      <div className="absolute left-1/2 top-0 w-full max-w-4xl -translate-x-1/2 px-4 sm:px-6">
-        <div
-          ref={pillsRef}
-          style={{
-            transformOrigin: 'center top',
-            transform: `translate3d(0, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
-          }}
-        >
-          <div className="pointer-events-auto">
-            <ModePills active={mode} onChange={onMode} compact={compact} />
-          </div>
+      {/* ModePills Container — glides to the left under SearchBar on scroll */}
+      <div
+        ref={pillsRef}
+        className="absolute left-0 top-0 pointer-events-none"
+        style={{
+          transformOrigin: 'top left',
+          transform: `translate3d(${initialMetrics.heroPillsLeft}px, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
+          width: `${initialMetrics.pillsWidth}px`,
+        }}
+      >
+        <div className="pointer-events-auto w-full">
+          <ModePills active={mode} onChange={onMode} compact={compact} />
         </div>
       </div>
 
