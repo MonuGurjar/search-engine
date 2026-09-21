@@ -307,7 +307,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       </div>
 
       {/* ModePills Container — horizontally centered directly below the search bar */}
-      <div className="absolute left-1/2 top-0 w-full max-w-xl sm:max-w-2xl -translate-x-1/2 px-2 sm:px-4">
+      <div className="absolute left-1/2 top-0 w-full max-w-3xl sm:max-w-4xl -translate-x-1/2 px-2 sm:px-4">
         <div
           ref={pillsRef}
           style={{
