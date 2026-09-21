@@ -15,18 +15,18 @@ function smoothstep(min: number, max: number, value: number) {
   return x * x * (3 - 2 * x)
 }
 
+type Props = {
+  hasQuery?: boolean
+}
+
 /**
  * Layered, living VOID environment.
  * The responsive artwork serves as the base plate;
  * floating middle sphere, mint halo, drifting clouds, floating particles, light rays
  * and reflection shimmer sit on top. Mouse + scroll drive restrained parallax via smoothed
  * CSS custom properties (--mx / --my / --sy) so every layer stays on the GPU.
- *
- * During scroll, the middle sphere co-animates with the VOID Wordmark:
- * scaling down from 1.0 -> 0.15, translating towards the top-left header,
- * and fading from 1.0 -> ~0.12 opacity to become a subtle celestial aura.
  */
-export function Scene() {
+export function Scene({ hasQuery = false }: Props) {
   const root = useRef<HTMLDivElement>(null)
   const sphereRef = useRef<HTMLDivElement>(null)
   const haloRef = useRef<HTMLDivElement>(null)
@@ -85,7 +85,7 @@ export function Scene() {
       const isLg = w >= 1024
 
       const transitionDistance = h * (isMobile ? 0.75 : 0.88)
-      const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
+      const rawT = hasQuery ? 1 : Math.min(1, Math.max(0, sy / transitionDistance))
       const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
 
       // Initial hero sphere center geometry
@@ -135,7 +135,7 @@ export function Scene() {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('scroll', onScroll)
     }
-  }, [])
+  }, [hasQuery])
 
   return (
     <div
