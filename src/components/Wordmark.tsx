@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, Ref } from 'react'
 
 type Props = {
   /** height of the wordmark in px, letters scale from this */
@@ -9,13 +9,25 @@ type Props = {
   ring?: boolean
   /** give the ring a slow atmospheric pulse */
   pulse?: boolean
+  vRef?: Ref<HTMLSpanElement>
+  oRef?: Ref<HTMLSpanElement>
+  idRef?: Ref<HTMLSpanElement>
 }
 
 /**
  * VOID wordmark — thin geometric letters with a green accent ring around the O.
- * Rendered as text so it stays crisp and selectable.
+ * Rendered as text with individual letter refs so V, I, D can animate away on mobile scroll.
  */
-export function Wordmark({ size = 28, className = '', ring = true, pulse = false, style }: Props) {
+export function Wordmark({
+  size = 28,
+  className = '',
+  ring = true,
+  pulse = false,
+  vRef,
+  oRef,
+  idRef,
+  style,
+}: Props) {
   const gap = size * 0.34
   return (
     <span
@@ -23,25 +35,37 @@ export function Wordmark({ size = 28, className = '', ring = true, pulse = false
       style={{ fontSize: size, lineHeight: 1, fontWeight: 300, gap, ...style }}
       aria-label="VOID"
     >
-      <span>V</span>
-      <span className="relative inline-flex items-center justify-center">
-        <span className="relative z-10">O</span>
+      <span ref={vRef} className="inline-block shrink-0 will-change-transform">
+        V
+      </span>
+      <span
+        ref={oRef}
+        className="relative inline-flex items-center justify-center shrink-0 will-change-transform"
+      >
+        <span className="relative z-10 leading-none">O</span>
         {ring && (
           <span
             aria-hidden
-            className="absolute rounded-full"
+            className="absolute rounded-full pointer-events-none"
             style={{
               width: size * 0.92,
               height: size * 0.92,
               border: `${Math.max(1.2, size * 0.028)}px solid var(--color-void-green)`,
-              boxShadow: `0 0 ${size * 0.5}px rgba(47,125,84,0.28)`,
+              boxShadow: `0 0 ${size * 0.5}px rgba(47,125,84,0.35)`,
               animation: pulse ? 'void-ring-pulse 5.5s ease-in-out infinite' : undefined,
             }}
           />
         )}
       </span>
-      <span>I</span>
-      <span>D</span>
+      <span
+        ref={idRef}
+        className="inline-flex items-center shrink-0 will-change-transform"
+        style={{ gap }}
+      >
+        <span>I</span>
+        <span>D</span>
+      </span>
     </span>
   )
 }
+

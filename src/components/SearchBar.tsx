@@ -7,8 +7,6 @@ type Props = {
   onSubmit: (v: string) => void
   compact?: boolean
   autoFocus?: boolean
-  showMobileLogo?: boolean
-  onHome?: () => void
 }
 
 export function SearchBar({
@@ -17,8 +15,6 @@ export function SearchBar({
   onSubmit,
   compact = false,
   autoFocus,
-  showMobileLogo = false,
-  onHome,
 }: Props) {
   const [focused, setFocused] = useState(false)
 
@@ -42,43 +38,18 @@ export function SearchBar({
       <div
         className={`flex items-center ${
           compact
-            ? 'gap-2 pl-3.5 pr-1.5 py-1'
+            ? 'gap-2 pl-10 sm:pl-3.5 pr-1.5 py-1'
             : 'gap-3 pl-4 sm:pl-6 pr-1.5 sm:pr-2 py-1.5 sm:py-2'
         }`}
       >
-        {showMobileLogo ? (
-          <>
-            {/* On mobile: VOID logo in left corner of search bar */}
-            <button
-              type="button"
-              onClick={onHome}
-              aria-label="VOID Home"
-              title="VOID Home"
-              className="group -ml-1 flex sm:hidden size-7 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 cursor-pointer"
-            >
-              <span className="relative flex size-6 items-center justify-center font-display select-none">
-                <span className="relative z-10 text-[13px] font-semibold tracking-tight text-void-ink transition-colors group-hover:text-void-green">
-                  V
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute inset-0 rounded-full border-[1.6px] border-void-green transition-shadow group-hover:shadow-[0_0_10px_rgba(47,125,84,0.6)]"
-                  style={{ boxShadow: '0 0 6px rgba(47,125,84,0.38)' }}
-                />
-              </span>
-            </button>
-            {/* On desktop: standard SearchIcon */}
-            <SearchIcon className="hidden sm:block size-4 text-void-muted shrink-0" />
-          </>
-        ) : (
-          <SearchIcon
-            className={
-              compact
-                ? 'size-4 text-void-muted shrink-0'
-                : 'size-5 text-void-muted shrink-0'
-            }
-          />
-        )}
+        {/* On desktop: standard SearchIcon. On mobile when compact: hidden to leave slot for animated VOID O logo */}
+        <SearchIcon
+          className={
+            compact
+              ? 'hidden sm:block size-4 text-void-muted shrink-0'
+              : 'size-5 text-void-muted shrink-0'
+          }
+        />
         <input
           autoFocus={autoFocus}
           value={value}
