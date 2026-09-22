@@ -27,8 +27,11 @@ export function Wordmark({
   idRef,
   style,
 }: Props) {
-  const gap = size * 0.28
-  const logoSize = Math.round(size * 1.1)
+  const gap = Math.round(size * 0.24)
+  const logoHeight = Math.round(size * 1.10)
+  const logoWidth = Math.round(logoHeight * 1.4567)
+  const marginLeft = -Math.round(size * 0.15)
+  const marginRight = -Math.round(size * 0.13)
 
   return (
     <span
@@ -42,15 +45,20 @@ export function Wordmark({
       <span
         ref={oRef}
         className="relative inline-flex items-center justify-center shrink-0 will-change-transform select-none"
-        style={{ width: logoSize, height: logoSize }}
+        style={{
+          width: logoWidth,
+          height: logoHeight,
+          marginLeft,
+          marginRight,
+        }}
       >
         <img
           src={logoImg}
           alt="O"
-          width={logoSize}
-          height={logoSize}
+          width={logoWidth}
+          height={logoHeight}
           draggable={false}
-          className={`size-full object-contain pointer-events-none drop-shadow-[0_2px_10px_rgba(56,189,248,0.45)] transition-all ${
+          className={`size-full object-contain pointer-events-none drop-shadow-[0_2px_12px_rgba(56,189,248,0.45)] transition-all ${
             pulse ? 'animate-pulse' : ''
           }`}
         />

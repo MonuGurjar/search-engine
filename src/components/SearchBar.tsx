@@ -59,7 +59,7 @@ export function SearchBar({
             <img
               src={logoImg}
               alt="VOID"
-              className="size-6 object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(56,189,248,0.5)] transition-transform duration-200 group-hover:scale-110"
+              className="h-5 w-auto max-w-[28px] object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(56,189,248,0.5)] transition-transform duration-200 group-hover:scale-110"
               draggable={false}
             />
           </button>
