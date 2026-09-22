@@ -134,104 +134,109 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
     let rafId = 0
 
     const tick = () => {
-      const m = calculateMetrics()
-      const sy = window.scrollY
-      const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
-      const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
-
-      // Turn off pulse when leaving hero
-      const shouldPulse = rawT < 0.25
-      setPulse((prev) => (prev !== shouldPulse ? shouldPulse : prev))
-
-      // Compact state for pills and searchbar
-      const isCompact = rawT > 0.45
-      setCompact((prev) => (prev !== isCompact ? isCompact : prev))
-
-      // 0. Frosted Glass Header Bar: morphs directly from the central sphere into the top rounded bar
-      if (headerBgRef.current) {
-        const morphT = prefersReduced()
-          ? (rawT >= 0.5 ? 1 : 0)
-          : smoothstep(0.04, 0.94, rawT)
-
-        if (morphT <= 0.001) {
-          headerBgRef.current.style.opacity = '0'
-          headerBgRef.current.style.visibility = 'hidden'
-          headerBgRef.current.style.pointerEvents = 'none'
-        } else {
-          headerBgRef.current.style.visibility = 'visible'
-          const op = smoothstep(0.04, 0.40, rawT)
-          headerBgRef.current.style.opacity = op.toFixed(3)
-          headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
-
-          const currentCenterY = m.sphereCenterY + (m.targetCenterY - m.sphereCenterY) * morphT
-          const currentWidth = m.sphereD + (m.targetWidth - m.sphereD) * morphT
-          const currentHeight = m.sphereD + (m.targetHeight - m.sphereD) * morphT
-          const currentLeft = (w - currentWidth) / 2
-          const currentTop = currentCenterY - currentHeight / 2
-
-          // Target border radius: capsule pill on both mobile and desktop
-          const targetRadius = m.targetHeight / 2
-          const currentRadius = m.sphereD / 2 + (targetRadius - m.sphereD / 2) * morphT
-
-          // Smoothly fade in border as it morphs into the header capsule
-          const borderOp = smoothstep(0.12, 0.60, rawT)
-          headerBgRef.current.style.borderColor = `rgba(216, 222, 224, ${borderOp.toFixed(3)})`
-
-          headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
-          headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
-          headerBgRef.current.style.width = `${currentWidth.toFixed(1)}px`
-          headerBgRef.current.style.height = `${currentHeight.toFixed(1)}px`
-          headerBgRef.current.style.borderRadius = `${currentRadius.toFixed(1)}px`
-        }
-      }
-
-      // 1. VOID Wordmark transform (fades away on mobile; scales & translates to top-left header on desktop)
-      if (wordmarkRef.current) {
+      try {
         const w = window.innerWidth
+        const h = window.innerHeight
         const isMobileNow = w <= 640
-        if (isMobileNow) {
-          // On mobile: Full VOID wordmark stays centered in hero and fades away smoothly as search bar moves to top
-          const op = prefersReduced()
-            ? (rawT >= 0.2 ? 0 : 1)
-            : Math.max(0, 1 - rawT / 0.35)
-          const ty = -24 * (1 - op)
-          wordmarkRef.current.style.transform = `translate3d(0, ${(m.heroWordmarkY + ty).toFixed(2)}px, 0) scale(${(1 - 0.04 * (1 - op)).toFixed(3)})`
-          wordmarkRef.current.style.opacity = op.toFixed(3)
-          wordmarkRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
-          wordmarkRef.current.style.pointerEvents = op <= 0.2 ? 'none' : 'auto'
-        } else {
-          // Desktop: full wordmark translates and scales to top-left of header capsule
-          const dx = m.dxAt1 * t
-          const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
-          const scale = 1.0 + (m.markScaleRatio - 1.0) * t
-          wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-          wordmarkRef.current.style.opacity = '1'
-          wordmarkRef.current.style.visibility = 'visible'
-          wordmarkRef.current.style.pointerEvents = 'auto'
+        const m = calculateMetrics()
+        const sy = window.scrollY
+        const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
+        const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
+
+        // Turn off pulse when leaving hero
+        const shouldPulse = rawT < 0.25
+        setPulse((prev) => (prev !== shouldPulse ? shouldPulse : prev))
+
+        // Compact state for pills and searchbar
+        const isCompact = rawT > 0.45
+        setCompact((prev) => (prev !== isCompact ? isCompact : prev))
+
+        // 0. Frosted Glass Header Bar: morphs directly from the central sphere into the top rounded bar
+        if (headerBgRef.current) {
+          const morphT = prefersReduced()
+            ? (rawT >= 0.5 ? 1 : 0)
+            : smoothstep(0.04, 0.94, rawT)
+
+          if (morphT <= 0.001) {
+            headerBgRef.current.style.opacity = '0'
+            headerBgRef.current.style.visibility = 'hidden'
+            headerBgRef.current.style.pointerEvents = 'none'
+          } else {
+            headerBgRef.current.style.visibility = 'visible'
+            const op = smoothstep(0.04, 0.40, rawT)
+            headerBgRef.current.style.opacity = op.toFixed(3)
+            headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
+
+            const currentCenterY = m.sphereCenterY + (m.targetCenterY - m.sphereCenterY) * morphT
+            const currentWidth = m.sphereD + (m.targetWidth - m.sphereD) * morphT
+            const currentHeight = m.sphereD + (m.targetHeight - m.sphereD) * morphT
+            const currentLeft = (w - currentWidth) / 2
+            const currentTop = currentCenterY - currentHeight / 2
+
+            // Target border radius: capsule pill on both mobile and desktop
+            const targetRadius = m.targetHeight / 2
+            const currentRadius = m.sphereD / 2 + (targetRadius - m.sphereD / 2) * morphT
+
+            // Smoothly fade in border as it morphs into the header capsule
+            const borderOp = smoothstep(0.12, 0.60, rawT)
+            headerBgRef.current.style.borderColor = `rgba(216, 222, 224, ${borderOp.toFixed(3)})`
+
+            headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
+            headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
+            headerBgRef.current.style.width = `${currentWidth.toFixed(1)}px`
+            headerBgRef.current.style.height = `${currentHeight.toFixed(1)}px`
+            headerBgRef.current.style.borderRadius = `${currentRadius.toFixed(1)}px`
+          }
         }
-      }
 
-      // 2. Tagline (fades out and shifts gently upward)
-      if (taglineRef.current) {
-        const op = Math.max(0, 1 - rawT / 0.22)
-        const ty = -14 * (1 - op)
-        taglineRef.current.style.opacity = op.toFixed(3)
-        taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty).toFixed(2)}px, 0)`
-        taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
-      }
+        // 1. VOID Wordmark transform (fades away on mobile; scales & translates to top-left header on desktop)
+        if (wordmarkRef.current) {
+          if (isMobileNow) {
+            // On mobile: Full VOID wordmark stays centered in hero and fades away smoothly as search bar moves to top
+            const op = prefersReduced()
+              ? (rawT >= 0.2 ? 0 : 1)
+              : Math.max(0, 1 - rawT / 0.35)
+            const ty = -24 * (1 - op)
+            wordmarkRef.current.style.transform = `translate3d(0, ${(m.heroWordmarkY + ty).toFixed(2)}px, 0) scale(${(1 - 0.04 * (1 - op)).toFixed(3)})`
+            wordmarkRef.current.style.opacity = op.toFixed(3)
+            wordmarkRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+            wordmarkRef.current.style.pointerEvents = op <= 0.2 ? 'none' : 'auto'
+          } else {
+            // Desktop: full wordmark translates and scales to top-left of header capsule
+            const dx = m.dxAt1 * t
+            const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
+            const scale = 1.0 + (m.markScaleRatio - 1.0) * t
+            wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+            wordmarkRef.current.style.opacity = '1'
+            wordmarkRef.current.style.visibility = 'visible'
+            wordmarkRef.current.style.pointerEvents = 'auto'
+          }
+        }
 
-      // 3. SearchBar (hero center -> fixed top bar, perfectly centered)
-      if (searchRef.current) {
-        const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
-        const scale = 1.0 + (m.targetSearchScale - 1.0) * t
-        searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-      }
+        // 2. Tagline (fades out and shifts gently upward)
+        if (taglineRef.current) {
+          const op = Math.max(0, 1 - rawT / 0.22)
+          const ty = -14 * (1 - op)
+          taglineRef.current.style.opacity = op.toFixed(3)
+          taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty).toFixed(2)}px, 0)`
+          taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        }
 
-      // 4. Scroll indicator (fades out quickly)
-      if (scrollIndicatorRef.current) {
-        const op = Math.max(0, 1 - rawT / 0.12)
-        scrollIndicatorRef.current.style.opacity = op.toFixed(3)
-        scrollIndicatorRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        // 3. SearchBar (hero center -> fixed top bar, perfectly centered)
+        if (searchRef.current) {
+          const dy = m.heroSearchY + (m.targetSearchY - m.heroSearchY) * t
+          const scale = 1.0 + (m.targetSearchScale - 1.0) * t
+          searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+        }
+
+        // 4. Scroll indicator (fades out quickly)
+        if (scrollIndicatorRef.current) {
+          const op = Math.max(0, 1 - rawT / 0.12)
+          scrollIndicatorRef.current.style.opacity = op.toFixed(3)
+          scrollIndicatorRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        }
+      } catch (err) {
+        console.error('ScrollHero tick error:', err)
       }
 
       rafId = requestAnimationFrame(tick)
