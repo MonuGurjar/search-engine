@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { MODES } from './modes'
 import { Wordmark } from './Wordmark'
+import { ChevronDown } from './icons'
 
 type Props = {
   query: string
   mode: string
   onSearch: (q: string) => void
 }
+
+const PAGE_SIZE = 10
 
 const EXPLORATION_TOPICS = [
   'Monu Gurjar',
@@ -30,9 +33,14 @@ export function Results({ query, mode, onSearch }: Props) {
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
   const [searchedQuery, setSearchedQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [expandedCount, setExpandedCount] = useState<number | null>(null)
 
   useEffect(() => {
     const q = query.trim()
+    setPage(1)
+    setExpandedCount(null)
+
     if (!q) {
       setResults([])
       setSearchedQuery('')
@@ -54,7 +62,7 @@ export function Results({ query, mode, onSearch }: Props) {
           .from('indexed_pages')
           .select('id, url, title, domain, summary, topics, tags, page_type')
           .or(`title.ilike.%${q}%,summary.ilike.%${q}%,url.ilike.%${q}%,domain.ilike.%${q}%`)
-          .limit(40)
+          .limit(100)
 
         if (!cancelled && !error && Array.isArray(supabaseDocs) && supabaseDocs.length > 0) {
           const formatted: SearchResultItem[] = supabaseDocs.map((doc: any) => {
@@ -128,8 +136,38 @@ export function Results({ query, mode, onSearch }: Props) {
     }
   }, [query, mode])
 
+  const totalResults = results.length
+  const totalPages = Math.ceil(totalResults / PAGE_SIZE)
+  const isExpanded = expandedCount !== null
+  const showingStart = totalResults === 0 ? 0 : isExpanded ? 1 : (page - 1) * PAGE_SIZE + 1
+  const showingEnd = isExpanded
+    ? Math.min(expandedCount, totalResults)
+    : Math.min(page * PAGE_SIZE, totalResults)
+  const displayedResults = isExpanded
+    ? results.slice(0, expandedCount)
+    : results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const hasMore = showingEnd < totalResults
+
+  function handlePageChange(newPage: number) {
+    setExpandedCount(null)
+    setPage(newPage)
+    const el = document.getElementById('search-results')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    } else if (typeof window !== 'undefined') {
+      window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
+    }
+  }
+
+  function handleShowMore() {
+    setExpandedCount((prev) => {
+      const current = prev ?? page * PAGE_SIZE
+      return Math.min(current + PAGE_SIZE, totalResults)
+    })
+  }
+
   return (
-    <section className="relative min-h-[calc(100vh-220px)] pb-16">
+    <section id="search-results" className="relative min-h-[calc(100vh-220px)] pb-16">
       <div
         className="mx-auto w-full max-w-5xl rounded-3xl sm:rounded-[32px] px-6 py-7 sm:px-10 sm:py-9 transition-all duration-300"
         style={{
@@ -150,7 +188,16 @@ export function Results({ query, mode, onSearch }: Props) {
                   <span>Searching VOID index...</span>
                 ) : (
                   <>
-                    {results.length} results for{' '}
+                    {totalResults > PAGE_SIZE ? (
+                      <>
+                        Showing <span className="font-medium text-void-ink">{showingStart}–{showingEnd}</span> of{' '}
+                        <span className="font-medium text-void-ink">{totalResults}</span> results for{' '}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium text-void-ink">{totalResults}</span> results for{' '}
+                      </>
+                    )}
                     <span className="font-medium text-void-ink">“{searchedQuery || query}”</span> in {modeLabel} · no history saved
                   </>
                 )}
@@ -162,39 +209,102 @@ export function Results({ query, mode, onSearch }: Props) {
                 <div className="size-6 border-2 border-void-green border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-light">Retrieving private search results...</p>
               </div>
-            ) : results.length === 0 ? (
+            ) : totalResults === 0 ? (
               <div className="py-20 text-center text-void-muted">
                 <p className="text-lg font-light text-void-ink">No results found in VOID index for “{query}”</p>
                 <p className="text-sm mt-1">This page has not been indexed yet. Add and crawl it in your VOID Crawler Dashboard.</p>
               </div>
             ) : (
-              /* Results list with generous, open vertical rhythm */
-              <ol className="mt-6 sm:mt-8 flex flex-col divide-y divide-void-line/60">
-                {results.map((r, i) => (
-                  <li key={i} className="group py-7 sm:py-8">
-                    <div className="flex items-center gap-2.5 text-[13.5px] text-void-muted">
-                      <span className="grid size-5 place-items-center rounded-full bg-void-green/15 text-[11px] font-semibold text-void-green">
-                        {r.domain[0].toUpperCase()}
-                      </span>
-                      <span>
-                        {r.domain}
-                        {r.path}
-                      </span>
-                    </div>
-                    <a
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 block font-display text-[22px] sm:text-2xl font-normal tracking-tight text-void-ink transition-colors group-hover:text-void-green leading-snug"
-                    >
-                      {r.title}
-                    </a>
-                    <p className="mt-2 max-w-3xl text-[15px] sm:text-base leading-relaxed text-void-muted">
-                      {r.snippet}
-                    </p>
-                  </li>
-                ))}
-              </ol>
+              <>
+                {/* Results list with generous, open vertical rhythm (10 per page) */}
+                <ol className="mt-6 sm:mt-8 flex flex-col divide-y divide-void-line/60">
+                  {displayedResults.map((r, i) => (
+                    <li key={`${page}-${i}-${r.url}`} className="group py-7 sm:py-8">
+                      <div className="flex items-center gap-2.5 text-[13.5px] text-void-muted">
+                        <span className="grid size-5 place-items-center rounded-full bg-void-green/15 text-[11px] font-semibold text-void-green">
+                          {r.domain[0]?.toUpperCase() || 'W'}
+                        </span>
+                        <span>
+                          {r.domain}
+                          {r.path}
+                        </span>
+                      </div>
+                      <a
+                        href={r.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block font-display text-[22px] sm:text-2xl font-normal tracking-tight text-void-ink transition-colors group-hover:text-void-green leading-snug"
+                      >
+                        {r.title}
+                      </a>
+                      <p className="mt-2 max-w-3xl text-[15px] sm:text-base leading-relaxed text-void-muted">
+                        {r.snippet}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+
+                {/* Pagination Controls & Show More Results */}
+                {totalResults > PAGE_SIZE && (
+                  <div className="mt-8 flex flex-col items-center gap-4 border-t border-void-line/60 pt-8 sm:mt-10 sm:gap-5">
+                    {/* Show more results button */}
+                    {hasMore && (
+                      <button
+                        type="button"
+                        onClick={handleShowMore}
+                        className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-void-line/90 bg-white/90 px-6 py-2.5 text-sm font-medium text-void-ink shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green hover:shadow-md active:scale-95 cursor-pointer"
+                      >
+                        <span>Show more results</span>
+                        <span className="text-xs text-void-muted group-hover:text-void-green">
+                          ({totalResults - showingEnd} remaining)
+                        </span>
+                        <ChevronDown className="size-4 text-void-muted transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-void-green" />
+                      </button>
+                    )}
+
+                    {/* Page number buttons */}
+                    {totalPages > 1 && (
+                      <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                        <button
+                          type="button"
+                          disabled={page <= 1 && !isExpanded}
+                          onClick={() => handlePageChange(Math.max(1, page - 1))}
+                          className="flex h-9 items-center justify-center rounded-full border border-void-line/80 bg-white/80 px-3.5 text-xs sm:text-sm font-medium text-void-ink backdrop-blur-sm transition-all duration-150 hover:border-void-green/45 hover:bg-white hover:text-void-green disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:border-void-line/80 disabled:hover:text-void-ink cursor-pointer"
+                        >
+                          Previous
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                          const isActive = !isExpanded && page === p
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => handlePageChange(p)}
+                              className={`flex size-9 items-center justify-center rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
+                                isActive
+                                  ? 'bg-void-ink text-white shadow-sm'
+                                  : 'border border-void-line/80 bg-white/80 text-void-ink hover:border-void-green/45 hover:bg-white hover:text-void-green'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          )
+                        })}
+
+                        <button
+                          type="button"
+                          disabled={page >= totalPages && !isExpanded}
+                          onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                          className="flex h-9 items-center justify-center rounded-full border border-void-line/80 bg-white/80 px-3.5 text-xs sm:text-sm font-medium text-void-ink backdrop-blur-sm transition-all duration-150 hover:border-void-green/45 hover:bg-white hover:text-void-green disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:border-void-line/80 disabled:hover:text-void-ink cursor-pointer"
+                        >
+                          Next
+                        </button>
+                      </nav>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </>
         ) : (
