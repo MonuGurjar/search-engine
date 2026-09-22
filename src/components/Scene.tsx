@@ -85,19 +85,13 @@ export function Scene() {
 
       const transitionDistance = h
       const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
-      const morphT = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0.04, 0.94, rawT)
+      // Sphere stays circular with gentle atmospheric dissolve on scroll
+      const sphereOp = Math.max(0, 1 - rawT / 0.45)
+      const haloOp = Math.max(0, 1 - rawT / 0.40)
+      const scale = Math.max(0.75, 1 - rawT * 0.25)
 
-      // Rises upward along center axis towards top rounded bar
-      const dy = (m.targetCenterY - m.sphereCenterY) * morphT
-      const scaleX = 1.0 + (m.targetWidth / m.sphereD - 1.0) * morphT
-      const scaleY = 1.0 + (m.targetHeight / m.sphereD - 1.0) * morphT
-
-      // Sphere photo and glowing mint halo smoothly dissolve into the frosted glass capsule
-      const sphereOp = Math.max(0, 1 - rawT / 0.40)
-      const haloOp = Math.max(0, 1 - rawT / 0.35)
-
-      // Mouse tilt parallax only (fades out on scroll so morph stays locked with headerBg)
-      const parallaxFactor = Math.max(0, 1 - rawT * 3)
+      // Mouse tilt parallax only (fades out on scroll)
+      const parallaxFactor = Math.max(0, 1 - rawT * 2.5)
       const px = cx * -5 * parallaxFactor
       const py = cy * -5 * parallaxFactor
 
@@ -105,7 +99,7 @@ export function Scene() {
         sphereRef.current.style.width = `${m.sphereD}px`
         sphereRef.current.style.height = `${m.sphereD}px`
         sphereRef.current.style.top = `${m.sphereTop}px`
-        sphereRef.current.style.transform = `translate3d(calc(-50% + ${px.toFixed(2)}px), ${(dy + py).toFixed(2)}px, 0) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`
+        sphereRef.current.style.transform = `translate3d(calc(-50% + ${px.toFixed(2)}px), ${py.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
         sphereRef.current.style.opacity = sphereOp.toFixed(3)
         sphereRef.current.style.visibility = sphereOp <= 0.001 ? 'hidden' : 'visible'
       }

@@ -151,41 +151,28 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         const isCompact = rawT > 0.45
         setCompact((prev) => (prev !== isCompact ? isCompact : prev))
 
-        // 0. Frosted Glass Header Bar: morphs directly from the central sphere into the top rounded bar
+        // 0. Frosted Glass Header Bar: pinned at the top, fades in smoothly as search bar approaches top
         if (headerBgRef.current) {
-          const morphT = prefersReduced()
-            ? (rawT >= 0.5 ? 1 : 0)
-            : smoothstep(0.04, 0.94, rawT)
+          const op = smoothstep(0.35, 0.70, rawT)
 
-          if (morphT <= 0.001) {
+          if (op <= 0.001) {
             headerBgRef.current.style.opacity = '0'
             headerBgRef.current.style.visibility = 'hidden'
             headerBgRef.current.style.pointerEvents = 'none'
           } else {
             headerBgRef.current.style.visibility = 'visible'
-            const op = smoothstep(0.04, 0.40, rawT)
             headerBgRef.current.style.opacity = op.toFixed(3)
-            headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
+            headerBgRef.current.style.pointerEvents = op >= 0.85 ? 'auto' : 'none'
 
-            const currentCenterY = m.sphereCenterY + (m.targetCenterY - m.sphereCenterY) * morphT
-            const currentWidth = m.sphereD + (m.targetWidth - m.sphereD) * morphT
-            const currentHeight = m.sphereD + (m.targetHeight - m.sphereD) * morphT
-            const currentLeft = (w - currentWidth) / 2
-            const currentTop = currentCenterY - currentHeight / 2
-
-            // Target border radius: capsule pill on both mobile and desktop
-            const targetRadius = m.targetHeight / 2
-            const currentRadius = m.sphereD / 2 + (targetRadius - m.sphereD / 2) * morphT
-
-            // Smoothly fade in border as it morphs into the header capsule
-            const borderOp = smoothstep(0.12, 0.60, rawT)
-            headerBgRef.current.style.borderColor = `rgba(216, 222, 224, ${borderOp.toFixed(3)})`
+            const topY = isMobileNow ? 10 : 16
+            const currentLeft = (w - m.targetWidth) / 2
 
             headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
-            headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
-            headerBgRef.current.style.width = `${currentWidth.toFixed(1)}px`
-            headerBgRef.current.style.height = `${currentHeight.toFixed(1)}px`
-            headerBgRef.current.style.borderRadius = `${currentRadius.toFixed(1)}px`
+            headerBgRef.current.style.top = `${topY}px`
+            headerBgRef.current.style.width = `${m.targetWidth}px`
+            headerBgRef.current.style.height = `${m.targetHeight}px`
+            headerBgRef.current.style.borderRadius = `${(m.targetHeight / 2).toFixed(1)}px`
+            headerBgRef.current.style.borderColor = 'rgba(216, 222, 224, 0.85)'
           }
         }
 
