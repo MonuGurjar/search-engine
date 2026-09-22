@@ -142,5 +142,13 @@
 *.stp                filter=lfs diff=lfs merge=lfs -text
 *.iges               filter=lfs diff=lfs merge=lfs -text
 *.stl                filter=lfs diff=lfs merge=lfs -text
-*.nc                 filter=lfs diff=lfs merge=lfs -text
 *.mat                filter=lfs diff=lfs merge=lfs -text
+
+# ---------------------------------------------------------------------------
+# Exemptions: Keep frontend web app assets in standard git (under 6MB total)
+# so Vercel, Netlify, and static hosts receive real image binaries out-of-the-box
+# ---------------------------------------------------------------------------
+src/assets/**        -filter -diff -merge
+pngs/**              -filter -diff -merge
+finalui.png          -filter -diff -merge
+src/imports/**       -filter -diff -merge
