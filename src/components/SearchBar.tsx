@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { SearchIcon } from './icons'
+import logoImg from '../assets/logo.webp'
 
 type Props = {
   value: string
@@ -7,6 +8,8 @@ type Props = {
   onSubmit: (v: string) => void
   compact?: boolean
   autoFocus?: boolean
+  showMobileLogo?: boolean
+  onHome?: () => void
 }
 
 export function SearchBar({
@@ -15,6 +18,8 @@ export function SearchBar({
   onSubmit,
   compact = false,
   autoFocus,
+  showMobileLogo = false,
+  onHome,
 }: Props) {
   const [focused, setFocused] = useState(false)
 
@@ -38,18 +43,35 @@ export function SearchBar({
       <div
         className={`flex items-center ${
           compact
-            ? 'gap-2 pl-10 sm:pl-3.5 pr-1.5 py-1'
+            ? 'gap-2 pl-3 sm:pl-3.5 pr-1.5 py-1'
             : 'gap-3 pl-4 sm:pl-6 pr-1.5 sm:pr-2 py-1.5 sm:py-2'
         }`}
       >
-        {/* On desktop: standard SearchIcon. On mobile when compact: hidden to leave slot for animated VOID O logo */}
-        <SearchIcon
-          className={
-            compact
-              ? 'hidden sm:block size-4 text-void-muted shrink-0'
-              : 'size-5 text-void-muted shrink-0'
-          }
-        />
+        {/* On mobile when search reaches top: logo appears directly with animation. Otherwise standard SearchIcon */}
+        {showMobileLogo ? (
+          <button
+            type="button"
+            onClick={onHome}
+            aria-label="VOID Home"
+            title="VOID Home"
+            className="group flex size-7 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 cursor-pointer animate-logo-pop"
+          >
+            <img
+              src={logoImg}
+              alt="VOID"
+              className="size-6 object-contain pointer-events-none drop-shadow-[0_2px_8px_rgba(56,189,248,0.5)] transition-transform duration-200 group-hover:scale-110"
+              draggable={false}
+            />
+          </button>
+        ) : (
+          <SearchIcon
+            className={
+              compact
+                ? 'size-4 text-void-muted shrink-0'
+                : 'size-5 text-void-muted shrink-0'
+            }
+          />
+        )}
         <input
           autoFocus={autoFocus}
           value={value}

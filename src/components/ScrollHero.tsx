@@ -60,11 +60,10 @@ function calculateMetrics() {
   const searchBarWidth = (w - 32) * (isMobile ? 0.94 : 0.9)
   const searchBarLeft = (w - searchBarWidth) / 2
 
-  // On mobile: docks directly into the search bar left corner!
   // On desktop: sits on the top-left of the header!
   const targetLeft = isMobile ? 20 : isLg ? 56 : 40
-  const targetMarkCenterX = isMobile ? Math.round(searchBarLeft + 26) : targetLeft + 46
-  const targetMarkCenterY = isMobile ? 29 : 37
+  const targetMarkCenterX = targetLeft + 46
+  const targetMarkCenterY = 37
 
   const heroCenterX = w / 2
   const heroWordmarkY = sphereCenterY
@@ -97,6 +96,7 @@ function calculateMetrics() {
 
 export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   const [value, setValue] = useState(query)
+  const [isMobile, setIsMobile] = useState(false)
   const [pulse, setPulse] = useState(true)
   const [markSize, setMarkSize] = useState(104)
   const [compact, setCompact] = useState(false)
@@ -115,10 +115,13 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
     setValue(query)
   }, [query])
 
-  // Responsive mark size for hero
+  // Responsive mark size and mobile state
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)')
-    const updateSize = () => setMarkSize(mq.matches ? 64 : 104)
+    const updateSize = () => {
+      setIsMobile(mq.matches)
+      setMarkSize(mq.matches ? 64 : 104)
+    }
     updateSize()
     mq.addEventListener('change', updateSize)
     return () => mq.removeEventListener('change', updateSize)
@@ -196,60 +199,29 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         }
       }
 
-      // 1. VOID Wordmark transform (center hero -> top-left header on desktop; O docks into search bar on mobile)
+      // 1. VOID Wordmark transform (fades away on mobile; scales & translates to top-left header on desktop)
       if (wordmarkRef.current) {
-        const dx = m.dxAt1 * t
-        const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
-        const scale = 1.0 + (m.markScaleRatio - 1.0) * t
-        wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-
         const w = window.innerWidth
-        const isMobile = w <= 640
-        if (isMobile) {
-          // Letters V, I, D smoothly dissolve away with animation as you scroll
-          const lettersOp = prefersReduced()
-            ? (rawT >= 0.15 ? 0 : 1)
-            : Math.max(0, 1 - rawT / 0.22)
-          const lettersCollapse = prefersReduced()
-            ? (rawT >= 0.15 ? 1 : 0)
-            : smoothstep(0.04, 0.24, rawT)
-
-          if (vRef.current) {
-            vRef.current.style.opacity = lettersOp.toFixed(3)
-            vRef.current.style.transform = `translateX(${(-16 * (1 - lettersOp)).toFixed(1)}px) scale(${(0.7 + 0.3 * lettersOp).toFixed(3)})`
-            vRef.current.style.maxWidth = `${(lettersOp * 40).toFixed(1)}px`
-            vRef.current.style.overflow = lettersCollapse >= 0.95 ? 'hidden' : 'visible'
-          }
-
-          if (idRef.current) {
-            idRef.current.style.opacity = lettersOp.toFixed(3)
-            idRef.current.style.transform = `translateX(${(16 * (1 - lettersOp)).toFixed(1)}px) scale(${(0.7 + 0.3 * lettersOp).toFixed(3)})`
-            idRef.current.style.maxWidth = `${(lettersOp * 60).toFixed(1)}px`
-            idRef.current.style.overflow = lettersCollapse >= 0.95 ? 'hidden' : 'visible'
-          }
-
-          // Gap between letters collapses so O is the solitary centered logo
-          const currentGap = m.heroMark * 0.34 * (1 - lettersCollapse)
-          wordmarkRef.current.style.gap = `${currentGap.toFixed(1)}px`
-          wordmarkRef.current.style.opacity = '1'
-          wordmarkRef.current.style.visibility = 'visible'
+        const isMobileNow = w <= 640
+        if (isMobileNow) {
+          // On mobile: Full VOID wordmark stays centered in hero and fades away smoothly as search bar moves to top
+          const op = prefersReduced()
+            ? (rawT >= 0.2 ? 0 : 1)
+            : Math.max(0, 1 - rawT / 0.35)
+          const ty = -24 * (1 - op)
+          wordmarkRef.current.style.transform = `translate3d(0, ${(m.heroWordmarkY + ty).toFixed(2)}px, 0) scale(${(1 - 0.04 * (1 - op)).toFixed(3)})`
+          wordmarkRef.current.style.opacity = op.toFixed(3)
+          wordmarkRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+          wordmarkRef.current.style.pointerEvents = op <= 0.2 ? 'none' : 'auto'
         } else {
-          // Desktop: full wordmark remains intact
-          if (vRef.current) {
-            vRef.current.style.opacity = '1'
-            vRef.current.style.transform = 'none'
-            vRef.current.style.maxWidth = 'none'
-            vRef.current.style.overflow = 'visible'
-          }
-          if (idRef.current) {
-            idRef.current.style.opacity = '1'
-            idRef.current.style.transform = 'none'
-            idRef.current.style.maxWidth = 'none'
-            idRef.current.style.overflow = 'visible'
-          }
-          wordmarkRef.current.style.gap = `${(m.heroMark * 0.34).toFixed(1)}px`
+          // Desktop: full wordmark translates and scales to top-left of header capsule
+          const dx = m.dxAt1 * t
+          const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
+          const scale = 1.0 + (m.markScaleRatio - 1.0) * t
+          wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
           wordmarkRef.current.style.opacity = '1'
           wordmarkRef.current.style.visibility = 'visible'
+          wordmarkRef.current.style.pointerEvents = 'auto'
         }
       }
 
@@ -402,6 +374,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
               onChange={setValue}
               onSubmit={handleSubmit}
               compact={compact}
+              showMobileLogo={isMobile && compact}
+              onHome={handleHomeClick}
             />
           </div>
         </div>

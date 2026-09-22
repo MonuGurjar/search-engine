@@ -1,13 +1,14 @@
 import type { CSSProperties, Ref } from 'react'
+import logoImg from '../assets/logo.webp'
 
 type Props = {
   /** height of the wordmark in px, letters scale from this */
   size?: number
   className?: string
   style?: CSSProperties
-  /** show the green ring around the O */
+  /** optional ring prop retained for API compatibility */
   ring?: boolean
-  /** give the ring a slow atmospheric pulse */
+  /** give the logo a slow atmospheric pulse */
   pulse?: boolean
   vRef?: Ref<HTMLSpanElement>
   oRef?: Ref<HTMLSpanElement>
@@ -15,20 +16,20 @@ type Props = {
 }
 
 /**
- * VOID wordmark — thin geometric letters with a green accent ring around the O.
- * Rendered as text with individual letter refs so V, I, D can animate away on mobile scroll.
+ * VOID wordmark — thin geometric letters with celestial planet ring logo as the O.
  */
 export function Wordmark({
   size = 28,
   className = '',
-  ring = true,
   pulse = false,
   vRef,
   oRef,
   idRef,
   style,
 }: Props) {
-  const gap = size * 0.34
+  const gap = size * 0.28
+  const logoSize = Math.round(size * 1.1)
+
   return (
     <span
       className={`inline-flex items-center font-display text-void-ink ${className}`}
@@ -40,22 +41,19 @@ export function Wordmark({
       </span>
       <span
         ref={oRef}
-        className="relative inline-flex items-center justify-center shrink-0 will-change-transform"
+        className="relative inline-flex items-center justify-center shrink-0 will-change-transform select-none"
+        style={{ width: logoSize, height: logoSize }}
       >
-        <span className="relative z-10 leading-none">O</span>
-        {ring && (
-          <span
-            aria-hidden
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              width: size * 0.92,
-              height: size * 0.92,
-              border: `${Math.max(1.2, size * 0.028)}px solid var(--color-void-green)`,
-              boxShadow: `0 0 ${size * 0.5}px rgba(47,125,84,0.35)`,
-              animation: pulse ? 'void-ring-pulse 5.5s ease-in-out infinite' : undefined,
-            }}
-          />
-        )}
+        <img
+          src={logoImg}
+          alt="O"
+          width={logoSize}
+          height={logoSize}
+          draggable={false}
+          className={`size-full object-contain pointer-events-none drop-shadow-[0_2px_10px_rgba(56,189,248,0.45)] transition-all ${
+            pulse ? 'animate-pulse' : ''
+          }`}
+        />
       </span>
       <span
         ref={idRef}
@@ -68,4 +66,5 @@ export function Wordmark({
     </span>
   )
 }
+
 
