@@ -151,28 +151,42 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         const isCompact = rawT > 0.45
         setCompact((prev) => (prev !== isCompact ? isCompact : prev))
 
-        // 0. Frosted Glass Header Bar: pinned at the top, fades in smoothly as search bar approaches top
+        // 0. Frosted Glass Header Bar: morphs cleanly from the exact perimeter of the 3D sphere into the top rounded bar
         if (headerBgRef.current) {
-          const op = smoothstep(0.35, 0.70, rawT)
+          const morphT = prefersReduced()
+            ? (rawT >= 0.5 ? 1 : 0)
+            : smoothstep(0.04, 0.94, rawT)
 
-          if (op <= 0.001) {
+          if (morphT <= 0.001) {
             headerBgRef.current.style.opacity = '0'
             headerBgRef.current.style.visibility = 'hidden'
             headerBgRef.current.style.pointerEvents = 'none'
           } else {
             headerBgRef.current.style.visibility = 'visible'
+            const op = smoothstep(0.04, 0.35, rawT)
             headerBgRef.current.style.opacity = op.toFixed(3)
-            headerBgRef.current.style.pointerEvents = op >= 0.85 ? 'auto' : 'none'
+            headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
 
-            const topY = isMobileNow ? 10 : 16
-            const currentLeft = (w - m.targetWidth) / 2
+            // Starts exactly matching the 3D sphere (same center, same diameter, 50% circle radius)
+            const currentCenterY = m.sphereCenterY + (m.targetCenterY - m.sphereCenterY) * morphT
+            const currentWidth = m.sphereD + (m.targetWidth - m.sphereD) * morphT
+            const currentHeight = m.sphereD + (m.targetHeight - m.sphereD) * morphT
+            const currentLeft = (w - currentWidth) / 2
+            const currentTop = currentCenterY - currentHeight / 2
+
+            // Radius interpolates from circle (sphereD / 2) to capsule (targetHeight / 2)
+            const targetRadius = m.targetHeight / 2
+            const currentRadius = m.sphereD / 2 + (targetRadius - m.sphereD / 2) * morphT
+
+            // Border smoothly fades in
+            const borderOp = smoothstep(0.08, 0.55, rawT)
+            headerBgRef.current.style.borderColor = `rgba(216, 222, 224, ${borderOp.toFixed(3)})`
 
             headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
-            headerBgRef.current.style.top = `${topY}px`
-            headerBgRef.current.style.width = `${m.targetWidth}px`
-            headerBgRef.current.style.height = `${m.targetHeight}px`
-            headerBgRef.current.style.borderRadius = `${(m.targetHeight / 2).toFixed(1)}px`
-            headerBgRef.current.style.borderColor = 'rgba(216, 222, 224, 0.85)'
+            headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
+            headerBgRef.current.style.width = `${currentWidth.toFixed(1)}px`
+            headerBgRef.current.style.height = `${currentHeight.toFixed(1)}px`
+            headerBgRef.current.style.borderRadius = `${currentRadius.toFixed(1)}px`
           }
         }
 
