@@ -3,6 +3,8 @@ import { ChevronDown, GearIcon } from './icons'
 import { SearchBar } from './SearchBar'
 import { Wordmark } from './Wordmark'
 
+import { getSphereMetrics } from '../lib/sphereMetrics'
+
 type Props = {
   query: string
   mode: string
@@ -33,32 +35,26 @@ function calculateMetrics() {
       heroSearchY: 510,
       targetSearchY: 16,
       targetSearchScale: 0.9,
+      sphereD: 300,
+      sphereTop: 72,
+      sphereCenterY: 222,
+      targetWidth: 800,
+      targetHeight: 58,
+      targetCenterY: 37,
     }
   }
 
   const w = window.innerWidth
   const h = window.innerHeight
-  const isMobile = w <= 640
-  const isLg = w >= 1024
+  const sm = getSphereMetrics(w, h)
 
   const transitionDistance = h
-
-  // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
-  const sphereD = isMobile
-    ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
-    : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
-  const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
-  const sphereTop = Math.round(h * sphereTopRatio)
-  const sphereCenterY = Math.round(sphereTop + sphereD / 2)
-  const sphereBottom = sphereTop + sphereD
+  const isMobile = sm.isMobile
+  const isLg = sm.isLg
 
   const heroMark = isMobile ? 64 : 104
   const targetMark = isMobile ? 22 : 26
   const markScaleRatio = targetMark / heroMark
-
-  // SearchBar position on mobile
-  const searchBarWidth = (w - 32) * (isMobile ? 0.94 : 0.9)
-  const searchBarLeft = (w - searchBarWidth) / 2
 
   // On desktop: sits on the top-left of the header!
   const targetLeft = isMobile ? 20 : isLg ? 56 : 40
@@ -66,7 +62,7 @@ function calculateMetrics() {
   const targetMarkCenterY = 37
 
   const heroCenterX = w / 2
-  const heroWordmarkY = sphereCenterY
+  const heroWordmarkY = sm.sphereCenterY
   const dxAt1 = targetMarkCenterX - heroCenterX
   const dyAt1 = targetMarkCenterY
 
@@ -74,7 +70,7 @@ function calculateMetrics() {
   const heroTaglineY = heroWordmarkY + heroMark / 2 + (isMobile ? 12 : 16)
 
   // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
-  const heroSearchY = sphereBottom + (isMobile ? 18 : 20)
+  const heroSearchY = sm.sphereBottom + (isMobile ? 18 : 20)
 
   // In final state: SearchBar aligns horizontally in the top bar row on desktop and mobile
   const targetSearchY = isMobile ? 10 : 16
@@ -91,6 +87,12 @@ function calculateMetrics() {
     heroSearchY,
     targetSearchY,
     targetSearchScale,
+    sphereD: sm.sphereD,
+    sphereTop: sm.sphereTop,
+    sphereCenterY: sm.sphereCenterY,
+    targetWidth: sm.targetWidth,
+    targetHeight: sm.targetHeight,
+    targetCenterY: sm.targetCenterY,
   }
 }
 
@@ -147,28 +149,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
       // 0. Frosted Glass Header Bar: morphs directly from the central sphere into the top rounded bar
       if (headerBgRef.current) {
-        const w = window.innerWidth
-        const h = window.innerHeight
-        const isMobile = w <= 640
-        const isLg = w >= 1024
-
-        // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
-        const sphereD = isMobile
-          ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
-          : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
-        const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
-        const sphereTop = Math.round(h * sphereTopRatio)
-        const sphereHeroCenterY = Math.round(sphereTop + sphereD / 2)
-
-        const margin = isMobile ? 8 : isLg ? 24 : 16
-        const targetWidth = w - 2 * margin
-        const targetHeight = isMobile ? 54 : 58
-        const targetCenterY = isMobile ? 33 : 37
-
         const morphT = prefersReduced()
-          ? rawT >= 0.5
-            ? 1
-            : 0
+          ? (rawT >= 0.5 ? 1 : 0)
           : smoothstep(0.04, 0.94, rawT)
 
         if (morphT <= 0.001) {
@@ -181,15 +163,19 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
           headerBgRef.current.style.opacity = op.toFixed(3)
           headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
 
-          const currentCenterY = sphereHeroCenterY + (targetCenterY - sphereHeroCenterY) * morphT
-          const currentWidth = sphereD + (targetWidth - sphereD) * morphT
-          const currentHeight = sphereD + (targetHeight - sphereD) * morphT
+          const currentCenterY = m.sphereCenterY + (m.targetCenterY - m.sphereCenterY) * morphT
+          const currentWidth = m.sphereD + (m.targetWidth - m.sphereD) * morphT
+          const currentHeight = m.sphereD + (m.targetHeight - m.sphereD) * morphT
           const currentLeft = (w - currentWidth) / 2
           const currentTop = currentCenterY - currentHeight / 2
 
           // Target border radius: capsule pill on both mobile and desktop
-          const targetRadius = targetHeight / 2
-          const currentRadius = sphereD / 2 + (targetRadius - sphereD / 2) * morphT
+          const targetRadius = m.targetHeight / 2
+          const currentRadius = m.sphereD / 2 + (targetRadius - m.sphereD / 2) * morphT
+
+          // Smoothly fade in border as it morphs into the header capsule
+          const borderOp = smoothstep(0.12, 0.60, rawT)
+          headerBgRef.current.style.borderColor = `rgba(216, 222, 224, ${borderOp.toFixed(3)})`
 
           headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
           headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`

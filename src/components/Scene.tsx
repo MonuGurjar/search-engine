@@ -5,6 +5,7 @@ import mobileBgWebp from '../assets/mobile-bg.webp'
 import mobileBgPng from '../assets/mobile-bg.png'
 import sphereWebp from '../assets/middle-sphere.webp'
 import spherePng from '../assets/middle-sphere.png'
+import { getSphereMetrics } from '../lib/sphereMetrics'
 
 const prefersReduced = () =>
   typeof window !== 'undefined' &&
@@ -23,8 +24,7 @@ function smoothstep(min: number, max: number, value: number) {
  * CSS custom properties (--mx / --my / --sy) so every layer stays on the GPU.
  *
  * During scroll, the middle sphere co-animates with the VOID Wordmark:
- * scaling down from 1.0 -> 0.15, translating towards the top-left header,
- * and fading from 1.0 -> ~0.12 opacity to become a subtle celestial aura.
+ * scaling down and morphing into the top rounded header bar.
  */
 export function Scene() {
   const root = useRef<HTMLDivElement>(null)
@@ -78,43 +78,33 @@ export function Scene() {
       el.style.setProperty('--my', cy.toFixed(4))
       el.style.setProperty('--sy', Math.min(csy, 600).toFixed(2))
 
-      // Scroll-driven sphere co-animation: morphs into the top rounded bar
+      // Scroll-driven sphere co-animation: exactly matches ScrollHero headerBg morph
       const w = window.innerWidth
       const h = window.innerHeight
-      const isMobile = w <= 640
-      const isLg = w >= 1024
+      const m = getSphereMetrics(w, h)
 
       const transitionDistance = h
       const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
       const morphT = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0.04, 0.94, rawT)
 
-      // Sphere geometry matching ScrollHero (capped to 48% viewport height)
-      const sphereD = isMobile
-        ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
-        : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
-      const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
-      const sphereHeroCenterY = Math.round(h * sphereTopRatio + sphereD / 2)
-
-      const margin = isMobile ? 8 : isLg ? 24 : 16
-      const targetWidth = w - 2 * margin
-      const targetHeight = isMobile ? 54 : 58
-      const targetCenterY = isMobile ? 33 : 37
-
       // Rises upward along center axis towards top rounded bar
-      const dy = (targetCenterY - sphereHeroCenterY) * morphT
-      const scaleX = 1.0 + (targetWidth / sphereD - 1.0) * morphT
-      const scaleY = 1.0 + (targetHeight / sphereD - 1.0) * morphT
+      const dy = (m.targetCenterY - m.sphereCenterY) * morphT
+      const scaleX = 1.0 + (m.targetWidth / m.sphereD - 1.0) * morphT
+      const scaleY = 1.0 + (m.targetHeight / m.sphereD - 1.0) * morphT
 
       // Sphere photo and glowing mint halo smoothly dissolve into the frosted glass capsule
       const sphereOp = Math.max(0, 1 - rawT / 0.40)
       const haloOp = Math.max(0, 1 - rawT / 0.35)
 
-      // Parallax fades out gently on scroll
-      const parallaxFactor = Math.max(0, 1 - rawT * 2.5)
+      // Mouse tilt parallax only (fades out on scroll so morph stays locked with headerBg)
+      const parallaxFactor = Math.max(0, 1 - rawT * 3)
       const px = cx * -5 * parallaxFactor
-      const py = (cy * -5 - csy * 0.14) * parallaxFactor
+      const py = cy * -5 * parallaxFactor
 
       if (sphereRef.current) {
+        sphereRef.current.style.width = `${m.sphereD}px`
+        sphereRef.current.style.height = `${m.sphereD}px`
+        sphereRef.current.style.top = `${m.sphereTop}px`
         sphereRef.current.style.transform = `translate3d(calc(-50% + ${px.toFixed(2)}px), ${(dy + py).toFixed(2)}px, 0) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`
         sphereRef.current.style.opacity = sphereOp.toFixed(3)
         sphereRef.current.style.visibility = sphereOp <= 0.001 ? 'hidden' : 'visible'
@@ -183,17 +173,16 @@ export function Scene() {
       {/* floating middle sphere / planet with atmospheric halo */}
       <div
         ref={sphereRef}
-        className="absolute left-1/2 top-[9%] sm:top-[6%] md:top-[7%]"
+        className="absolute left-1/2"
         style={{
           transformOrigin: 'center center',
-          transform:
-            'translate3d(calc(-50% + var(--mx) * -5px), calc(var(--my) * -5px - var(--sy) * 0.14px), 0)',
+          transform: 'translate3d(-50%, 0, 0)',
         }}
       >
         {/* mint coronal halo aura */}
         <div
           ref={haloRef}
-          className="absolute -inset-[12%] rounded-full mix-blend-screen pointer-events-none transition-opacity duration-200"
+          className="absolute -inset-[8%] rounded-full mix-blend-screen pointer-events-none transition-opacity duration-200"
           style={{
             animation: 'void-halo-pulse 9s ease-in-out infinite',
             background:
@@ -203,14 +192,14 @@ export function Scene() {
         />
 
         {/* high-resolution sphere cutout with gentle float */}
-        <picture>
+        <picture className="block size-full">
           <source srcSet={sphereWebp} type="image/webp" />
           <img
             src={spherePng}
             alt=""
             aria-hidden
             fetchPriority="high"
-            className="h-[65vw] max-h-[300px] min-h-[250px] w-[65vw] max-w-[300px] min-w-[250px] sm:h-[44vw] sm:max-h-[min(480px,48vh)] sm:min-h-[220px] sm:w-[44vw] sm:max-w-[min(480px,48vh)] sm:min-w-[220px] object-contain drop-shadow-[0_10px_35px_rgba(120,196,150,0.22)] select-none pointer-events-none"
+            className="size-full object-contain drop-shadow-[0_10px_35px_rgba(120,196,150,0.22)] select-none pointer-events-none"
             style={{
               animation: 'void-halo-pulse 11s ease-in-out infinite',
             }}
