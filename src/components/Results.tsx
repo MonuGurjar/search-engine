@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { MODES } from './modes'
 import { Wordmark } from './Wordmark'
 
@@ -42,15 +43,49 @@ export function Results({ query, mode, onSearch }: Props) {
     setSearchedQuery(q)
 
     const controller = new AbortController()
+    let cancelled = false
 
-    // Query exclusively from VOID Crawler internally indexed database
-    fetch('http://localhost:3001/api/crawler/indexed', { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : []))
-      .catch(() => [])
-      .then((indexedDocs: any[]) => {
+    async function executeSearch() {
+      try {
         const qLow = q.toLowerCase()
-        const localMatches: SearchResultItem[] = (Array.isArray(indexedDocs) ? indexedDocs : [])
-          .filter((doc) => {
+
+        // 1. Query Supabase cloud index (works on Vercel and production)
+        const { data: supabaseDocs, error } = await supabase
+          .from('indexed_pages')
+          .select('id, url, title, domain, summary, topics, tags, page_type')
+          .or(`title.ilike.%${q}%,summary.ilike.%${q}%,url.ilike.%${q}%,domain.ilike.%${q}%`)
+          .limit(40)
+
+        if (!cancelled && !error && Array.isArray(supabaseDocs) && supabaseDocs.length > 0) {
+          const formatted: SearchResultItem[] = supabaseDocs.map((doc: any) => {
+            let pathname = '/'
+            try {
+              pathname = new URL(doc.url).pathname
+            } catch {}
+            return {
+              title: doc.title || doc.url,
+              domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ''),
+              path: pathname,
+              url: doc.url,
+              snippet: doc.summary || '',
+            }
+          })
+          setResults(formatted)
+          setLoading(false)
+          return
+        }
+
+        // 2. Local fallback if Supabase table is empty or local crawler is running
+        const localDocs = await fetch('http://localhost:3001/api/crawler/indexed', {
+          signal: controller.signal,
+        })
+          .then((res) => (res.ok ? res.json() : []))
+          .catch(() => [])
+
+        if (cancelled) return
+
+        const localMatches: SearchResultItem[] = (Array.isArray(localDocs) ? localDocs : [])
+          .filter((doc: any) => {
             const inTitle = doc.title?.toLowerCase().includes(qLow)
             const inUrl = doc.url?.toLowerCase().includes(qLow)
             const inSummary = doc.summary?.toLowerCase().includes(qLow)
@@ -58,7 +93,7 @@ export function Results({ query, mode, onSearch }: Props) {
             const inTopics = doc.topics?.some((t: string) => t.toLowerCase().includes(qLow))
             return inTitle || inUrl || inSummary || inTags || inTopics
           })
-          .map((doc) => {
+          .map((doc: any) => {
             let pathname = '/'
             try {
               pathname = new URL(doc.url).pathname
@@ -73,18 +108,24 @@ export function Results({ query, mode, onSearch }: Props) {
           })
 
         setResults(localMatches)
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') {
+      } catch (err: any) {
+        if (!cancelled && err.name !== 'AbortError') {
           console.error('Search error:', err)
           setResults([])
         }
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
 
-    return () => controller.abort()
+    executeSearch()
+
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
   }, [query, mode])
 
   return (
