@@ -44,7 +44,7 @@ export default function App() {
         />
 
         {/* Results / Exploration area with ModePills scrolling with page */}
-        <div className="pt-[106px] sm:pt-[82px]">
+        <div className="pt-[74px] sm:pt-[82px]">
           {/* Mode pills row that scrolls with the page like in Google Search */}
           <div className="mx-auto w-full max-w-5xl px-6 sm:px-10 pb-2 sm:pb-3 flex justify-center">
             <ModePills active={mode} onChange={setMode} compact={true} />

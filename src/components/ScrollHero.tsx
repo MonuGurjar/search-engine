@@ -71,9 +71,9 @@ function calculateMetrics() {
   // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
   const heroSearchY = sphereBottom + (isMobile ? 18 : 20)
 
-  // In final state: SearchBar aligns horizontally in the top bar row on desktop
-  const targetSearchY = isMobile ? 48 : 16
-  const targetSearchScale = isMobile ? 0.92 : 0.9
+  // In final state: SearchBar aligns horizontally in the top bar row on desktop and mobile
+  const targetSearchY = isMobile ? 10 : 16
+  const targetSearchScale = isMobile ? 0.94 : 0.9
 
   return {
     transitionDistance,
@@ -150,8 +150,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
         const margin = isMobile ? 8 : isLg ? 24 : 16
         const targetWidth = w - 2 * margin
-        const targetHeight = isMobile ? 92 : 58
-        const targetCenterY = isMobile ? 54 : 37
+        const targetHeight = isMobile ? 54 : 58
+        const targetCenterY = isMobile ? 33 : 37
 
         const morphT = prefersReduced()
           ? rawT >= 0.5
@@ -175,8 +175,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
           const currentLeft = (w - currentWidth) / 2
           const currentTop = currentCenterY - currentHeight / 2
 
-          // Target border radius: 24px on mobile, currentHeight / 2 (pill) on desktop
-          const targetRadius = isMobile ? 24 : targetHeight / 2
+          // Target border radius: capsule pill on both mobile and desktop
+          const targetRadius = targetHeight / 2
           const currentRadius = sphereD / 2 + (targetRadius - sphereD / 2) * morphT
 
           headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
@@ -187,12 +187,24 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         }
       }
 
-      // 1. VOID Wordmark transform (center hero -> top-left header)
+      // 1. VOID Wordmark transform (center hero -> top-left header on desktop; fades out on mobile)
       if (wordmarkRef.current) {
         const dx = m.dxAt1 * t
         const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
         const scale = 1.0 + (m.markScaleRatio - 1.0) * t
         wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
+
+        // On mobile: wordmark fades out on scroll down so only the logo in the searchbar appears
+        const w = window.innerWidth
+        const isMobile = w <= 640
+        if (isMobile) {
+          const op = Math.max(0, 1 - rawT / 0.30)
+          wordmarkRef.current.style.opacity = op.toFixed(3)
+          wordmarkRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        } else {
+          wordmarkRef.current.style.opacity = '1'
+          wordmarkRef.current.style.visibility = 'visible'
+        }
       }
 
       // 2. Tagline (fades out and shifts gently upward)
@@ -270,14 +282,14 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
       {/* Top navigation row */}
       <header className="relative z-40 flex items-center justify-between px-4 py-3 sm:px-10 sm:py-3.5 lg:px-14">
-        {/* Spacer matching compact Wordmark width in header */}
-        <div className="h-[26px] w-[95px]" aria-hidden />
+        {/* Spacer matching compact Wordmark width in header on desktop */}
+        <div className="hidden sm:block h-[26px] w-[95px]" aria-hidden />
 
         <nav className="pointer-events-auto flex items-center">
           <button
             aria-label="Settings"
             title="Settings"
-            className="group flex size-9 sm:size-10 items-center justify-center rounded-full bg-void-glass text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
+            className="hidden sm:flex group size-9 sm:size-10 items-center justify-center rounded-full bg-void-glass text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
             style={{
               border: '1px solid rgba(214,222,224,0.95)',
               boxShadow: '0 8px 22px -16px rgba(37,54,60,0.4)',
@@ -338,6 +350,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
               onChange={setValue}
               onSubmit={handleSubmit}
               compact={compact}
+              showMobileLogo={compact}
+              onHome={handleHomeClick}
             />
           </div>
         </div>

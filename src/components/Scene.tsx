@@ -97,8 +97,8 @@ export function Scene() {
 
       const margin = isMobile ? 8 : isLg ? 24 : 16
       const targetWidth = w - 2 * margin
-      const targetHeight = isMobile ? 92 : 58
-      const targetCenterY = isMobile ? 54 : 37
+      const targetHeight = isMobile ? 54 : 58
+      const targetCenterY = isMobile ? 33 : 37
 
       // Rises upward along center axis towards top rounded bar
       const dy = (targetCenterY - sphereHeroCenterY) * morphT
