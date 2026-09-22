@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Footer } from './components/Footer'
+import { ModePills } from './components/ModePills'
 import { Results } from './components/Results'
 import { Scene } from './components/Scene'
 import { ScrollHero } from './components/ScrollHero'
@@ -10,10 +11,9 @@ export default function App() {
 
   function runSearch(q: string) {
     setQuery(q)
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-    const transitionDistance = window.innerHeight * (isMobile ? 0.75 : 0.88)
+    const transitionDistance = window.innerHeight
     if (window.scrollY < transitionDistance) {
-      window.scrollTo({ top: transitionDistance + 10, behavior: 'smooth' })
+      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
     }
   }
 
@@ -37,22 +37,19 @@ export default function App() {
 
       {/* Main scrollable document flow */}
       <main className="relative z-10 flex-1">
-        {/* Scroll transition spacer */}
+        {/* Full-screen scroll transition spacer */}
         <div
-          className="pointer-events-none w-full h-[75vh] sm:h-[88vh]"
+          className="pointer-events-none w-full h-screen"
           aria-hidden
         />
 
-        {/* Results / Exploration area with spacious, unpressed top breathing room */}
-        <div
-          className="pt-[155px] sm:pt-[165px]"
-          style={{
-            WebkitMaskImage:
-              'linear-gradient(to bottom, transparent 0px, transparent 88px, black 135px, black 100%)',
-            maskImage:
-              'linear-gradient(to bottom, transparent 0px, transparent 88px, black 135px, black 100%)',
-          }}
-        >
+        {/* Results / Exploration area with ModePills scrolling with page */}
+        <div className="pt-[106px] sm:pt-[82px]">
+          {/* Mode pills row that scrolls with the page like in Google Search */}
+          <div className="mx-auto w-full max-w-5xl px-6 sm:px-10 pb-2 sm:pb-3 flex justify-center">
+            <ModePills active={mode} onChange={setMode} compact={true} />
+          </div>
+
           <Results query={query} mode={mode} onSearch={runSearch} />
         </div>
       </main>

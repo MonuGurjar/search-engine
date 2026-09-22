@@ -78,50 +78,51 @@ export function Scene() {
       el.style.setProperty('--my', cy.toFixed(4))
       el.style.setProperty('--sy', Math.min(csy, 600).toFixed(2))
 
-      // Scroll-driven sphere co-animation
+      // Scroll-driven sphere co-animation: morphs into the top rounded bar
       const w = window.innerWidth
       const h = window.innerHeight
       const isMobile = w <= 640
       const isLg = w >= 1024
 
-      const transitionDistance = h * (isMobile ? 0.75 : 0.88)
+      const transitionDistance = h
       const rawT = Math.min(1, Math.max(0, sy / transitionDistance))
-      const t = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
+      const morphT = isReduced ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0.04, 0.94, rawT)
 
       // Sphere geometry matching ScrollHero (capped to 48% viewport height)
       const sphereD = isMobile
         ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
-        : Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
+        : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
       const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
       const sphereHeroCenterY = Math.round(h * sphereTopRatio + sphereD / 2)
 
-      // Target position behind top-left VOID Wordmark in header
-      const targetLeft = isMobile ? 20 : isLg ? 56 : 40
-      const targetCenterX = targetLeft + 46
-      const targetCenterY = isMobile ? 28 : 38
+      const margin = isMobile ? 8 : isLg ? 24 : 16
+      const targetWidth = w - 2 * margin
+      const targetHeight = isMobile ? 92 : 58
+      const targetCenterY = isMobile ? 54 : 37
 
-      // Target scale & opacity
-      const targetScale = 0.15
-      const targetOpacity = 0.12
+      // Rises upward along center axis towards top rounded bar
+      const dy = (targetCenterY - sphereHeroCenterY) * morphT
+      const scaleX = 1.0 + (targetWidth / sphereD - 1.0) * morphT
+      const scaleY = 1.0 + (targetHeight / sphereD - 1.0) * morphT
 
-      const dx = (targetCenterX - w / 2) * t
-      const dy = (targetCenterY - sphereHeroCenterY) * t
-      const scale = 1.0 + (targetScale - 1.0) * t
-      const op = 1.0 + (targetOpacity - 1.0) * t
+      // Sphere photo and glowing mint halo smoothly dissolve into the frosted glass capsule
+      const sphereOp = Math.max(0, 1 - rawT / 0.40)
+      const haloOp = Math.max(0, 1 - rawT / 0.35)
 
-      // Restrained parallax fades out as sphere compacts
-      const parallaxFactor = 1 - t
+      // Parallax fades out gently on scroll
+      const parallaxFactor = Math.max(0, 1 - rawT * 2.5)
       const px = cx * -5 * parallaxFactor
       const py = (cy * -5 - csy * 0.14) * parallaxFactor
 
       if (sphereRef.current) {
-        sphereRef.current.style.transform = `translate3d(calc(-50% + ${(dx + px).toFixed(2)}px), ${(dy + py).toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-        sphereRef.current.style.opacity = op.toFixed(3)
+        sphereRef.current.style.transform = `translate3d(calc(-50% + ${px.toFixed(2)}px), ${(dy + py).toFixed(2)}px, 0) scale(${scaleX.toFixed(4)}, ${scaleY.toFixed(4)})`
+        sphereRef.current.style.opacity = sphereOp.toFixed(3)
+        sphereRef.current.style.visibility = sphereOp <= 0.001 ? 'hidden' : 'visible'
       }
 
       if (haloRef.current) {
-        const haloOp = Math.max(0.2, 1 - 0.75 * t)
         haloRef.current.style.opacity = haloOp.toFixed(3)
+        haloRef.current.style.visibility = haloOp <= 0.001 ? 'hidden' : 'visible'
       }
 
       raf = requestAnimationFrame(tick)

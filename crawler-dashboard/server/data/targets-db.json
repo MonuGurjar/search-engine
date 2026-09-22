@@ -1,0 +1,242 @@
+[
+  {
+    "url": "https://monugurjar.vercel.app/",
+    "domain": "monugurjar.vercel.app",
+    "name": "monugurjar.vercel.app Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790037189795",
+    "addedAt": "2026-09-22T00:35:27.593Z"
+  },
+  {
+    "url": "https://instagram.com/m0nu_gurjar",
+    "domain": "instagram.com",
+    "name": "instagram.com Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790036900509",
+    "addedAt": "2026-09-22T00:28:20.531Z"
+  },
+  {
+    "url": "https://react.dev/docs",
+    "domain": "react.dev",
+    "name": "react.dev Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790036746989",
+    "addedAt": "2026-09-22T00:25:46.989Z"
+  },
+  {
+    "url": "https://facebook.com/M0nuGurjar",
+    "domain": "facebook.com",
+    "name": "facebook.com Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790036402988",
+    "addedAt": "2026-09-22T00:20:03.012Z"
+  },
+  {
+    "url": "https://linkedin.com/in/m0nugurjar",
+    "domain": "linkedin.com",
+    "name": "linkedin.com Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790036231264",
+    "addedAt": "2026-09-22T00:17:11.283Z"
+  },
+  {
+    "url": "https://med-russia.vercel.app/",
+    "domain": "med-russia.vercel.app",
+    "name": "med-russia.vercel.app Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790036007289",
+    "addedAt": "2026-09-22T00:13:27.289Z"
+  },
+  {
+    "url": "https://github.com/MonuGurjar/search-engine",
+    "domain": "github.com",
+    "name": "github.com Target",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/**"
+    ],
+    "excludedPaths": [
+      "/login",
+      "/auth/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": false,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract main topics and write clear search snippet.",
+    "status": "Active",
+    "id": "target-1790035909439",
+    "addedAt": "2026-09-22T00:11:49.439Z"
+  },
+  {
+    "url": "https://github.com/MonuGurjar?tab=repositories",
+    "domain": "github.com",
+    "name": "Github",
+    "scopeType": "path-prefix",
+    "maxDepth": 2,
+    "crawlDelayMs": 250,
+    "includedPathPatterns": [
+      "/MonuGurjar/**"
+    ],
+    "excludedPaths": [
+      "/MonuGurjar/*/(commit|issues|pulls|actions|blob|releases|stargazers|network)/**",
+      "/login",
+      "/search"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": true,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": true,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract API methods, architecture paradigms, code syntax concepts, and categorize for developer lookup.",
+    "status": "Active",
+    "id": "target-1790034723001",
+    "addedAt": "2026-09-21T23:52:03.001Z"
+  },
+  {
+    "id": "target-1790034109106",
+    "url": "https://instagram.com/m0nugurjar",
+    "domain": "instagram.com",
+    "name": "Monu Gurjar (@m0nugurjar) - Instagram Profile",
+    "scopeType": "path-prefix",
+    "maxDepth": 3,
+    "crawlDelayMs": 500,
+    "includedPathPatterns": [
+      "/m0nugurjar/**",
+      "/p/**",
+      "/reel/**"
+    ],
+    "excludedPaths": [
+      "/accounts/*",
+      "/login",
+      "/legal/*",
+      "/emails/*",
+      "/developer/*"
+    ],
+    "contentFilter": {
+      "extractCodeBlocks": false,
+      "extractHeadings": true,
+      "extractLinks": true,
+      "extractImages": true,
+      "extractPdfs": false
+    },
+    "geminiDirective": "Extract profile bio, creator details, public posts, captions, media context, and topics for search index ranking.",
+    "status": "Active",
+    "addedAt": "2026-09-21T23:41:49.106Z"
+  }
+]

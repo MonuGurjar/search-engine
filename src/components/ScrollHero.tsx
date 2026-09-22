@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, GearIcon } from './icons'
-import { ModePills } from './ModePills'
 import { SearchBar } from './SearchBar'
 import { Wordmark } from './Wordmark'
 
@@ -11,8 +10,6 @@ type Props = {
   onSearch: (q: string) => void
   onHome: () => void
 }
-
-const LINKS = ['About', 'Privacy', 'Features']
 
 const prefersReduced = () =>
   typeof window !== 'undefined' &&
@@ -31,14 +28,11 @@ function calculateMetrics() {
       markScaleRatio: 0.25,
       heroWordmarkY: 270,
       dxAt1: -618,
-      dyAt1: 38,
+      dyAt1: 37,
       heroTaglineY: 338,
       heroSearchY: 510,
-      heroPillsY: 566,
-      targetSearchY: 18,
-      targetPillsY: 72,
+      targetSearchY: 16,
       targetSearchScale: 0.9,
-      targetPillsScale: 1.0,
     }
   }
 
@@ -47,12 +41,12 @@ function calculateMetrics() {
   const isMobile = w <= 640
   const isLg = w >= 1024
 
-  const transitionDistance = h * (isMobile ? 0.75 : 0.88)
+  const transitionDistance = h
 
   // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
   const sphereD = isMobile
     ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
-    : Math.min(480, Math.max(230, Math.min(w * 0.44, h * 0.48)))
+    : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
   const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
   const sphereTop = Math.round(h * sphereTopRatio)
   const sphereCenterY = Math.round(sphereTop + sphereD / 2)
@@ -64,7 +58,7 @@ function calculateMetrics() {
 
   const targetLeft = isMobile ? 20 : isLg ? 56 : 40
   const targetMarkCenterX = targetLeft + 46
-  const targetMarkCenterY = isMobile ? 28 : 38
+  const targetMarkCenterY = isMobile ? 28 : 37
 
   const heroCenterX = w / 2
   const heroWordmarkY = sphereCenterY
@@ -76,16 +70,10 @@ function calculateMetrics() {
 
   // SearchBar is positioned downward just below the sphere bottom, keeping the sphere 100% visible
   const heroSearchY = sphereBottom + (isMobile ? 18 : 20)
-  // Category pills sit comfortably below the thin search bar
-  const heroPillsY = heroSearchY + (isMobile ? 48 : 50) + (isMobile ? 14 : 18)
 
-  // In final state (Panel 4): SearchBar aligns horizontally in the top bar row on desktop
-  const targetSearchY = isMobile ? 54 : 18
-  // Category pills placed comfortably below SearchBar (at 72px desktop / 104px mobile)
-  const targetPillsY = isMobile ? 104 : 72
+  // In final state: SearchBar aligns horizontally in the top bar row on desktop
+  const targetSearchY = isMobile ? 48 : 16
   const targetSearchScale = isMobile ? 0.92 : 0.9
-  // Do NOT squish pills with CSS scale — keep natural 1.0 scale
-  const targetPillsScale = 1.0
 
   return {
     transitionDistance,
@@ -96,11 +84,8 @@ function calculateMetrics() {
     dyAt1,
     heroTaglineY,
     heroSearchY,
-    heroPillsY,
     targetSearchY,
-    targetPillsY,
     targetSearchScale,
-    targetPillsScale,
   }
 }
 
@@ -113,8 +98,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   const wordmarkRef = useRef<HTMLDivElement>(null)
   const taglineRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
-  const pillsRef = useRef<HTMLDivElement>(null)
   const scrollIndicatorRef = useRef<HTMLDivElement>(null)
+  const headerBgRef = useRef<HTMLDivElement>(null)
 
   // Keep local search input in sync with query prop
   useEffect(() => {
@@ -148,6 +133,60 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       const isCompact = rawT > 0.45
       setCompact((prev) => (prev !== isCompact ? isCompact : prev))
 
+      // 0. Frosted Glass Header Bar: morphs directly from the central sphere into the top rounded bar
+      if (headerBgRef.current) {
+        const w = window.innerWidth
+        const h = window.innerHeight
+        const isMobile = w <= 640
+        const isLg = w >= 1024
+
+        // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
+        const sphereD = isMobile
+          ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
+          : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
+        const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
+        const sphereTop = Math.round(h * sphereTopRatio)
+        const sphereHeroCenterY = Math.round(sphereTop + sphereD / 2)
+
+        const margin = isMobile ? 8 : isLg ? 24 : 16
+        const targetWidth = w - 2 * margin
+        const targetHeight = isMobile ? 92 : 58
+        const targetCenterY = isMobile ? 54 : 37
+
+        const morphT = prefersReduced()
+          ? rawT >= 0.5
+            ? 1
+            : 0
+          : smoothstep(0.04, 0.94, rawT)
+
+        if (morphT <= 0.001) {
+          headerBgRef.current.style.opacity = '0'
+          headerBgRef.current.style.visibility = 'hidden'
+          headerBgRef.current.style.pointerEvents = 'none'
+        } else {
+          headerBgRef.current.style.visibility = 'visible'
+          const op = smoothstep(0.04, 0.40, rawT)
+          headerBgRef.current.style.opacity = op.toFixed(3)
+          headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
+
+          const currentCenterY = sphereHeroCenterY + (targetCenterY - sphereHeroCenterY) * morphT
+          const currentWidth = sphereD + (targetWidth - sphereD) * morphT
+          const currentHeight = sphereD + (targetHeight - sphereD) * morphT
+          const currentLeft = (w - currentWidth) / 2
+          const currentTop = currentCenterY - currentHeight / 2
+
+          // Target border radius: 24px on mobile, currentHeight / 2 (pill) on desktop
+          const targetRadius = isMobile ? 24 : targetHeight / 2
+          const currentRadius = sphereD / 2 + (targetRadius - sphereD / 2) * morphT
+
+          headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
+          headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
+          headerBgRef.current.style.width = `${currentWidth.toFixed(1)}px`
+          headerBgRef.current.style.height = `${currentHeight.toFixed(1)}px`
+          headerBgRef.current.style.borderRadius = `${currentRadius.toFixed(1)}px`
+        }
+      }
+
       // 1. VOID Wordmark transform (center hero -> top-left header)
       if (wordmarkRef.current) {
         const dx = m.dxAt1 * t
@@ -172,14 +211,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         searchRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
       }
 
-      // 4. ModePills (hero -> below compact search bar, perfectly centered, scale 1.0)
-      if (pillsRef.current) {
-        const dy = m.heroPillsY + (m.targetPillsY - m.heroPillsY) * t
-        const scale = 1.0 + (m.targetPillsScale - 1.0) * t
-        pillsRef.current.style.transform = `translate3d(0, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-      }
-
-      // 5. Scroll indicator (fades out quickly)
+      // 4. Scroll indicator (fades out quickly)
       if (scrollIndicatorRef.current) {
         const op = Math.max(0, 1 - rawT / 0.12)
         scrollIndicatorRef.current.style.opacity = op.toFixed(3)
@@ -195,11 +227,9 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
   function handleSubmit(q: string) {
     onSearch(q)
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-    const transitionDistance =
-      typeof window !== 'undefined' ? window.innerHeight * (isMobile ? 0.75 : 0.88) : 800
+    const transitionDistance = typeof window !== 'undefined' ? window.innerHeight : 800
     if (typeof window !== 'undefined' && window.scrollY < transitionDistance) {
-      window.scrollTo({ top: transitionDistance + 10, behavior: 'smooth' })
+      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
     }
   }
 
@@ -211,11 +241,9 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
   }
 
   function handleScrollDown() {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-    const transitionDistance =
-      typeof window !== 'undefined' ? window.innerHeight * (isMobile ? 0.75 : 0.88) : 800
+    const transitionDistance = typeof window !== 'undefined' ? window.innerHeight : 800
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: transitionDistance + 10, behavior: 'smooth' })
+      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
     }
   }
 
@@ -223,38 +251,45 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      {/* Top navigation row (About, Privacy, Features, Settings) */}
-      <header className="relative z-40 flex items-center justify-between px-4 py-3 sm:px-10 sm:py-5 lg:px-14">
+      {/* Frosted Glass Header Bar: morphs directly from central sphere to top rounded capsule */}
+      <div
+        ref={headerBgRef}
+        aria-hidden
+        className="pointer-events-none fixed z-20"
+        style={{
+          opacity: 0,
+          visibility: 'hidden',
+          background:
+            'linear-gradient(to bottom, rgba(247, 249, 250, 0.86) 0%, rgba(238, 242, 243, 0.80) 75%, rgba(238, 242, 243, 0.74) 100%)',
+          backdropFilter: 'blur(40px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+          border: '1px solid rgba(216, 222, 224, 0.85)',
+          boxShadow: '0 10px 30px -8px rgba(37, 54, 60, 0.10)',
+        }}
+      />
+
+      {/* Top navigation row */}
+      <header className="relative z-40 flex items-center justify-between px-4 py-3 sm:px-10 sm:py-3.5 lg:px-14">
         {/* Spacer matching compact Wordmark width in header */}
         <div className="h-[26px] w-[95px]" aria-hidden />
 
-        <nav className="pointer-events-auto flex items-center gap-4 sm:gap-9">
-          <div className="hidden items-center gap-7 sm:flex">
-            {LINKS.map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="text-sm text-void-muted transition-colors hover:text-void-ink"
-              >
-                {l}
-              </a>
-            ))}
-          </div>
+        <nav className="pointer-events-auto flex items-center">
           <button
-            className="group flex items-center gap-1.5 sm:gap-2 rounded-full bg-void-glass px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
+            aria-label="Settings"
+            title="Settings"
+            className="group flex size-9 sm:size-10 items-center justify-center rounded-full bg-void-glass text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
             style={{
               border: '1px solid rgba(214,222,224,0.95)',
               boxShadow: '0 8px 22px -16px rgba(37,54,60,0.4)',
             }}
           >
             <GearIcon className="size-4 sm:size-[18px] text-void-muted transition-all duration-300 group-hover:rotate-45 group-hover:text-void-green" />
-            <span>Settings</span>
           </button>
         </nav>
       </header>
 
       {/* Hero Wordmark (SINGLE element that translates & scales to header logo) */}
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-1/2">
         <div
           ref={wordmarkRef}
           style={{
@@ -274,7 +309,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       </div>
 
       {/* Hero Tagline */}
-      <div className="absolute left-1/2 top-0 -translate-x-1/2">
+      <div className="absolute left-1/2 top-0 z-30 -translate-x-1/2">
         <div
           ref={taglineRef}
           style={{
@@ -289,7 +324,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       </div>
 
       {/* SearchBar Container — horizontally centered at left-1/2, perfectly aligned */}
-      <div className="absolute left-1/2 top-0 w-full max-w-xl sm:max-w-2xl -translate-x-1/2 px-4 sm:px-6">
+      <div className="absolute left-1/2 top-0 z-30 w-full max-w-xl sm:max-w-2xl -translate-x-1/2 px-4 sm:px-6">
         <div
           ref={searchRef}
           style={{
@@ -304,21 +339,6 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
               onSubmit={handleSubmit}
               compact={compact}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* ModePills Container — horizontally centered directly below the search bar */}
-      <div className="absolute left-1/2 top-0 w-full max-w-3xl sm:max-w-4xl -translate-x-1/2 px-2 sm:px-4">
-        <div
-          ref={pillsRef}
-          style={{
-            transformOrigin: 'center top',
-            transform: `translate3d(0, ${initialMetrics.heroPillsY}px, 0) scale(1)`,
-          }}
-        >
-          <div className="pointer-events-auto flex justify-center">
-            <ModePills active={mode} onChange={onMode} compact={compact} />
           </div>
         </div>
       </div>

@@ -1,0 +1,798 @@
+[
+  {
+    "id": "idx-1790037557452-xvib",
+    "url": "https://monugurjar.vercel.app/",
+    "title": "MONU GURJAR | AI ENGINEER",
+    "domain": "monugurjar.vercel.app",
+    "category": "Developer Portfolio",
+    "pageType": "Portal",
+    "summary": "Official portfolio of Monu Gurjar — AI Systems Engineer, API & Backend Developer, and Linux Power User. Explore engineering projects, interactive terminal environment, technical experience, and resume.",
+    "topics": [
+      "AI Systems Engineer",
+      "AI Engineering",
+      "Machine Learning",
+      "Developer Portfolio",
+      "Python & Linux"
+    ],
+    "tags": [
+      "monu gurjar",
+      "ai engineer",
+      "portfolio",
+      "python",
+      "linux",
+      "machine learning",
+      "backend developer"
+    ],
+    "indexedAt": "2026-09-22T00:40:12.542Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790036906699-gelq",
+    "url": "https://instagram.com/m0nu_gurjar",
+    "title": "Monu Gurjar (@m0nu_gurjar) • Instagram photos and videos",
+    "domain": "instagram.com",
+    "category": "Social Profile",
+    "pageType": "Portal",
+    "summary": "Monu Gurjar (@m0nu_gurjar) on Instagram: Photos, videos, updates, and profile details.",
+    "topics": [
+      "Instagram Profile",
+      "Social Media",
+      "Monu Gurjar",
+      "Photography"
+    ],
+    "tags": [
+      "monu gurjar",
+      "m0nu_gurjar",
+      "instagram",
+      "social media"
+    ],
+    "indexedAt": "2026-09-22T00:28:26.699Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790036409283-mrlq",
+    "url": "https://facebook.com/M0nuGurjar",
+    "title": "Monu Gurjar — Facebook Profile",
+    "domain": "facebook.com",
+    "category": "Social Profile",
+    "pageType": "Portal",
+    "summary": "Official Facebook profile of Monu Gurjar. Connect, follow updates, and view public posts.",
+    "topics": [
+      "Facebook Profile",
+      "Social Media",
+      "Monu Gurjar"
+    ],
+    "tags": [
+      "monu gurjar",
+      "m0nugurjar",
+      "facebook",
+      "social media"
+    ],
+    "indexedAt": "2026-09-22T00:20:09.283Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790036242005-ze26",
+    "url": "https://linkedin.com/in/m0nugurjar",
+    "title": "linkedin.com — Web Document",
+    "domain": "linkedin.com",
+    "category": "Social Profile",
+    "pageType": "Portal",
+    "summary": "Professional LinkedIn profile for Monu Gurjar, showcasing technical expertise in software engineering, API specifications, and system architecture. Connect with Monu to explore software development projects, industry experience, and technical insights.",
+    "topics": [
+      "API Architecture",
+      "Software Engineering",
+      "System Design",
+      "Web Development",
+      "Developer Profiles"
+    ],
+    "tags": [
+      "Monu Gurjar",
+      "m0nugurjar",
+      "Monu Gurjar LinkedIn",
+      "software engineer profile",
+      "API architecture engineer",
+      "system design developer",
+      "tech professional"
+    ],
+    "indexedAt": "2026-09-22T00:17:29.376Z",
+    "httpStatus": 999,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790036021332-nfsu",
+    "url": "https://med-russia.vercel.app/",
+    "title": "MedRussia - Your Gateway to Global Medical Excellence",
+    "domain": "med-russia.vercel.app",
+    "category": "Developer Documentation",
+    "pageType": "Portal",
+    "summary": "MedRussia offers admission guidance and integrated platform specifications designed to support Indian students pursuing recognized MBBS degrees across premier Russian medical universities.",
+    "topics": [
+      "MBBS Admissions",
+      "Medical Education in Russia",
+      "API Specifications",
+      "System Architecture",
+      "International Student Services"
+    ],
+    "tags": [
+      "MedRussia",
+      "MBBS in Russia",
+      "medical admissions portal",
+      "study medicine abroad",
+      "API reference",
+      "architecture specifications",
+      "overseas education platform"
+    ],
+    "indexedAt": "2026-09-22T00:13:41.332Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946470-y5iu",
+    "url": "https://github.com/MonuGurjar/Skin-Disease-detector",
+    "title": "Skin-Disease-detector — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository Skin-Disease-detector created by MonuGurjar on GitHub. Built with Python.",
+    "topics": [
+      "Python",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "skin-disease-detector",
+      "monugurjar",
+      "python",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.471Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946465-5xgh",
+    "url": "https://github.com/MonuGurjar/Russian_uni",
+    "title": "Russian_uni — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository Russian_uni created by MonuGurjar on GitHub. Built with modern software technologies.",
+    "topics": [
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "russian_uni",
+      "monugurjar",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.465Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946462-67jk",
+    "url": "https://github.com/MonuGurjar/PythonTest",
+    "title": "PythonTest — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository PythonTest created by MonuGurjar on GitHub. Built with Python.",
+    "topics": [
+      "Python",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "pythontest",
+      "monugurjar",
+      "python",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.462Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946458-umf9",
+    "url": "https://github.com/MonuGurjar/pulse-page",
+    "title": "pulse-page — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository pulse-page created by MonuGurjar on GitHub. Built with JavaScript.",
+    "topics": [
+      "JavaScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "pulse-page",
+      "monugurjar",
+      "javascript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.458Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946455-8vxj",
+    "url": "https://github.com/MonuGurjar/Portfolio",
+    "title": "Portfolio — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "my Portfolio. Primary language: HTML.",
+    "topics": [
+      "HTML",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "portfolio",
+      "monugurjar",
+      "html",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.455Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946452-6r03",
+    "url": "https://github.com/MonuGurjar/placement-ai-android",
+    "title": "placement-ai-android — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository placement-ai-android created by MonuGurjar on GitHub. Built with Kotlin.",
+    "topics": [
+      "Kotlin",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "placement-ai-android",
+      "monugurjar",
+      "kotlin",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.452Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946449-n0rn",
+    "url": "https://github.com/MonuGurjar/MonuGurjar",
+    "title": "MonuGurjar — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository MonuGurjar created by MonuGurjar on GitHub. Built with modern software technologies.",
+    "topics": [
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "monugurjar",
+      "monugurjar",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.449Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946446-agyv",
+    "url": "https://github.com/MonuGurjar/MG",
+    "title": "MG — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository MG created by MonuGurjar on GitHub. Built with CSS.",
+    "topics": [
+      "CSS",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "mg",
+      "monugurjar",
+      "css",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.446Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946443-c3dz",
+    "url": "https://github.com/MonuGurjar/medrussia-priv-db",
+    "title": "medrussia-priv-db — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository medrussia-priv-db created by MonuGurjar on GitHub. Built with TypeScript.",
+    "topics": [
+      "TypeScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "medrussia-priv-db",
+      "monugurjar",
+      "typescript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.443Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946438-f813",
+    "url": "https://github.com/MonuGurjar/MedRussia-Documentation",
+    "title": "MedRussia-Documentation — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository MedRussia-Documentation created by MonuGurjar on GitHub. Built with modern software technologies.",
+    "topics": [
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "medrussia-documentation",
+      "monugurjar",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.438Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946436-qtsw",
+    "url": "https://github.com/MonuGurjar/med-russia-android",
+    "title": "med-russia-android — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository med-russia-android created by MonuGurjar on GitHub. Built with Kotlin.",
+    "topics": [
+      "Kotlin",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "med-russia-android",
+      "monugurjar",
+      "kotlin",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.436Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946433-cdw6",
+    "url": "https://github.com/MonuGurjar/machine-learning",
+    "title": "machine-learning — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository machine-learning created by MonuGurjar on GitHub. Built with modern software technologies.",
+    "topics": [
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "machine-learning",
+      "monugurjar",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.433Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946430-fbpw",
+    "url": "https://github.com/MonuGurjar/Full-Stack-Dev",
+    "title": "Full-Stack-Dev — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Summer Boot Camp. Primary language: Code.",
+    "topics": [
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "full-stack-dev",
+      "monugurjar",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.430Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946428-vcuf",
+    "url": "https://github.com/MonuGurjar/DS",
+    "title": "DS — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository DS created by MonuGurjar on GitHub. Built with C.",
+    "topics": [
+      "C",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "ds",
+      "monugurjar",
+      "c",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.428Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946422-h51j",
+    "url": "https://github.com/MonuGurjar/Data_Structure",
+    "title": "Data_Structure — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository Data_Structure created by MonuGurjar on GitHub. Built with C.",
+    "topics": [
+      "C",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "data_structure",
+      "monugurjar",
+      "c",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.422Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946417-dto9",
+    "url": "https://github.com/MonuGurjar/Camera-For-Linux-In-Rust",
+    "title": "Camera-For-Linux-In-Rust — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository Camera-For-Linux-In-Rust created by MonuGurjar on GitHub. Built with Rust.",
+    "topics": [
+      "Rust",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "camera-for-linux-in-rust",
+      "monugurjar",
+      "rust",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.417Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946412-tf8l",
+    "url": "https://github.com/MonuGurjar/Calculator-Mokka",
+    "title": "Calculator-Mokka — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository Calculator-Mokka created by MonuGurjar on GitHub. Built with Python.",
+    "topics": [
+      "Python",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "calculator-mokka",
+      "monugurjar",
+      "python",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.412Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946409-dfqr",
+    "url": "https://github.com/MonuGurjar/calculator-adding",
+    "title": "calculator-adding — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository calculator-adding created by MonuGurjar on GitHub. Built with C.",
+    "topics": [
+      "C",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "calculator-adding",
+      "monugurjar",
+      "c",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.409Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946405-ml05",
+    "url": "https://github.com/MonuGurjar/C-programming",
+    "title": "C-programming — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository C-programming created by MonuGurjar on GitHub. Built with C.",
+    "topics": [
+      "C",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "c-programming",
+      "monugurjar",
+      "c",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.405Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946401-7g7l",
+    "url": "https://github.com/MonuGurjar/AI-Powered-Customer-Complaint-Management-System",
+    "title": "AI-Powered-Customer-Complaint-Management-System — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository AI-Powered-Customer-Complaint-Management-System created by MonuGurjar on GitHub. Built with JavaScript.",
+    "topics": [
+      "JavaScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "ai-powered-customer-complaint-management-system",
+      "monugurjar",
+      "javascript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.401Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946398-cph1",
+    "url": "https://github.com/MonuGurjar/AI-Placement-Preparation-Platform",
+    "title": "AI-Placement-Preparation-Platform — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository AI-Placement-Preparation-Platform created by MonuGurjar on GitHub. Built with TypeScript.",
+    "topics": [
+      "TypeScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "ai-placement-preparation-platform",
+      "monugurjar",
+      "typescript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.398Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946388-msly",
+    "url": "https://github.com/MonuGurjar/AcerX-Nitro-Sense",
+    "title": "AcerX-Nitro-Sense — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Modern hardware management suite for Acer Nitro V 15 under Linux. Primary language: TypeScript.",
+    "topics": [
+      "TypeScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "acerx-nitro-sense",
+      "monugurjar",
+      "typescript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.388Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946386-9frz",
+    "url": "https://github.com/MonuGurjar/2024",
+    "title": "2024 — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository 2024 created by MonuGurjar on GitHub. Built with CSS.",
+    "topics": [
+      "CSS",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "2024",
+      "monugurjar",
+      "css",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.386Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035946384-yi0z",
+    "url": "https://github.com/MonuGurjar/2020",
+    "title": "2020 — MonuGurjar (GitHub)",
+    "domain": "github.com",
+    "category": "Code Repository",
+    "pageType": "Repository",
+    "summary": "Open-source software repository 2020 created by MonuGurjar on GitHub. Built with JavaScript.",
+    "topics": [
+      "JavaScript",
+      "Open Source",
+      "GitHub Repository",
+      "Software Project"
+    ],
+    "tags": [
+      "2020",
+      "monugurjar",
+      "javascript",
+      "github"
+    ],
+    "indexedAt": "2026-09-22T00:12:26.384Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035940732-v3if",
+    "url": "https://github.com/MonuGurjar?tab=repositories",
+    "title": "MonuGurjar (Unknown Kernel) / Repositories · GitHub",
+    "domain": "github.com",
+    "category": "Social Profile",
+    "pageType": "Repository",
+    "summary": "Official GitHub repository profile for MonuGurjar, a Software Engineer specializing in AI systems, Linux, and project development such as MedRussia. Browse public repositories, code contributions, and open-source software projects.",
+    "topics": [
+      "Software Engineering",
+      "Artificial Intelligence",
+      "Open Source Development",
+      "Linux Systems",
+      "Version Control"
+    ],
+    "tags": [
+      "MonuGurjar GitHub",
+      "MonuGurjar repositories",
+      "AI Systems software engineer",
+      "MedRussia developer",
+      "MonuGurjar open source",
+      "Linux engineer GitHub profile"
+    ],
+    "indexedAt": "2026-09-22T00:12:20.732Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790035905823-7imm",
+    "url": "https://github.com/MonuGurjar/search-engine",
+    "title": "GitHub - MonuGurjar/search-engine · GitHub",
+    "domain": "github.com",
+    "category": "General Web Resource",
+    "pageType": "Repository",
+    "summary": "Contribute to MonuGurjar/search-engine development by creating an account on GitHub.",
+    "topics": [
+      "VOID — A Quieter Way to Search",
+      "Navigation Menu",
+      "Latest commit",
+      "History"
+    ],
+    "tags": [],
+    "indexedAt": "2026-09-22T00:11:45.823Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790034821928",
+    "url": "https://github.com/MonuGurjar",
+    "title": "MonuGurjar (Unknown Kernel) · GitHub",
+    "domain": "github.com",
+    "category": "Social Profile",
+    "pageType": "Repository",
+    "summary": "GitHub profile of Monu Gurjar (Unknown Kernel), a software engineer focusing on AI systems, Linux environments, and projects such as MedRussia.",
+    "topics": [
+      "Software Engineering",
+      "Artificial Intelligence",
+      "Linux Development",
+      "Open Source Software",
+      "HealthTech Systems"
+    ],
+    "tags": [
+      "MonuGurjar",
+      "Unknown Kernel",
+      "AI Systems Engineer",
+      "Linux Developer",
+      "MedRussia",
+      "GitHub Profile",
+      "Open Source Contributor",
+      "Software Engineer"
+    ],
+    "indexedAt": "2026-09-21T23:53:41.928Z",
+    "httpStatus": 200,
+    "profileId": "tech-docs"
+  },
+  {
+    "id": "idx-1790034377076",
+    "url": "https://instagram.com/m0nugurjar",
+    "title": "Monu Gurjar (@m0nugurjar) • Instagram photos and videos",
+    "domain": "instagram.com",
+    "category": "Social Profile",
+    "pageType": "Portal",
+    "summary": "Official Instagram profile of Monu Gurjar (@m0nugurjar). Explore photos, videos, reels, updates, and posts from Monu Gurjar on Instagram.",
+    "topics": [
+      "Instagram Profile",
+      "Social Media",
+      "Monu Gurjar",
+      "Creator Updates"
+    ],
+    "tags": [
+      "instagram profile",
+      "monu gurjar",
+      "m0nugurjar",
+      "social media"
+    ],
+    "indexedAt": "2026-09-21T23:46:17.076Z",
+    "httpStatus": 200,
+    "profileId": "custom"
+  }
+]
