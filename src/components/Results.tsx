@@ -33,13 +33,11 @@ export function Results({ query, mode, onSearch }: Props) {
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
   const [searchedQuery, setSearchedQuery] = useState('')
-  const [page, setPage] = useState(1)
-  const [expandedCount, setExpandedCount] = useState<number | null>(null)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
     const q = query.trim()
-    setPage(1)
-    setExpandedCount(null)
+    setVisibleCount(PAGE_SIZE)
 
     if (!q) {
       setResults([])
@@ -137,33 +135,12 @@ export function Results({ query, mode, onSearch }: Props) {
   }, [query, mode])
 
   const totalResults = results.length
-  const totalPages = Math.ceil(totalResults / PAGE_SIZE)
-  const isExpanded = expandedCount !== null
-  const showingStart = totalResults === 0 ? 0 : isExpanded ? 1 : (page - 1) * PAGE_SIZE + 1
-  const showingEnd = isExpanded
-    ? Math.min(expandedCount, totalResults)
-    : Math.min(page * PAGE_SIZE, totalResults)
-  const displayedResults = isExpanded
-    ? results.slice(0, expandedCount)
-    : results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const hasMore = showingEnd < totalResults
-
-  function handlePageChange(newPage: number) {
-    setExpandedCount(null)
-    setPage(newPage)
-    const el = document.getElementById('search-results')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    } else if (typeof window !== 'undefined') {
-      window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
-    }
-  }
+  const displayedResults = results.slice(0, visibleCount)
+  const hasMore = visibleCount < totalResults
+  const remainingCount = Math.max(0, totalResults - visibleCount)
 
   function handleShowMore() {
-    setExpandedCount((prev) => {
-      const current = prev ?? page * PAGE_SIZE
-      return Math.min(current + PAGE_SIZE, totalResults)
-    })
+    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, totalResults))
   }
 
   return (
@@ -190,7 +167,7 @@ export function Results({ query, mode, onSearch }: Props) {
                   <>
                     {totalResults > PAGE_SIZE ? (
                       <>
-                        Showing <span className="font-medium text-void-ink">{showingStart}–{showingEnd}</span> of{' '}
+                        Showing <span className="font-medium text-void-ink">{displayedResults.length}</span> of{' '}
                         <span className="font-medium text-void-ink">{totalResults}</span> results for{' '}
                       </>
                     ) : (
@@ -216,10 +193,10 @@ export function Results({ query, mode, onSearch }: Props) {
               </div>
             ) : (
               <>
-                {/* Results list with generous, open vertical rhythm (10 per page) */}
+                {/* Results list with generous, open vertical rhythm (10 per page initially) */}
                 <ol className="mt-6 sm:mt-8 flex flex-col divide-y divide-void-line/60">
                   {displayedResults.map((r, i) => (
-                    <li key={`${page}-${i}-${r.url}`} className="group py-7 sm:py-8">
+                    <li key={`${i}-${r.url}`} className="group py-7 sm:py-8">
                       <div className="flex items-center gap-2.5 text-[13.5px] text-void-muted">
                         <span className="grid size-5 place-items-center rounded-full bg-void-green/15 text-[11px] font-semibold text-void-green">
                           {r.domain[0]?.toUpperCase() || 'W'}
@@ -244,64 +221,20 @@ export function Results({ query, mode, onSearch }: Props) {
                   ))}
                 </ol>
 
-                {/* Pagination Controls & Show More Results */}
-                {totalResults > PAGE_SIZE && (
-                  <div className="mt-8 flex flex-col items-center gap-4 border-t border-void-line/60 pt-8 sm:mt-10 sm:gap-5">
-                    {/* Show more results button */}
-                    {hasMore && (
-                      <button
-                        type="button"
-                        onClick={handleShowMore}
-                        className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-void-line/90 bg-white/90 px-6 py-2.5 text-sm font-medium text-void-ink shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green hover:shadow-md active:scale-95 cursor-pointer"
-                      >
-                        <span>Show more results</span>
-                        <span className="text-xs text-void-muted group-hover:text-void-green">
-                          ({totalResults - showingEnd} remaining)
-                        </span>
-                        <ChevronDown className="size-4 text-void-muted transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-void-green" />
-                      </button>
-                    )}
-
-                    {/* Page number buttons */}
-                    {totalPages > 1 && (
-                      <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                        <button
-                          type="button"
-                          disabled={page <= 1 && !isExpanded}
-                          onClick={() => handlePageChange(Math.max(1, page - 1))}
-                          className="flex h-9 items-center justify-center rounded-full border border-void-line/80 bg-white/80 px-3.5 text-xs sm:text-sm font-medium text-void-ink backdrop-blur-sm transition-all duration-150 hover:border-void-green/45 hover:bg-white hover:text-void-green disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:border-void-line/80 disabled:hover:text-void-ink cursor-pointer"
-                        >
-                          Previous
-                        </button>
-
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
-                          const isActive = !isExpanded && page === p
-                          return (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => handlePageChange(p)}
-                              className={`flex size-9 items-center justify-center rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
-                                isActive
-                                  ? 'bg-void-ink text-white shadow-sm'
-                                  : 'border border-void-line/80 bg-white/80 text-void-ink hover:border-void-green/45 hover:bg-white hover:text-void-green'
-                              }`}
-                            >
-                              {p}
-                            </button>
-                          )
-                        })}
-
-                        <button
-                          type="button"
-                          disabled={page >= totalPages && !isExpanded}
-                          onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                          className="flex h-9 items-center justify-center rounded-full border border-void-line/80 bg-white/80 px-3.5 text-xs sm:text-sm font-medium text-void-ink backdrop-blur-sm transition-all duration-150 hover:border-void-green/45 hover:bg-white hover:text-void-green disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:border-void-line/80 disabled:hover:text-void-ink cursor-pointer"
-                        >
-                          Next
-                        </button>
-                      </nav>
-                    )}
+                {/* Show more results button */}
+                {hasMore && (
+                  <div className="mt-8 flex justify-center border-t border-void-line/60 pt-8 sm:mt-10">
+                    <button
+                      type="button"
+                      onClick={handleShowMore}
+                      className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-void-line/90 bg-white/90 px-6 py-2.5 text-sm font-medium text-void-ink shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green hover:shadow-md active:scale-95 cursor-pointer"
+                    >
+                      <span>Show more results</span>
+                      <span className="text-xs text-void-muted group-hover:text-void-green">
+                        ({remainingCount} remaining)
+                      </span>
+                      <ChevronDown className="size-4 text-void-muted transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-void-green" />
+                    </button>
                   </div>
                 )}
               </>
