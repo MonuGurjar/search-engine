@@ -7,9 +7,6 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dashboard:dev": "npm --prefix crawler-dashboard run dev",
-    "dashboard:build": "npm --prefix crawler-dashboard run build",
-    "supabase:sync": "node scripts/sync-to-supabase.mjs",
     "format": "oxfmt"
   },
   "dependencies": {
