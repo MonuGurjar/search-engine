@@ -1,11 +1,12 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
-  AcademicIcon,
-  CodeIcon,
   GlobeIcon,
   ImageIcon,
+  VideoPlayIcon,
   NewsIcon,
-  VideoIcon,
+  MapPinIcon,
+  AcademicIcon,
+  CodeIcon,
 } from './icons'
 
 export type Mode = {
@@ -15,10 +16,11 @@ export type Mode = {
 }
 
 export const MODES: Mode[] = [
-  { id: 'web', label: 'Web', Icon: GlobeIcon },
+  { id: 'all', label: 'All', Icon: GlobeIcon },
   { id: 'images', label: 'Images', Icon: ImageIcon },
+  { id: 'videos', label: 'Videos', Icon: VideoPlayIcon },
   { id: 'news', label: 'News', Icon: NewsIcon },
-  { id: 'videos', label: 'Videos', Icon: VideoIcon },
+  { id: 'maps', label: 'Maps', Icon: MapPinIcon },
   { id: 'academic', label: 'Academic', Icon: AcademicIcon },
   { id: 'code', label: 'Code', Icon: CodeIcon },
 ]

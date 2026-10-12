@@ -146,20 +146,12 @@ export function Results({ query, mode, onSearch }: Props) {
   return (
     <section id="search-results" className="relative min-h-[calc(100vh-220px)] pb-16">
       <div
-        className="mx-auto w-full max-w-5xl rounded-3xl sm:rounded-[32px] px-6 py-7 sm:px-10 sm:py-9 transition-all duration-300"
-        style={{
-          background: 'rgba(255, 255, 255, 0.80)',
-          backdropFilter: 'blur(40px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
-          border: '1px solid rgba(216, 222, 224, 0.85)',
-          boxShadow:
-            '0 24px 64px -20px rgba(37, 54, 60, 0.10), 0 2px 8px rgba(37, 54, 60, 0.04)',
-        }}
+        className="mx-auto w-full max-w-4xl rounded-2xl sm:rounded-3xl px-6 py-6 sm:px-8 sm:py-8 transition-all duration-300 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
       >
         {hasQuery ? (
           <>
             {/* Meta status line with comfortable spacing */}
-            <div className="flex items-center justify-between text-[13.5px] text-void-muted/80 tracking-wide">
+            <div className="flex items-center justify-between text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 tracking-wide pb-4 border-b border-slate-100 dark:border-slate-800/80">
               <p>
                 {loading ? (
                   <span>Searching VOID index...</span>
@@ -167,41 +159,41 @@ export function Results({ query, mode, onSearch }: Props) {
                   <>
                     {totalResults > PAGE_SIZE ? (
                       <>
-                        Showing <span className="font-medium text-void-ink">{displayedResults.length}</span> of{' '}
-                        <span className="font-medium text-void-ink">{totalResults}</span> results for{' '}
+                        Showing <span className="font-semibold text-slate-800 dark:text-slate-200">{displayedResults.length}</span> of{' '}
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{totalResults}</span> results for{' '}
                       </>
                     ) : (
                       <>
-                        <span className="font-medium text-void-ink">{totalResults}</span> results for{' '}
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{totalResults}</span> results for{' '}
                       </>
                     )}
-                    <span className="font-medium text-void-ink">“{searchedQuery || query}”</span> in {modeLabel} · no history saved
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">“{searchedQuery || query}”</span> in {modeLabel} · private
                   </>
                 )}
               </p>
             </div>
 
             {loading ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3 text-void-muted">
-                <div className="size-6 border-2 border-void-green border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm font-light">Retrieving private search results...</p>
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <div className="size-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm font-light">Searching VOID private index...</p>
               </div>
             ) : totalResults === 0 ? (
-              <div className="py-20 text-center text-void-muted">
-                <p className="text-lg font-light text-void-ink">No results found in VOID index for “{query}”</p>
-                <p className="text-sm mt-1">This page has not been indexed yet. Add and crawl it in your VOID Crawler Dashboard.</p>
+              <div className="py-16 text-center text-slate-500 dark:text-slate-400">
+                <p className="text-base font-normal text-slate-800 dark:text-slate-100">No results found in VOID index for “{query}”</p>
+                <p className="text-xs mt-2 text-slate-400 max-w-sm mx-auto">This page hasn't been crawled yet. You can add it using your VOID Crawler Dashboard.</p>
               </div>
             ) : (
               <>
-                {/* Results list with generous, open vertical rhythm (10 per page initially) */}
-                <ol className="mt-6 sm:mt-8 flex flex-col divide-y divide-void-line/60">
+                {/* Results list with generous rhythm */}
+                <ol className="mt-4 flex flex-col divide-y divide-slate-100 dark:divide-slate-800/70">
                   {displayedResults.map((r, i) => (
-                    <li key={`${i}-${r.url}`} className="group py-7 sm:py-8">
-                      <div className="flex items-center gap-2.5 text-[13.5px] text-void-muted">
-                        <span className="grid size-5 place-items-center rounded-full bg-void-green/15 text-[11px] font-semibold text-void-green">
+                    <li key={`${i}-${r.url}`} className="group py-5 sm:py-6 first:pt-2">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="grid size-4.5 place-items-center rounded-full bg-blue-50 dark:bg-blue-950 text-[10px] font-semibold text-blue-600 dark:text-blue-400">
                           {r.domain[0]?.toUpperCase() || 'W'}
                         </span>
-                        <span>
+                        <span className="truncate max-w-md">
                           {r.domain}
                           {r.path}
                         </span>
@@ -210,11 +202,11 @@ export function Results({ query, mode, onSearch }: Props) {
                         href={r.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 block font-display text-[22px] sm:text-2xl font-normal tracking-tight text-void-ink transition-colors group-hover:text-void-green leading-snug"
+                        className="mt-1.5 block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-blue-400 hover:underline leading-snug"
                       >
                         {r.title}
                       </a>
-                      <p className="mt-2 max-w-3xl text-[15px] sm:text-base leading-relaxed text-void-muted">
+                      <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                         {r.snippet}
                       </p>
                     </li>
@@ -223,17 +215,17 @@ export function Results({ query, mode, onSearch }: Props) {
 
                 {/* Show more results button */}
                 {hasMore && (
-                  <div className="mt-8 flex justify-center border-t border-void-line/60 pt-8 sm:mt-10">
+                  <div className="mt-6 flex justify-center border-t border-slate-100 dark:border-slate-800/80 pt-6">
                     <button
                       type="button"
                       onClick={handleShowMore}
-                      className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-void-line/90 bg-white/90 px-6 py-2.5 text-sm font-medium text-void-ink shadow-sm backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green hover:shadow-md active:scale-95 cursor-pointer"
+                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-sm transition-all hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 active:scale-95 cursor-pointer"
                     >
                       <span>Show more results</span>
-                      <span className="text-xs text-void-muted group-hover:text-void-green">
+                      <span className="text-slate-400">
                         ({remainingCount} remaining)
                       </span>
-                      <ChevronDown className="size-4 text-void-muted transition-transform duration-200 group-hover:translate-y-0.5 group-hover:text-void-green" />
+                      <ChevronDown className="size-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-y-0.5" />
                     </button>
                   </div>
                 )}
@@ -242,19 +234,19 @@ export function Results({ query, mode, onSearch }: Props) {
           </>
         ) : (
           /* Exploration state when scrolling down before typing a query */
-          <div className="py-12 text-center sm:py-16">
-            <p className="void-label text-xs tracking-widest text-void-faint">
+          <div className="py-10 text-center sm:py-12">
+            <p className="text-[11px] uppercase tracking-widest font-mono text-slate-400">
               Explore Without Being Tracked
             </p>
-            <h3 className="mt-2 font-display text-2xl font-light text-void-ink sm:text-3xl">
+            <h3 className="mt-2 text-xl font-light text-slate-800 dark:text-slate-100 sm:text-2xl font-sans">
               Curated queries for the curious mind
             </h3>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
               {EXPLORATION_TOPICS.map((topic) => (
                 <button
                   key={topic}
                   onClick={() => onSearch(topic)}
-                  className="rounded-full border border-void-line/80 bg-white/70 px-4 py-2 text-sm text-void-ink backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/50 hover:bg-white hover:text-void-green cursor-pointer"
+                  className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-850 px-3.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 transition-all hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                 >
                   {topic}
                 </button>
@@ -264,9 +256,9 @@ export function Results({ query, mode, onSearch }: Props) {
         )}
 
         {/* End of results mark */}
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <Wordmark size={22} />
-          <p className="void-label text-[10px] text-void-faint">The end of the void</p>
+        <div className="flex flex-col items-center gap-2 py-10 text-center border-t border-slate-100 dark:border-slate-800/80 mt-6">
+          <Wordmark size={18} />
+          <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest">A quieter way to search</p>
         </div>
       </div>
     </section>

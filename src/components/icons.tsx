@@ -18,6 +18,75 @@ export function SearchIcon(p: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function MicIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8" />
+    </svg>
+  )
+}
+
+export function CameraIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+  )
+}
+
+export function WaffleGridIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
+      <circle cx="5" cy="5" r="1.8" />
+      <circle cx="12" cy="5" r="1.8" />
+      <circle cx="19" cy="5" r="1.8" />
+      <circle cx="5" cy="12" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="19" cy="12" r="1.8" />
+      <circle cx="5" cy="19" r="1.8" />
+      <circle cx="12" cy="19" r="1.8" />
+      <circle cx="19" cy="19" r="1.8" />
+    </svg>
+  )
+}
+
+export function SunIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  )
+}
+
+export function MoonIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  )
+}
+
+export function MapPinIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  )
+}
+
+export function VideoPlayIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <rect x="2" y="4" width="20" height="16" rx="3" />
+      <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export function GearIcon(p: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base} {...p}>
@@ -97,6 +166,14 @@ export function ArrowLeft(p: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function CloseIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...p}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  )
+}
+
 export function GithubIcon(p: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
@@ -128,4 +205,3 @@ export function LinkedinIcon(p: SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
-

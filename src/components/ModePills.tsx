@@ -4,42 +4,46 @@ type Props = {
   active: string
   onChange: (id: string) => void
   compact?: boolean
+  showAllOnly?: boolean
 }
 
 export function ModePills({ active, onChange, compact = false }: Props) {
+  // Primary modes displayed in the hero pills row matching Minimalist VOID Search Homepage
+  const heroModes = compact ? MODES : MODES.slice(0, 5)
+
   return (
     <div
-      className={`flex items-center py-1 transition-all duration-200 ${
+      className={`flex items-center transition-all duration-200 ${
         compact
-          ? 'flex-nowrap justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-3 sm:px-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-          : 'flex-wrap sm:flex-nowrap justify-center gap-2 max-w-[340px] sm:max-w-none mx-auto'
+          ? 'flex-nowrap justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-2 sm:px-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          : 'flex-wrap sm:flex-nowrap justify-center gap-2.5 max-w-2xl mx-auto'
       }`}
     >
-      {MODES.map(({ id, label, Icon }) => {
-        const selected = id === active
+      {heroModes.map(({ id, label, Icon }) => {
+        const selected = id === active || (active === 'web' && id === 'all')
         return (
           <button
             key={id}
-            onClick={() => onChange(id)}
+            onClick={() => onChange(id === 'all' ? 'web' : id)}
             aria-pressed={selected}
-            className={`group flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-full text-void-ink backdrop-blur-md transition-all duration-200 ease-out hover:-translate-y-0.5 cursor-pointer ${
+            className={`group flex shrink-0 items-center gap-2 rounded-full font-sans transition-all duration-150 ease-out cursor-pointer select-none ${
               compact
-                ? 'px-3 sm:px-3.5 py-1.5 text-[12.5px]'
-                : 'px-3.5 sm:px-4 py-1.5 text-[13px] sm:text-[13.5px]'
+                ? 'px-3 py-1.5 text-xs'
+                : 'px-4 py-2 text-[13.5px]'
+            } ${
+              selected
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/70 shadow-sm font-medium'
+                : 'bg-white dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white shadow-[0_1px_4px_rgba(0,0,0,0.04)]'
             }`}
-            style={{
-              background: 'rgba(255,255,255,0.95)',
-              border: `1px solid ${selected ? 'rgba(47,125,84,0.45)' : 'rgba(224,229,231,0.95)'}`,
-              boxShadow: selected
-                ? '0 12px 28px -14px rgba(37,54,60,0.45), 0 1px 2px rgba(37,54,60,0.05)'
-                : '0 8px 22px -16px rgba(37,54,60,0.35), 0 1px 2px rgba(37,54,60,0.04)',
-            }}
           >
             <Icon
-              className="size-3.5 sm:size-4 shrink-0"
-              style={{ color: selected ? 'var(--color-void-green)' : 'var(--color-void-ink)' }}
+              className={`size-4 shrink-0 transition-colors ${
+                selected
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
+              }`}
             />
-            <span className="font-medium tracking-wide">{label}</span>
+            <span>{label}</span>
           </button>
         )
       })}

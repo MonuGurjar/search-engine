@@ -18,16 +18,26 @@
   color-scheme: light;
 }
 
+.dark {
+  color-scheme: dark;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-sans);
-  color: var(--color-void-ink);
-  background: #eef2f3;
+  color: #1e293b;
+  background-color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark body {
+  color: #f1f5f9;
+  background-color: #0b0f17;
 }
 
 /* Hide scrollbars until scrolling */

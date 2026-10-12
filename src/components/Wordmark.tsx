@@ -1,78 +1,114 @@
 import type { CSSProperties, Ref } from 'react'
-import logoImg from '../assets/logo.webp'
 
 type Props = {
-  /** height of the wordmark in px, letters scale from this */
+  /** height of the wordmark in px */
   size?: number
   className?: string
   style?: CSSProperties
-  /** optional ring prop retained for API compatibility */
-  ring?: boolean
-  /** give the logo a slow atmospheric pulse */
   pulse?: boolean
+  onClick?: () => void
   vRef?: Ref<HTMLSpanElement>
   oRef?: Ref<HTMLSpanElement>
   idRef?: Ref<HTMLSpanElement>
 }
 
 /**
- * VOID wordmark — thin geometric letters with celestial planet ring logo as the O.
+ * Minimalist VOID wordmark — clean geometric letters with cyan-to-blue gradient ring and accent dot as the O.
+ * Matches Minimalist VOID Search Homepage aesthetic.
  */
 export function Wordmark({
   size = 28,
   className = '',
   pulse = false,
+  style,
+  onClick,
   vRef,
   oRef,
   idRef,
-  style,
 }: Props) {
-  const gap = Math.round(size * 0.24)
-  const logoHeight = Math.round(size * 1.10)
-  const logoWidth = Math.round(logoHeight * 1.4567)
-  const marginLeft = -Math.round(size * 0.15)
-  const marginRight = -Math.round(size * 0.13)
+  const fontSize = size
+  const ringSize = Math.round(size * 0.90)
+  const letterGap = Math.round(size * 0.28)
 
   return (
     <span
-      className={`inline-flex items-center font-display text-void-ink ${className}`}
-      style={{ fontSize: size, lineHeight: 1, fontWeight: 300, gap, ...style }}
+      onClick={onClick}
+      className={`inline-flex items-center select-none ${className}`}
+      style={{
+        gap: letterGap,
+        lineHeight: 1,
+        fontFamily: "'Outfit', sans-serif",
+        fontWeight: 300,
+        ...style,
+      }}
       aria-label="VOID"
     >
-      <span ref={vRef} className="inline-block shrink-0 will-change-transform">
+      <span
+        ref={vRef}
+        style={{ fontSize }}
+        className="text-slate-900 dark:text-white transition-colors tracking-tight font-light"
+      >
         V
       </span>
+
+      {/* Radiant Gradient O with accent dot */}
       <span
         ref={oRef}
-        className="relative inline-flex items-center justify-center shrink-0 will-change-transform select-none"
-        style={{
-          width: logoWidth,
-          height: logoHeight,
-          marginLeft,
-          marginRight,
-        }}
+        className="relative inline-flex items-center justify-center shrink-0"
+        style={{ width: ringSize, height: ringSize }}
       >
-        <img
-          src={logoImg}
-          alt="O"
-          width={logoWidth}
-          height={logoHeight}
-          draggable={false}
-          className={`size-full object-contain pointer-events-none drop-shadow-[0_2px_12px_rgba(56,189,248,0.45)] transition-all ${
-            pulse ? 'animate-pulse' : ''
-          }`}
-        />
+        <svg
+          viewBox="0 0 100 100"
+          className={`size-full ${pulse ? 'animate-pulse' : ''}`}
+          style={{ overflow: 'visible' }}
+        >
+          <defs>
+            <linearGradient id="voidGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#2563eb" />
+            </linearGradient>
+            <filter id="voidGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#38bdf8" floodOpacity="0.35" />
+            </filter>
+          </defs>
+          {/* Main Gradient Ring */}
+          <circle
+            cx="50"
+            cy="50"
+            r="38"
+            fill="none"
+            stroke="url(#voidGradient)"
+            strokeWidth="8.5"
+            filter="url(#voidGlow)"
+          />
+          {/* Little Floating Accent Dot at ~1:30 position */}
+          <circle
+            cx="84"
+            cy="16"
+            r="5.5"
+            fill="#2563eb"
+          />
+        </svg>
       </span>
+
       <span
         ref={idRef}
-        className="inline-flex items-center shrink-0 will-change-transform"
-        style={{ gap }}
+        className="inline-flex items-center"
+        style={{ gap: letterGap }}
       >
-        <span>I</span>
-        <span>D</span>
+        <span
+          style={{ fontSize }}
+          className="text-slate-900 dark:text-white transition-colors tracking-tight font-light"
+        >
+          I
+        </span>
+        <span
+          style={{ fontSize }}
+          className="text-slate-900 dark:text-white transition-colors tracking-tight font-light"
+        >
+          D
+        </span>
       </span>
     </span>
   )
 }
-
-

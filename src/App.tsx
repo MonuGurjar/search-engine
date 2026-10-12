@@ -1,60 +1,129 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Header } from './components/Header'
 import { Footer } from './components/Footer'
+import { Wordmark } from './components/Wordmark'
+import { SearchBar } from './components/SearchBar'
 import { ModePills } from './components/ModePills'
 import { Results } from './components/Results'
-import { Scene } from './components/Scene'
-import { ScrollHero } from './components/ScrollHero'
 
 export default function App() {
-  const [mode, setMode] = useState('web')
+  const [mode, setMode] = useState('all')
   const [query, setQuery] = useState('')
+  const [submittedQuery, setSubmittedQuery] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
-  function runSearch(q: string) {
+  // Sync theme with html root class
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [theme])
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
+
+  function handleSearch(q: string) {
     setQuery(q)
-    const transitionDistance = window.innerHeight
-    if (window.scrollY < transitionDistance) {
-      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
+    setSubmittedQuery(q)
+    if (q.trim()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   function goHome() {
+    setQuery('')
+    setSubmittedQuery('')
+    setMode('all')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  return (
-    <div className="relative flex min-h-screen flex-col">
-      {/* Background scene with parallax & co-animating middle sphere */}
-      <Scene />
+  const isSearchActive = Boolean(submittedQuery.trim())
 
-      {/* Single scroll-driven hero & header overlay */}
-      <ScrollHero
-        query={query}
-        mode={mode}
-        onMode={setMode}
-        onSearch={runSearch}
+  return (
+    <div className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 transition-colors duration-200 ${theme}`}>
+      {/* Top Navigation Header */}
+      <Header
+        activeMode={mode}
+        onSelectMode={(newMode) => {
+          setMode(newMode)
+        }}
         onHome={goHome}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
-      {/* Main scrollable document flow */}
-      <main className="relative z-10 flex-1">
-        {/* Full-screen scroll transition spacer */}
-        <div
-          className="pointer-events-none w-full h-screen"
-          aria-hidden
-        />
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col justify-center px-4 sm:px-6">
+        {!isSearchActive ? (
+          /* Clean Minimalist Homepage matching Minimalist VOID Search Homepage.png */
+          <div className="w-full max-w-2xl mx-auto flex flex-col items-center text-center py-12 sm:py-20 animate-in fade-in duration-300">
+            {/* Minimalist VOID Wordmark */}
+            <div className="mb-2 cursor-pointer hover:opacity-95 transition-opacity" onClick={goHome}>
+              <Wordmark size={68} />
+            </div>
 
-        {/* Results / Exploration area with ModePills scrolling with page */}
-        <div className="pt-[74px] sm:pt-[82px]">
-          {/* Mode pills row that scrolls with the page like in Google Search */}
-          <div className="mx-auto w-full max-w-5xl px-6 sm:px-10 pb-2 sm:pb-3 flex justify-center">
-            <ModePills active={mode} onChange={setMode} compact={true} />
+            {/* Tagline */}
+            <p className="text-[12px] sm:text-[13px] font-sans uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500 font-medium mb-8 sm:mb-9">
+              A QUIETER WAY TO SEARCH
+            </p>
+
+            {/* Centered Search Bar */}
+            <div className="w-full mb-6">
+              <SearchBar
+                value={query}
+                onChange={setQuery}
+                onSubmit={handleSearch}
+                autoFocus
+                placeholder="Search anything..."
+              />
+            </div>
+
+            {/* Category / Mode Pills */}
+            <div className="w-full flex justify-center">
+              <ModePills
+                active={mode}
+                onChange={(m) => {
+                  setMode(m)
+                }}
+              />
+            </div>
           </div>
+        ) : (
+          /* Search Results View */
+          <div className="w-full max-w-4xl mx-auto pt-4 sm:pt-6 pb-12 animate-in fade-in duration-200">
+            {/* Top Search Bar & Mode Pills for easy refinement */}
+            <div className="mb-6 space-y-3">
+              <SearchBar
+                value={query}
+                onChange={setQuery}
+                onSubmit={handleSearch}
+                placeholder="Search anything..."
+              />
+              <div className="flex justify-start sm:justify-center overflow-x-auto py-1">
+                <ModePills
+                  active={mode}
+                  onChange={(m) => {
+                    setMode(m)
+                  }}
+                  compact
+                />
+              </div>
+            </div>
 
-          <Results query={query} mode={mode} onSearch={runSearch} />
-        </div>
+            {/* Search Results querying Supabase / local index */}
+            <Results
+              query={submittedQuery}
+              mode={mode}
+              onSearch={handleSearch}
+            />
+          </div>
+        )}
       </main>
 
-      {/* Footer */}
+      {/* Minimalist Footer */}
       <Footer />
     </div>
   )
