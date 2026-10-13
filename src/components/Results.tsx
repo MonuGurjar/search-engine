@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { MODES } from './modes'
-import { Wordmark } from './Wordmark'
-import { ChevronDown } from './icons'
+import {
+  ChevronDown,
+  SnapchatIcon,
+  PinterestIcon,
+  InstagramIcon,
+  LinkedinIcon,
+} from './icons'
 
 type Props = {
   query: string

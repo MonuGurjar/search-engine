@@ -67,7 +67,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-center px-4 sm:px-6">
+      <main className={`flex-1 flex flex-col px-4 sm:px-6 ${isSearchActive ? 'justify-start' : 'justify-center'}`}>
         {!isSearchActive ? (
           /* Clean Minimalist Homepage matching Minimalist VOID Search Homepage.png */
           <div className="w-full max-w-2xl mx-auto flex flex-col items-center text-center py-12 sm:py-20 animate-in fade-in duration-300">

@@ -9,6 +9,7 @@ type Props = {
   autoFocus?: boolean
   onHome?: () => void
   placeholder?: string
+  showMobileLogo?: boolean
 }
 
 export function SearchBar({
