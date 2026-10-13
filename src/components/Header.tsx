@@ -182,12 +182,12 @@ export function Header({
         {/* Theme Toggle (Sun / Moon) */}
         <button
           onClick={onToggleTheme}
-          className="size-9 rounded-full flex items-center justify-center bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-sm"
+          className="size-9 rounded-full flex items-center justify-center bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer shadow-xs"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? (
-            <SunIcon className="size-4.5 text-amber-400" />
+            <MoonIcon className="size-4.5 text-blue-400" />
           ) : (
             <SunIcon className="size-4.5 text-slate-600" />
           )}
