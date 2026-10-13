@@ -10,15 +10,25 @@ export default function App() {
   const [mode, setMode] = useState('all')
   const [query, setQuery] = useState('')
   const [submittedQuery, setSubmittedQuery] = useState('')
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-
-  // Sync theme with html root class
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('void_theme')
+      if (saved === 'dark' || saved === 'light') return saved
     }
+    return 'light'
+  })
+
+  // Sync theme with html root class and persist to localStorage
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    try {
+      localStorage.setItem('void_theme', theme)
+    } catch {}
   }, [theme])
 
   function toggleTheme() {
