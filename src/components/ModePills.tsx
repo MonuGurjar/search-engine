@@ -8,14 +8,14 @@ type Props = {
 }
 
 export function ModePills({ active, onChange, compact = false }: Props) {
-  // Primary modes displayed in the hero pills row matching Minimalist VOID Search Homepage
+  // Show all modes in results view or hero view
   const heroModes = compact ? MODES : MODES.slice(0, 5)
 
   return (
     <div
       className={`flex items-center transition-all duration-200 ${
         compact
-          ? 'flex-nowrap justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-2 sm:px-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          ? 'flex-nowrap justify-start gap-1 sm:gap-1.5 overflow-x-auto max-w-full px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
           : 'flex-wrap sm:flex-nowrap justify-center gap-2.5 max-w-2xl mx-auto'
       }`}
     >

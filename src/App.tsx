@@ -102,17 +102,22 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* Search Results View */
-          <div className="w-full max-w-4xl mx-auto pt-4 sm:pt-6 pb-12 animate-in fade-in duration-200">
-            {/* Top Search Bar & Mode Pills for easy refinement */}
-            <div className="mb-6 space-y-3">
-              <SearchBar
-                value={query}
-                onChange={setQuery}
-                onSubmit={handleSearch}
-                placeholder="Search anything..."
-              />
-              <div className="flex justify-start sm:justify-center overflow-x-auto py-1">
+          /* Search Results View matching uploaded screenshot */
+          <div className="w-full max-w-5xl mx-auto pt-2 sm:pt-4 pb-12 animate-in fade-in duration-200">
+            {/* Top Search Bar & Mode Pills */}
+            <div className="mb-5 space-y-3.5">
+              <div className="w-full max-w-2xl">
+                <SearchBar
+                  value={query}
+                  onChange={setQuery}
+                  onSubmit={handleSearch}
+                  compact
+                  placeholder="Search anything..."
+                />
+              </div>
+
+              {/* Mode Pills row */}
+              <div className="flex justify-start overflow-x-auto py-0.5">
                 <ModePills
                   active={mode}
                   onChange={(m) => {
@@ -123,7 +128,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Search Results querying Supabase / local index */}
+            {/* Search Results */}
             <Results
               query={submittedQuery}
               mode={mode}

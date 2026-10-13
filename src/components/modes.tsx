@@ -7,6 +7,7 @@ import {
   MapPinIcon,
   AcademicIcon,
   CodeIcon,
+  ToolsIcon,
 } from './icons'
 
 export type Mode = {
@@ -22,5 +23,5 @@ export const MODES: Mode[] = [
   { id: 'news', label: 'News', Icon: NewsIcon },
   { id: 'maps', label: 'Maps', Icon: MapPinIcon },
   { id: 'academic', label: 'Academic', Icon: AcademicIcon },
-  { id: 'code', label: 'Code', Icon: CodeIcon },
+  { id: 'tools', label: 'Tools', Icon: ToolsIcon },
 ]

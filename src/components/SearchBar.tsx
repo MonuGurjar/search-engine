@@ -68,17 +68,17 @@ export function SearchBar({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`w-full rounded-full transition-all duration-200 ease-out ${
-        compact ? 'max-w-xl' : 'max-w-2xl mx-auto'
+      className={`w-full transition-all duration-200 ease-out ${
+        compact ? 'max-w-2xl' : 'max-w-2xl mx-auto'
       }`}
     >
       <div
-        className={`flex items-center rounded-full bg-white dark:bg-slate-900 border transition-all duration-200 ${
-          compact ? 'px-3.5 py-1.5' : 'px-4 sm:px-5 py-2.5 sm:py-3'
+        className={`flex items-center rounded-full bg-white dark:bg-[#0e131f] border transition-all duration-200 ${
+          compact ? 'px-4 py-2' : 'px-4 sm:px-5 py-2.5 sm:py-3'
         } ${
           focused
-            ? 'border-blue-500/80 shadow-[0_4px_24px_rgba(37,99,235,0.12)] dark:shadow-[0_4px_24px_rgba(37,99,235,0.2)] ring-1 ring-blue-500/30'
-            : 'border-slate-200/90 dark:border-slate-800 shadow-[0_2px_14px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_14px_rgba(0,0,0,0.25)] hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)]'
+            ? 'border-blue-500/80 shadow-[0_4px_24px_rgba(37,99,235,0.15)] ring-1 ring-blue-500/30'
+            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
         }`}
       >
         {/* Search Magnifying Glass Icon */}
