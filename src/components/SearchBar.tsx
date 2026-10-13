@@ -81,12 +81,19 @@ export function SearchBar({
             : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
         }`}
       >
-        {/* Search Magnifying Glass Icon */}
-        <SearchIcon
-          className={`shrink-0 transition-colors ${
-            compact ? 'size-4.5 mr-2.5' : 'size-5 mr-3'
-          } ${focused ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}
-        />
+        {/* Search Magnifying Glass Icon / Submit Button */}
+        <button
+          type="submit"
+          className="shrink-0 p-1 -ml-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer rounded-full focus:outline-none"
+          title="Search"
+          aria-label="Search"
+        >
+          <SearchIcon
+            className={`transition-colors ${
+              compact ? 'size-4.5 mr-1.5' : 'size-5 mr-2'
+            } ${focused ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`}
+          />
+        </button>
 
         {/* Text Input */}
         <input

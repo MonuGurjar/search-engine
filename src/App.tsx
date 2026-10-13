@@ -56,9 +56,10 @@ export default function App() {
     <div className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 transition-colors duration-200 ${theme}`}>
       {/* Top Navigation Header */}
       <Header
-        activeMode={mode}
+        activeMode={mode === 'all' ? 'web' : mode}
         onSelectMode={(newMode) => {
-          setMode(newMode)
+          const targetMode = newMode === 'web' ? 'all' : newMode
+          setMode(targetMode)
         }}
         onHome={goHome}
         theme={theme}

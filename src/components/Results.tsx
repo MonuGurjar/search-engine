@@ -54,12 +54,13 @@ export function Results({ query, mode, onSearch }: Props) {
     async function executeSearch() {
       try {
         const qLow = q.toLowerCase()
+        const cleanTerm = q.replace(/[,()]/g, ' ').trim()
 
         // 1. Query Supabase cloud index (works on Vercel and production)
         const { data: supabaseDocs, error } = await supabase
           .from('indexed_pages')
           .select('id, url, title, domain, summary, topics, tags, page_type')
-          .or(`title.ilike.%${q}%,summary.ilike.%${q}%,url.ilike.%${q}%,domain.ilike.%${q}%`)
+          .or(`title.ilike.%${cleanTerm}%,summary.ilike.%${cleanTerm}%,url.ilike.%${cleanTerm}%,domain.ilike.%${cleanTerm}%`)
           .limit(100)
 
         if (!cancelled && !error && Array.isArray(supabaseDocs) && supabaseDocs.length > 0) {
