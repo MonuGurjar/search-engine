@@ -58,36 +58,9 @@ export function Header({
           {waffleOpen && (
             <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400 block px-2 pb-2">
-                Apps & Ecosystem
+                Featured Apps
               </span>
               <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => {
-                    onHome()
-                    setWaffleOpen(false)
-                  }}
-                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group cursor-pointer"
-                >
-                  <div className="size-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">V</span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">VOID</span>
-                  <span className="text-[10px] text-slate-400">Search</span>
-                </button>
-
-                <a
-                  href="https://crawler-delta-one.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
-                >
-                  <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">C</span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Crawler</span>
-                  <span className="text-[10px] text-slate-400">Ingest</span>
-                </a>
-
                 <a
                   href="https://med-russia.vercel.app"
                   target="_blank"
