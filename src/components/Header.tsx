@@ -56,37 +56,76 @@ export function Header({
           </button>
 
           {waffleOpen && (
-            <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-400 block px-2 pb-2">
-                VOID Ecosystem
+                Apps & Ecosystem
               </span>
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href="https://crawler-delta-one.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
-                >
-                  <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">C</span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Crawler</span>
-                  <span className="text-[10px] text-slate-400">Web Ingest</span>
-                </a>
-
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => {
                     onHome()
                     setWaffleOpen(false)
                   }}
-                  className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group cursor-pointer"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group cursor-pointer"
                 >
                   <div className="size-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">S</span>
+                    <span className="font-mono text-xs font-bold">V</span>
                   </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Search</span>
-                  <span className="text-[10px] text-slate-400">Cloud Index</span>
+                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">VOID</span>
+                  <span className="text-[10px] text-slate-400">Search</span>
                 </button>
+
+                <a
+                  href="https://crawler-delta-one.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
+                >
+                  <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
+                    <span className="font-mono text-xs font-bold">C</span>
+                  </div>
+                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Crawler</span>
+                  <span className="text-[10px] text-slate-400">Ingest</span>
+                </a>
+
+                <a
+                  href="https://med-russia.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
+                >
+                  <div className="size-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
+                    <span className="font-mono text-xs font-bold">M</span>
+                  </div>
+                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Med Russia</span>
+                  <span className="text-[10px] text-slate-400">Medical</span>
+                </a>
+
+                <a
+                  href="https://ai-placement-preparation.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
+                >
+                  <div className="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
+                    <span className="font-mono text-xs font-bold">AI</span>
+                  </div>
+                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Placement AI</span>
+                  <span className="text-[10px] text-slate-400">Prep</span>
+                </a>
+
+                <a
+                  href="https://monugurjar.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-center transition-all group"
+                >
+                  <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
+                    <span className="font-mono text-xs font-bold">P</span>
+                  </div>
+                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">Portfolio</span>
+                  <span className="text-[10px] text-slate-400">Monu</span>
+                </a>
               </div>
             </div>
           )}
