@@ -7,6 +7,17 @@ import {
   PinterestIcon,
   InstagramIcon,
   LinkedinIcon,
+  GithubIcon,
+  XIcon,
+  YoutubeIcon,
+  RedditIcon,
+  WikipediaIcon,
+  FacebookIcon,
+  SpotifyIcon,
+  StackOverflowIcon,
+  DiscordIcon,
+  FigmaIcon,
+  GoogleIcon,
 } from './icons'
 
 type Props = {
@@ -151,17 +162,25 @@ export function Results({ query, mode, onSearch }: Props) {
 
   function getDomainIcon(domain: string) {
     const d = domain.toLowerCase()
-    if (d.includes('snapchat')) {
+
+    if (d.includes('github')) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#FFFC00] text-black">
-          <SnapchatIcon className="size-3" />
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#24292e] text-white">
+          <GithubIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('pinterest')) {
+    if (d.includes('twitter') || d.includes('x.com')) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#E60023] text-white">
-          <PinterestIcon className="size-3" />
+        <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
+          <XIcon className="size-2.5" />
+        </span>
+      )
+    }
+    if (d.includes('youtube')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#FF0000] text-white">
+          <YoutubeIcon className="size-3" />
         </span>
       )
     }
@@ -179,9 +198,89 @@ export function Results({ query, mode, onSearch }: Props) {
         </span>
       )
     }
+    if (d.includes('reddit')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#FF4500] text-white">
+          <RedditIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('wikipedia')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100">
+          <WikipediaIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('facebook')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#1877F2] text-white">
+          <FacebookIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('spotify')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#1DB954] text-white">
+          <SpotifyIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('stackoverflow')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#F48024] text-white">
+          <StackOverflowIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('discord')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#5865F2] text-white">
+          <DiscordIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('figma')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
+          <FigmaIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('google')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-white text-slate-800 shadow-xs">
+          <GoogleIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('snapchat')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#FFFC00] text-black">
+          <SnapchatIcon className="size-3" />
+        </span>
+      )
+    }
+    if (d.includes('pinterest')) {
+      return (
+        <span className="grid size-4.5 place-items-center rounded-full bg-[#E60023] text-white">
+          <PinterestIcon className="size-3" />
+        </span>
+      )
+    }
+
+    // Dynamic favicon loader with clean initial fallback
+    const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
     return (
-      <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-        {domain[0]?.toUpperCase() || 'W'}
+      <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300 overflow-hidden">
+        <img
+          src={faviconUrl}
+          alt={domain}
+          className="size-3.5 object-contain"
+          onError={(e) => {
+            (e.target as HTMLElement).style.display = 'none'
+          }}
+        />
       </span>
     )
   }
