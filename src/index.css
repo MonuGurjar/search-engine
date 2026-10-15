@@ -135,3 +135,17 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+mark.highlight-term {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: inherit;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 0.5px 2px;
+}
+
+.dark mark.highlight-term {
+  background-color: rgba(59, 130, 246, 0.28);
+  color: #93c5fd;
+}
+

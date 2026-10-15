@@ -41,6 +41,8 @@ type SearchResultItem = {
   path: string
   url: string
   snippet: string
+  highlightedTitle?: string
+  highlightedSnippet?: string
   previewImage?: string
   images?: string[]
 }
@@ -52,6 +54,7 @@ export function Results({ query, mode, onSearch }: Props) {
   const [loading, setLoading] = useState(false)
   const [searchedQuery, setSearchedQuery] = useState('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [latencyMs, setLatencyMs] = useState(0)
 
   useEffect(() => {
     const q = query.trim()
@@ -60,6 +63,7 @@ export function Results({ query, mode, onSearch }: Props) {
     if (!q) {
       setResults([])
       setSearchedQuery('')
+      setLatencyMs(0)
       return
     }
 
@@ -68,6 +72,7 @@ export function Results({ query, mode, onSearch }: Props) {
 
     const controller = new AbortController()
     let cancelled = false
+    const startTime = performance.now()
 
     async function executeSearch() {
       try {
@@ -80,6 +85,8 @@ export function Results({ query, mode, onSearch }: Props) {
         )
 
         if (!cancelled && openSearchResult.hits.length > 0) {
+          const elapsed = Math.round(performance.now() - startTime)
+          setLatencyMs(elapsed)
           const formatted: SearchResultItem[] = openSearchResult.hits.map(
             (doc: OpenSearchDocument) => {
               let pathname = '/'
@@ -92,6 +99,8 @@ export function Results({ query, mode, onSearch }: Props) {
                 path: pathname,
                 url: doc.url,
                 snippet: doc.summary || '',
+                highlightedTitle: doc.highlightedTitle,
+                highlightedSnippet: doc.highlightedSummary,
                 previewImage: doc.preview_image || undefined,
                 images: Array.isArray(doc.images) ? doc.images : [],
               }
@@ -309,7 +318,7 @@ export function Results({ query, mode, onSearch }: Props) {
                 <span>Searching VOID index...</span>
               ) : (
                 <span>
-                  About {totalResults.toLocaleString()} results (0.32 seconds)
+                  About {totalResults.toLocaleString()} results ({latencyMs ? (latencyMs / 1000).toFixed(2) : '0.04'} seconds)
                 </span>
               )}
             </div>
@@ -345,15 +354,15 @@ export function Results({ query, mode, onSearch }: Props) {
                             href={r.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            dangerouslySetInnerHTML={{ __html: r.highlightedTitle || r.title }}
                             className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#388bfd] hover:underline leading-snug"
-                          >
-                            {r.title}
-                          </a>
+                          />
 
                           {/* Snippet */}
-                          <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                            {r.snippet}
-                          </p>
+                          <p
+                            dangerouslySetInnerHTML={{ __html: r.highlightedSnippet || r.snippet }}
+                            className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400"
+                          />
                         </div>
 
                         {/* Image Preview Thumbnail (Google / Arc style) */}

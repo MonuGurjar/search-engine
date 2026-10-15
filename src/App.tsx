@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'
 import { Wordmark } from './components/Wordmark'
@@ -18,6 +18,37 @@ export default function App() {
     return 'light'
   })
 
+  // Initialize query and mode from URL search parameters on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const q = params.get('q') || ''
+      const m = params.get('mode') || 'all'
+      if (q) {
+        setQuery(q)
+        setSubmittedQuery(q)
+      }
+      if (m) {
+        setMode(m)
+      }
+    }
+  }, [])
+
+  // Listen to browser Back / Forward buttons (popstate)
+  useEffect(() => {
+    function handlePopState() {
+      const params = new URLSearchParams(window.location.search)
+      const q = params.get('q') || ''
+      const m = params.get('mode') || 'all'
+      setQuery(q)
+      setSubmittedQuery(q)
+      setMode(m)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   // Sync theme with html root class and persist to localStorage
   useEffect(() => {
     const root = document.documentElement
@@ -35,11 +66,38 @@ export default function App() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
   }
 
-  function handleSearch(q: string) {
-    setQuery(q)
-    setSubmittedQuery(q)
+  // Update URL search parameters shareably
+  const updateUrl = useCallback((q: string, m: string) => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
     if (q.trim()) {
+      url.searchParams.set('q', q.trim())
+      if (m && m !== 'all') {
+        url.searchParams.set('mode', m)
+      } else {
+        url.searchParams.delete('mode')
+      }
+    } else {
+      url.searchParams.delete('q')
+      url.searchParams.delete('mode')
+    }
+    window.history.pushState(null, '', url.toString())
+  }, [])
+
+  function handleSearch(q: string, newMode = mode) {
+    const clean = q.trim()
+    setQuery(clean)
+    setSubmittedQuery(clean)
+    updateUrl(clean, newMode)
+    if (clean) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  function handleModeChange(newMode: string) {
+    setMode(newMode)
+    if (submittedQuery.trim()) {
+      updateUrl(submittedQuery, newMode)
     }
   }
 
@@ -47,6 +105,7 @@ export default function App() {
     setQuery('')
     setSubmittedQuery('')
     setMode('all')
+    updateUrl('', 'all')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -59,7 +118,7 @@ export default function App() {
         activeMode={mode === 'all' ? 'web' : mode}
         onSelectMode={(newMode) => {
           const targetMode = newMode === 'web' ? 'all' : newMode
-          setMode(targetMode)
+          handleModeChange(targetMode)
         }}
         onHome={goHome}
         theme={theme}
@@ -86,7 +145,7 @@ export default function App() {
               <SearchBar
                 value={query}
                 onChange={setQuery}
-                onSubmit={handleSearch}
+                onSubmit={(q) => handleSearch(q, mode)}
                 autoFocus
                 placeholder="Search anything..."
               />
@@ -96,9 +155,7 @@ export default function App() {
             <div className="w-full flex justify-center">
               <ModePills
                 active={mode}
-                onChange={(m) => {
-                  setMode(m)
-                }}
+                onChange={handleModeChange}
               />
             </div>
           </div>
@@ -111,7 +168,7 @@ export default function App() {
                 <SearchBar
                   value={query}
                   onChange={setQuery}
-                  onSubmit={handleSearch}
+                  onSubmit={(q) => handleSearch(q, mode)}
                   compact
                   placeholder="Search anything..."
                 />
@@ -121,9 +178,7 @@ export default function App() {
               <div className="flex justify-start overflow-x-auto py-0.5">
                 <ModePills
                   active={mode}
-                  onChange={(m) => {
-                    setMode(m)
-                  }}
+                  onChange={handleModeChange}
                   compact
                 />
               </div>
@@ -133,7 +188,7 @@ export default function App() {
             <Results
               query={submittedQuery}
               mode={mode}
-              onSearch={handleSearch}
+              onSearch={(q) => handleSearch(q, mode)}
             />
           </div>
         )}
