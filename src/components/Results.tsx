@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { searchOpenSearch, type OpenSearchDocument } from '../lib/opensearch'
 import { MODES } from './modes'
 import {
   ChevronDown,
@@ -71,38 +71,38 @@ export function Results({ query, mode, onSearch }: Props) {
 
     async function executeSearch() {
       try {
-        const qLow = q.toLowerCase()
-        const cleanTerm = q.replace(/[,()]/g, ' ').trim()
+        // 1. Query Aiven OpenSearch cluster (distributed full-text & fuzzy BM25)
+        const openSearchResult = await searchOpenSearch(
+          q,
+          mode,
+          100,
+          controller.signal
+        )
 
-        // 1. Query Supabase cloud index (works on Vercel and production)
-        const { data: supabaseDocs, error } = await supabase
-          .from('indexed_pages')
-          .select('id, url, title, domain, summary, topics, tags, page_type, preview_image, images')
-          .or(`title.ilike.%${cleanTerm}%,summary.ilike.%${cleanTerm}%,url.ilike.%${cleanTerm}%,domain.ilike.%${cleanTerm}%`)
-          .limit(100)
-
-        if (!cancelled && !error && Array.isArray(supabaseDocs) && supabaseDocs.length > 0) {
-          const formatted: SearchResultItem[] = supabaseDocs.map((doc: any) => {
-            let pathname = '/'
-            try {
-              pathname = new URL(doc.url).pathname
-            } catch {}
-            return {
-              title: doc.title || doc.url,
-              domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ''),
-              path: pathname,
-              url: doc.url,
-              snippet: doc.summary || '',
-              previewImage: doc.preview_image || undefined,
-              images: Array.isArray(doc.images) ? doc.images : [],
+        if (!cancelled && openSearchResult.hits.length > 0) {
+          const formatted: SearchResultItem[] = openSearchResult.hits.map(
+            (doc: OpenSearchDocument) => {
+              let pathname = '/'
+              try {
+                pathname = new URL(doc.url).pathname
+              } catch {}
+              return {
+                title: doc.title || doc.url,
+                domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ''),
+                path: pathname,
+                url: doc.url,
+                snippet: doc.summary || '',
+                previewImage: doc.preview_image || undefined,
+                images: Array.isArray(doc.images) ? doc.images : [],
+              }
             }
-          })
+          )
           setResults(formatted)
           setLoading(false)
           return
         }
 
-        // 2. Local fallback if Supabase table is empty or local crawler is running
+        // 2. Local fallback if local crawler is running and OpenSearch has no hits
         const localDocs = await fetch('http://localhost:3001/api/crawler/indexed', {
           signal: controller.signal,
         })
@@ -111,6 +111,7 @@ export function Results({ query, mode, onSearch }: Props) {
 
         if (cancelled) return
 
+        const qLow = q.toLowerCase()
         const localMatches: SearchResultItem[] = (Array.isArray(localDocs) ? localDocs : [])
           .filter((doc: any) => {
             const inTitle = doc.title?.toLowerCase().includes(qLow)
@@ -139,7 +140,7 @@ export function Results({ query, mode, onSearch }: Props) {
         setResults(localMatches)
       } catch (err: any) {
         if (!cancelled && err.name !== 'AbortError') {
-          console.error('Search error:', err)
+          console.error('OpenSearch query error:', err)
           setResults([])
         }
       } finally {
