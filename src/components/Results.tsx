@@ -41,6 +41,8 @@ type SearchResultItem = {
   path: string
   url: string
   snippet: string
+  previewImage?: string
+  images?: string[]
 }
 
 export function Results({ query, mode, onSearch }: Props) {
@@ -75,7 +77,7 @@ export function Results({ query, mode, onSearch }: Props) {
         // 1. Query Supabase cloud index (works on Vercel and production)
         const { data: supabaseDocs, error } = await supabase
           .from('indexed_pages')
-          .select('id, url, title, domain, summary, topics, tags, page_type')
+          .select('id, url, title, domain, summary, topics, tags, page_type, preview_image, images')
           .or(`title.ilike.%${cleanTerm}%,summary.ilike.%${cleanTerm}%,url.ilike.%${cleanTerm}%,domain.ilike.%${cleanTerm}%`)
           .limit(100)
 
@@ -91,6 +93,8 @@ export function Results({ query, mode, onSearch }: Props) {
               path: pathname,
               url: doc.url,
               snippet: doc.summary || '',
+              previewImage: doc.preview_image || undefined,
+              images: Array.isArray(doc.images) ? doc.images : [],
             }
           })
           setResults(formatted)
@@ -127,6 +131,8 @@ export function Results({ query, mode, onSearch }: Props) {
               path: pathname,
               url: doc.url,
               snippet: doc.summary,
+              previewImage: doc.previewImage,
+              images: doc.images || [],
             }
           })
 
@@ -322,7 +328,7 @@ export function Results({ query, mode, onSearch }: Props) {
                 {/* Clean flat Google-style results list without boxy container */}
                 <ol className="flex flex-col space-y-7 sm:space-y-8">
                   {displayedResults.map((r, i) => (
-                    <li key={`${i}-${r.url}`} className="group max-w-2xl">
+                    <li key={`${i}-${r.url}`} className="group max-w-3xl">
                       {/* Domain and breadcrumb */}
                       <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                         {getDomainIcon(r.domain)}
@@ -331,20 +337,69 @@ export function Results({ query, mode, onSearch }: Props) {
                         </span>
                       </div>
 
-                      {/* Result Title */}
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#388bfd] hover:underline leading-snug"
-                      >
-                        {r.title}
-                      </a>
+                      <div className="mt-1 flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          {/* Result Title */}
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#388bfd] hover:underline leading-snug"
+                          >
+                            {r.title}
+                          </a>
 
-                      {/* Snippet */}
-                      <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                        {r.snippet}
-                      </p>
+                          {/* Snippet */}
+                          <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                            {r.snippet}
+                          </p>
+                        </div>
+
+                        {/* Image Preview Thumbnail (Google / Arc style) */}
+                        {r.previewImage && (
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 group/img relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 shadow-xs hover:border-blue-500/50 transition-all"
+                          >
+                            <img
+                              src={r.previewImage}
+                              alt={r.title}
+                              loading="lazy"
+                              className="size-20 sm:size-24 object-cover object-top transition-transform duration-300 group-hover/img:scale-105"
+                              onError={(e) => {
+                                (e.currentTarget.parentElement as HTMLElement).style.display = 'none'
+                              }}
+                            />
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Multi-image gallery row */}
+                      {r.images && r.images.length > 1 && (
+                        <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                          {r.images.slice(0, 5).map((imgUrl, imgIdx) => (
+                            <a
+                              key={imgIdx}
+                              href={r.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800/90 bg-slate-100 dark:bg-slate-900 shadow-2xs hover:opacity-90 transition-opacity"
+                            >
+                              <img
+                                src={imgUrl}
+                                alt={`Extracted image ${imgIdx + 1} from ${r.domain}`}
+                                loading="lazy"
+                                className="h-12 w-16 sm:h-14 sm:w-20 object-cover"
+                                onError={(e) => {
+                                  (e.currentTarget.parentElement as HTMLElement).style.display = 'none'
+                                }}
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ol>
