@@ -7,32 +7,32 @@ import { ModePills } from './components/ModePills'
 import { Results } from './components/Results'
 
 export default function App() {
-  const [mode, setMode] = useState('all')
-  const [query, setQuery] = useState('')
-  const [submittedQuery, setSubmittedQuery] = useState('')
+  const [query, setQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') || ''
+    }
+    return ''
+  })
+  const [submittedQuery, setSubmittedQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') || ''
+    }
+    return ''
+  })
+  const [mode, setMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('mode') || 'all'
+    }
+    return 'all'
+  })
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('void_theme')
       if (saved === 'dark' || saved === 'light') return saved
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
     }
     return 'light'
   })
-
-  // Initialize query and mode from URL search parameters on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const q = params.get('q') || ''
-      const m = params.get('mode') || 'all'
-      if (q) {
-        setQuery(q)
-        setSubmittedQuery(q)
-      }
-      if (m) {
-        setMode(m)
-      }
-    }
-  }, [])
 
   // Listen to browser Back / Forward buttons (popstate)
   useEffect(() => {

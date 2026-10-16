@@ -115,7 +115,16 @@ export function Results({ query, mode, onSearch }: Props) {
         const localDocs = await fetch('http://localhost:3001/api/crawler/indexed', {
           signal: controller.signal,
         })
-          .then((res) => (res.ok ? res.json() : []))
+          .then(async (res) => {
+            if (!res.ok) return []
+            const text = await res.text()
+            if (!text || !text.trim()) return []
+            try {
+              return JSON.parse(text)
+            } catch {
+              return []
+            }
+          })
           .catch(() => [])
 
         if (cancelled) return

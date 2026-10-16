@@ -266,7 +266,17 @@ export async function searchOpenSearch(
     throw new Error(`OpenSearch error ${response.status}: ${errorText}`)
   }
 
-  const data = await response.json()
+  const responseText = await response.text()
+  if (!responseText || !responseText.trim()) {
+    return { total: 0, hits: [] }
+  }
+
+  let data: any
+  try {
+    data = JSON.parse(responseText)
+  } catch {
+    return { total: 0, hits: [] }
+  }
   const total =
     typeof data.hits?.total === 'number'
       ? data.hits.total
