@@ -378,21 +378,6 @@ export function Results({ query, mode, onSearch }: Props) {
                         {/* Image Preview Thumbnail (Google / Arc style with speed optimization & Instagram DP) */}
                         <ResultThumbnail result={r} index={i} />
                       </div>
-
-                      {/* Multi-image gallery row */}
-                      {r.images && r.images.length > 1 && (
-                        <div className="mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                          {r.images.slice(0, 5).map((imgUrl, imgIdx) => (
-                            <GalleryThumbnail
-                              key={imgIdx}
-                              imgUrl={imgUrl}
-                              url={r.url}
-                              domain={r.domain}
-                              index={imgIdx}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </li>
                   ))}
                 </ol>
@@ -543,46 +528,4 @@ function ResultThumbnail({
   )
 }
 
-function GalleryThumbnail({
-  imgUrl,
-  url,
-  domain,
-  index,
-}: {
-  imgUrl: string
-  url: string
-  domain: string
-  index: number
-}) {
-  const optimized = getOptimizedThumbnailUrl(imgUrl, 160, 120)
-  const [src, setSrc] = useState(optimized)
-  const [error, setError] = useState(false)
-
-  if (error || !src) return null
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800/90 bg-slate-100 dark:bg-slate-900 shadow-2xs hover:opacity-90 transition-opacity"
-    >
-      <img
-        src={src}
-        alt={`Extracted image ${index + 1} from ${domain}`}
-        loading="lazy"
-        decoding="async"
-        referrerPolicy="no-referrer"
-        className="h-12 w-16 sm:h-14 sm:w-20 object-cover"
-        onError={() => {
-          if (src !== imgUrl) {
-            setSrc(imgUrl)
-          } else {
-            setError(true)
-          }
-        }}
-      />
-    </a>
-  )
-}
 
