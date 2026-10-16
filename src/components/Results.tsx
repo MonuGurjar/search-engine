@@ -363,9 +363,10 @@ export function Results({ query, mode, onSearch }: Props) {
                             href={r.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            dangerouslySetInnerHTML={{ __html: r.highlightedTitle || r.title }}
                             className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#388bfd] hover:underline leading-snug"
-                          />
+                          >
+                            {r.title}
+                          </a>
 
                           {/* Snippet */}
                           <p

@@ -239,7 +239,6 @@ export async function searchOpenSearch(
       pre_tags: ['<mark class="highlight-term">'],
       post_tags: ['</mark>'],
       fields: {
-        title: { number_of_fragments: 1, fragment_size: 100 },
         summary: { number_of_fragments: 2, fragment_size: 160 },
       },
     },

@@ -135,16 +135,29 @@ body {
   }
 }
 
+/* Google Search-style keyword match highlighting: clean bold text with zero boxy blue backgrounds */
 mark.highlight-term {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: inherit;
-  font-weight: 600;
-  border-radius: 3px;
-  padding: 0.5px 2px;
+  background: transparent !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
 }
 
 .dark mark.highlight-term {
-  background-color: rgba(59, 130, 246, 0.28);
-  color: #93c5fd;
+  background: transparent !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+/* Inside link titles, inherit title styling cleanly */
+a mark.highlight-term {
+  background: transparent !important;
+  color: inherit !important;
+  font-weight: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
 }
 
