@@ -463,69 +463,81 @@ function ResultThumbnail({
     result.url?.toLowerCase().includes('instagram.com')
 
   const rawImage = result.previewImage
-  const isCorruptSplash =
+  // Ignore corrupt base64 raster splash images and generic SVG logos
+  const isGenericOrCorrupt =
     rawImage?.startsWith('data:image/png;base64') ||
-    rawImage?.startsWith('data:image/jpeg;base64')
+    rawImage?.startsWith('data:image/jpeg;base64') ||
+    rawImage?.startsWith('data:image/svg+xml')
 
-  const validImage = isCorruptSplash ? undefined : rawImage
+  const validImage = isGenericOrCorrupt ? undefined : rawImage
   const optimized = validImage ? getOptimizedThumbnailUrl(validImage, 192, 192) : ''
   const [src, setSrc] = useState(optimized)
   const [hasError, setHasError] = useState(false)
 
-  // Instagram Profile DP fallback:
-  // Shows a branded Instagram gradient card with handle when no direct photo is available or blocked
-  if (isInstagram && (!validImage || hasError)) {
+  useEffect(() => {
+    const nextValid = isGenericOrCorrupt ? undefined : rawImage
+    setSrc(nextValid ? getOptimizedThumbnailUrl(nextValid, 192, 192) : '')
+    setHasError(false)
+  }, [rawImage, isGenericOrCorrupt])
+
+  if (validImage && !hasError) {
+    return (
+      <a
+        href={result.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`shrink-0 group/img relative overflow-hidden ${
+          isInstagram
+            ? 'rounded-full border-2 border-pink-500/30 ring-2 ring-pink-500/10'
+            : 'rounded-xl border border-slate-200 dark:border-slate-800'
+        } bg-slate-100 dark:bg-slate-800/80 shadow-xs hover:border-blue-500/50 transition-all`}
+      >
+        <img
+          src={src}
+          alt={result.title}
+          loading={index < 3 ? 'eager' : 'lazy'}
+          fetchPriority={index < 3 ? 'high' : 'auto'}
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className="size-20 sm:size-24 object-cover object-top transition-transform duration-300 group-hover/img:scale-105"
+          onError={() => {
+            // If edge proxy fails, attempt fallback to raw image
+            if (src !== validImage && validImage) {
+              setSrc(validImage)
+            } else {
+              setHasError(true)
+            }
+          }}
+        />
+      </a>
+    )
+  }
+
+  // Fallback for Instagram profile without direct picture: initial badge
+  if (isInstagram) {
     const handle =
       result.url.split('instagram.com/')[1]?.replace(/[/?#].*$/, '') ||
       result.title.match(/@([a-zA-Z0-9_.]+)/)?.[1] ||
       'instagram'
+    const initial = (handle.replace(/[^a-zA-Z0-9]/g, '')[0] || 'I').toUpperCase()
 
     return (
       <a
         href={result.url}
         target="_blank"
         rel="noopener noreferrer"
-        title={`Instagram Profile: @${handle}`}
-        className="shrink-0 group/img relative overflow-hidden rounded-xl border border-pink-500/20 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-xs hover:scale-105 transition-all p-0.5"
+        title={`Instagram: @${handle}`}
+        className="shrink-0 group/img relative overflow-hidden rounded-full border-2 border-pink-500/40 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-xs hover:scale-105 transition-all p-0.5"
       >
-        <div className="size-20 sm:size-24 rounded-[10px] bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white px-1">
-          <InstagramIcon className="size-7 sm:size-8 drop-shadow" />
-          <span className="mt-1 text-[11px] font-semibold tracking-wide text-white/95 truncate max-w-[72px]">
-            @{handle}
-          </span>
+        <div className="size-20 sm:size-24 rounded-full bg-slate-900/50 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+          <span className="text-xl font-bold tracking-tight">{initial}</span>
+          <span className="text-[10px] opacity-80 truncate max-w-[60px]">@{handle}</span>
         </div>
       </a>
     )
   }
 
-  if (!validImage || hasError) return null
-
-  return (
-    <a
-      href={result.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="shrink-0 group/img relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/80 shadow-xs hover:border-blue-500/50 transition-all"
-    >
-      <img
-        src={src}
-        alt={result.title}
-        loading={index < 3 ? 'eager' : 'lazy'}
-        fetchPriority={index < 3 ? 'high' : 'auto'}
-        decoding="async"
-        referrerPolicy="no-referrer"
-        className="size-20 sm:size-24 object-cover object-top transition-transform duration-300 group-hover/img:scale-105"
-        onError={() => {
-          // If edge proxy fails, attempt fallback to raw image
-          if (src !== validImage && validImage) {
-            setSrc(validImage)
-          } else {
-            setHasError(true)
-          }
-        }}
-      />
-    </a>
-  )
+  return null
 }
 
 
