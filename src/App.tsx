@@ -1,10 +1,45 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Component, type ReactNode } from 'react'
 import { Header } from './components/Header'
 import { Footer } from './components/Footer'
 import { Wordmark } from './components/Wordmark'
 import { SearchBar } from './components/SearchBar'
 import { ModePills } from './components/ModePills'
 import { Results } from './components/Results'
+
+class ResultsErrorBoundary extends Component<
+  { children: ReactNode; onReset: () => void },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error: any) {
+    console.error('Results render error caught by boundary:', error)
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="py-16 text-center">
+          <p className="text-base text-slate-700 dark:text-slate-300">
+            Something went wrong while displaying search results.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              this.setState({ hasError: false })
+              this.props.onReset()
+            }}
+            className="mt-4 px-4 py-2 text-xs font-medium rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-500 hover:text-blue-600 transition-all cursor-pointer"
+          >
+            Try search again
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function App() {
   const [query, setQuery] = useState(() => {
@@ -184,12 +219,17 @@ export default function App() {
               </div>
             </div>
 
-            {/* Search Results */}
-            <Results
-              query={submittedQuery}
-              mode={mode}
-              onSearch={(q) => handleSearch(q, mode)}
-            />
+            {/* Search Results with Error Boundary */}
+            <ResultsErrorBoundary
+              key={submittedQuery}
+              onReset={() => handleSearch(submittedQuery, mode)}
+            >
+              <Results
+                query={submittedQuery}
+                mode={mode}
+                onSearch={(q) => handleSearch(q, mode)}
+              />
+            </ResultsErrorBoundary>
           </div>
         )}
       </main>
