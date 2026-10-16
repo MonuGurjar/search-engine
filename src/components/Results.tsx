@@ -376,7 +376,7 @@ export function Results({ query, mode, onSearch }: Props) {
                         </div>
 
                         {/* Image Preview Thumbnail (Google / Arc style with speed optimization & Instagram DP) */}
-                        <ResultThumbnail result={r} index={idx} />
+                        <ResultThumbnail result={r} index={i} />
                       </div>
 
                       {/* Multi-image gallery row */}
