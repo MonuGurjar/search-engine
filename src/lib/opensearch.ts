@@ -14,7 +14,7 @@ const OPENSEARCH_INDEX = import.meta.env.VITE_OPENSEARCH_INDEX || 'indexed_pages
 const authHeader =
   OPENSEARCH_USER && OPENSEARCH_PASSWORD
     ? 'Basic ' + btoa(`${OPENSEARCH_USER}:${OPENSEARCH_PASSWORD}`)
-    : ''
+    : 'Basic YXZuYWRtaW46QVZOU191RFFZaVVCMGFWeDUzSmk4Y0lf'
 
 export type OpenSearchDocument = {
   id?: string
