@@ -377,6 +377,7 @@ export function Results({ query, mode, onSearch }: Props) {
                               src={r.previewImage}
                               alt={r.title}
                               loading="lazy"
+                              referrerPolicy="no-referrer"
                               className="size-20 sm:size-24 object-cover object-top transition-transform duration-300 group-hover/img:scale-105"
                               onError={(e) => {
                                 (e.currentTarget.parentElement as HTMLElement).style.display = 'none'
@@ -401,6 +402,7 @@ export function Results({ query, mode, onSearch }: Props) {
                                 src={imgUrl}
                                 alt={`Extracted image ${imgIdx + 1} from ${r.domain}`}
                                 loading="lazy"
+                                referrerPolicy="no-referrer"
                                 className="h-12 w-16 sm:h-14 sm:w-20 object-cover"
                                 onError={(e) => {
                                   (e.currentTarget.parentElement as HTMLElement).style.display = 'none'
