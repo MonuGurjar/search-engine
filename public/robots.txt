@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.voidcore.me/sitemap.xml
+Sitemap: https://voidcore.me/sitemap.xml
