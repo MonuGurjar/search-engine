@@ -1,4 +1,6 @@
 import type { CSSProperties, Ref } from 'react'
+import voidOIconWebp from '../assets/void-o-icon.webp'
+import voidOIconPng from '../assets/void-o-icon.png'
 
 type Props = {
   /** height of the wordmark in px */
@@ -13,8 +15,7 @@ type Props = {
 }
 
 /**
- * Minimalist VOID wordmark — clean geometric letters with cyan-to-blue gradient ring and accent dot as the O.
- * Matches Minimalist VOID Search Homepage aesthetic.
+ * Minimalist VOID wordmark — clean geometric letters with celestial singularity ring as the O.
  */
 export function Wordmark({
   size = 28,
@@ -27,8 +28,8 @@ export function Wordmark({
   idRef,
 }: Props) {
   const fontSize = size
-  const ringSize = Math.round(size * 0.90)
-  const letterGap = Math.round(size * 0.28)
+  const ringSize = Math.round(size * 1.05)
+  const letterGap = Math.round(size * 0.22)
 
   return (
     <span
@@ -51,44 +52,23 @@ export function Wordmark({
         V
       </span>
 
-      {/* Radiant Gradient O with accent dot */}
+      {/* Cosmic Singularity O */}
       <span
         ref={oRef}
         className="relative inline-flex items-center justify-center shrink-0"
         style={{ width: ringSize, height: ringSize }}
       >
-        <svg
-          viewBox="0 0 100 100"
-          className={`size-full ${pulse ? 'animate-pulse' : ''}`}
-          style={{ overflow: 'visible' }}
-        >
-          <defs>
-            <linearGradient id="voidGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#38bdf8" />
-              <stop offset="100%" stopColor="#2563eb" />
-            </linearGradient>
-            <filter id="voidGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3.5" floodColor="#38bdf8" floodOpacity="0.35" />
-            </filter>
-          </defs>
-          {/* Main Gradient Ring */}
-          <circle
-            cx="50"
-            cy="50"
-            r="38"
-            fill="none"
-            stroke="url(#voidGradient)"
-            strokeWidth="8.5"
-            filter="url(#voidGlow)"
+        <picture className="w-full h-full flex items-center justify-center">
+          <source srcSet={voidOIconWebp} type="image/webp" />
+          <img
+            src={voidOIconPng}
+            alt="O"
+            className={`w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 hover:scale-105 ${
+              pulse ? 'animate-pulse' : ''
+            }`}
+            draggable={false}
           />
-          {/* Little Floating Accent Dot at ~1:30 position */}
-          <circle
-            cx="84"
-            cy="16"
-            r="5.5"
-            fill="#2563eb"
-          />
-        </svg>
+        </picture>
       </span>
 
       <span
