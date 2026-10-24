@@ -27,7 +27,7 @@ class ResultsErrorBoundary extends Component<{
     if (this.state.hasError) {
       return (
         <div className="py-16 text-center">
-          <p className="text-base text-slate-700 dark:text-slate-300">
+          <p className="text-base text-slate-700 dark:text-zinc-300">
             Something went wrong while displaying search results.
           </p>
           <button
@@ -36,7 +36,7 @@ class ResultsErrorBoundary extends Component<{
               this.setState({ hasError: false })
               this.props.onReset()
             }}
-            className="mt-4 px-4 py-2 text-xs font-medium rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-500 hover:text-blue-600 transition-all cursor-pointer"
+            className="mt-4 px-4 py-2 text-xs font-medium rounded-full border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:border-zinc-400 hover:text-zinc-100 transition-all cursor-pointer"
           >
             Try search again
           </button>
@@ -169,7 +169,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 transition-colors duration-200 ${theme}`}
+      className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0c0d0e] text-slate-800 dark:text-zinc-100 transition-colors duration-200 ${theme}`}
     >
       {/* Top Navigation Header */}
       <Header
@@ -193,15 +193,15 @@ export default function App() {
       >
         {pathname !== "/" ? (
           <div className="w-full max-w-md mx-auto text-center py-16 animate-in fade-in duration-300">
-            <h2 className="text-xl font-medium text-slate-800 dark:text-slate-100 mb-2">
+            <h2 className="text-xl font-medium text-slate-800 dark:text-zinc-100 mb-2">
               Page Not Found
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 font-sans">
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mb-6 font-sans">
               The requested page could not be found.
             </p>
             <button
               onClick={goHome}
-              className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-opacity cursor-pointer font-sans"
+              className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 transition-opacity cursor-pointer font-sans"
             >
               Return to Search
             </button>
@@ -218,7 +218,7 @@ export default function App() {
             </h1>
 
             {/* Tagline */}
-            <p className="text-[12px] sm:text-[13px] font-sans uppercase tracking-[0.28em] text-slate-400 dark:text-slate-500 font-medium mb-8 sm:mb-9">
+            <p className="text-[12px] sm:text-[13px] font-sans uppercase tracking-[0.28em] text-slate-400 dark:text-zinc-500 font-medium mb-8 sm:mb-9">
               A QUIETER WAY TO SEARCH
             </p>
 

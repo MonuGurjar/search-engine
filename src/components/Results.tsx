@@ -232,7 +232,7 @@ export function Results({ query, mode, onSearch }: Props) {
     }
     if (d.includes('wikipedia')) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100">
+        <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
           <WikipediaIcon className="size-3" />
         </span>
       )
@@ -297,7 +297,7 @@ export function Results({ query, mode, onSearch }: Props) {
     // Dynamic favicon loader with clean initial fallback
     const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
     return (
-      <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300 overflow-hidden">
+      <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 overflow-hidden">
         <img
           src={faviconUrl}
           alt={domain}
@@ -322,7 +322,7 @@ export function Results({ query, mode, onSearch }: Props) {
         {hasQuery ? (
           <>
             {/* Results meta stat line */}
-            <div className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 tracking-normal pb-4">
+            <div className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400 tracking-normal pb-4">
               {loading ? (
                 <span>Searching VOID index...</span>
               ) : (
@@ -333,14 +333,14 @@ export function Results({ query, mode, onSearch }: Props) {
             </div>
 
             {loading ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-                <div className="size-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-zinc-500">
+                <div className="size-6 border-2 border-blue-600 dark:border-zinc-400 border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-light">Searching VOID private index...</p>
               </div>
             ) : totalResults === 0 ? (
-              <div className="py-16 text-slate-500 dark:text-slate-400">
-                <p className="text-base font-normal text-slate-800 dark:text-slate-100">No results found for “{query}”</p>
-                <p className="text-xs mt-2 text-slate-400">This page hasn't been crawled yet. You can add it using your VOID Crawler Dashboard.</p>
+              <div className="py-16 text-slate-500 dark:text-zinc-400">
+                <p className="text-base font-normal text-slate-800 dark:text-zinc-100">No results found for “{query}”</p>
+                <p className="text-xs mt-2 text-slate-400 dark:text-zinc-500">This page hasn't been crawled yet. You can add it using your VOID Crawler Dashboard.</p>
               </div>
             ) : (
               <>
@@ -349,7 +349,7 @@ export function Results({ query, mode, onSearch }: Props) {
                   {displayedResults.map((r, i) => (
                     <li key={`${i}-${r.url}`} className="group max-w-3xl">
                       {/* Domain and breadcrumb */}
-                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
                         {getDomainIcon(r.domain)}
                         <span className="truncate">
                           {formatBreadcrumb(r.domain, r.path)}
@@ -363,7 +363,7 @@ export function Results({ query, mode, onSearch }: Props) {
                             href={r.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#388bfd] hover:underline leading-snug"
+                            className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#8ab4f8] hover:underline leading-snug"
                           >
                             {r.title}
                           </a>
@@ -371,7 +371,7 @@ export function Results({ query, mode, onSearch }: Props) {
                           {/* Snippet */}
                           <p
                             dangerouslySetInnerHTML={{ __html: r.highlightedSnippet || r.snippet }}
-                            className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400"
+                            className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-zinc-400"
                           />
                         </div>
 
@@ -388,13 +388,13 @@ export function Results({ query, mode, onSearch }: Props) {
                     <button
                       type="button"
                       onClick={handleShowMore}
-                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 shadow-xs transition-all hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer"
                     >
                       <span>Show more results</span>
-                      <span className="text-slate-400">
+                      <span className="text-slate-400 dark:text-zinc-500">
                         ({remainingCount} remaining)
                       </span>
-                      <ChevronDown className="size-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-y-0.5" />
+                      <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
                     </button>
                   </div>
                 )}
@@ -404,10 +404,10 @@ export function Results({ query, mode, onSearch }: Props) {
         ) : (
           /* Exploration state when empty */
           <div className="py-10 text-center sm:py-12">
-            <p className="text-[11px] uppercase tracking-widest font-mono text-slate-400">
+            <p className="text-[11px] uppercase tracking-widest font-mono text-slate-400 dark:text-zinc-500">
               Explore Without Being Tracked
             </p>
-            <h3 className="mt-2 text-xl font-light text-slate-800 dark:text-slate-100 sm:text-2xl font-sans">
+            <h3 className="mt-2 text-xl font-light text-slate-800 dark:text-zinc-100 sm:text-2xl font-sans">
               Curated queries for the curious mind
             </h3>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -415,7 +415,7 @@ export function Results({ query, mode, onSearch }: Props) {
                 <button
                   key={topic}
                   onClick={() => onSearch(topic)}
-                  className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 transition-all hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                  className="rounded-full border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 px-3.5 py-1.5 text-xs text-slate-700 dark:text-zinc-300 transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer"
                 >
                   {topic}
                 </button>
@@ -489,8 +489,8 @@ function ResultThumbnail({
         className={`shrink-0 group/img relative overflow-hidden ${
           isInstagram
             ? 'rounded-full border-2 border-pink-500/30 ring-2 ring-pink-500/10'
-            : 'rounded-xl border border-slate-200 dark:border-slate-800'
-        } bg-slate-100 dark:bg-slate-800/80 shadow-xs hover:border-blue-500/50 transition-all`}
+            : 'rounded-xl border border-slate-200 dark:border-zinc-800'
+        } bg-slate-100 dark:bg-zinc-900/80 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all`}
       >
         <img
           src={src}
