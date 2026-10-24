@@ -181,6 +181,7 @@ export default function App() {
         onHome={goHome}
         theme={theme}
         onToggleTheme={toggleTheme}
+        showLogo={isSearchActive || pathname !== "/"}
       />
 
       {/* Main Content Area */}

@@ -8,12 +8,14 @@ type Props = {
   onHome: () => void
   theme: 'light' | 'dark'
   onToggleTheme: () => void
+  showLogo?: boolean
 }
 
 export function Header({
   onHome,
   theme,
   onToggleTheme,
+  showLogo = true,
 }: Props) {
   const [waffleOpen, setWaffleOpen] = useState(false)
   const waffleRef = useRef<HTMLDivElement>(null)
@@ -32,14 +34,16 @@ export function Header({
   return (
     <header className="w-full px-4 sm:px-8 py-3.5 flex items-center justify-between select-none relative z-50">
       {/* Left: Minimalist VOID Logo */}
-      <div className="flex items-center">
-        <button
-          onClick={onHome}
-          className="cursor-pointer group flex items-center transition-opacity hover:opacity-85 focus:outline-none"
-          aria-label="VOID Home"
-        >
-          <Wordmark size={24} />
-        </button>
+      <div className="flex items-center min-h-[32px]">
+        {showLogo && (
+          <button
+            onClick={onHome}
+            className="cursor-pointer group flex items-center transition-opacity hover:opacity-85 focus:outline-none"
+            aria-label="VOID Home"
+          >
+            <Wordmark size={24} />
+          </button>
+        )}
       </div>
 
       {/* Right: Apps Grid and Theme Toggle */}
