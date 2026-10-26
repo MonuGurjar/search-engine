@@ -248,10 +248,12 @@ export function SearchBar({
     <div ref={containerRef} className={`relative w-full ${compact ? 'max-w-2xl' : 'max-w-2xl mx-auto'}`}>
       <form onSubmit={handleSubmit} className="w-full">
         <div
-          className={`rounded-2xl sm:rounded-[24px] bg-[#f8fafc] dark:bg-[#1a1b1e] border transition-all duration-200 select-none ${
+          className={`${
+            modeTab === 'ai' ? 'rounded-2xl sm:rounded-[26px]' : 'rounded-full'
+          } bg-white dark:bg-[#1a1b1e] border transition-all duration-150 select-none ${
             focused
-              ? 'border-slate-300 dark:border-zinc-700 shadow-[0_4px_30px_rgba(0,0,0,0.5)] ring-1 ring-slate-400/20 dark:ring-zinc-600/30'
-              : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 shadow-sm'
+              ? 'border-slate-300 dark:border-zinc-700 shadow-md shadow-slate-200/60 dark:shadow-black/30'
+              : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 hover:shadow-xs'
           }`}
         >
             {/* Main Input Row */}
