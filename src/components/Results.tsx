@@ -3,6 +3,7 @@ import { searchOpenSearch, type OpenSearchDocument } from '../lib/opensearch'
 import { MODES } from './modes'
 import {
   ChevronDown,
+  GlobeIcon,
   SnapchatIcon,
   PinterestIcon,
   InstagramIcon,
@@ -297,11 +298,12 @@ export function Results({ query, mode, onSearch }: Props) {
     // Dynamic favicon loader with clean initial fallback
     const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
     return (
-      <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 overflow-hidden">
+      <span className="relative grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 overflow-hidden">
+        <GlobeIcon className="absolute size-2.5 text-slate-400 dark:text-zinc-500" />
         <img
           src={faviconUrl}
           alt={domain}
-          className="size-3.5 object-contain"
+          className="relative z-10 size-3.5 object-contain"
           onError={(e) => {
             (e.target as HTMLElement).style.display = 'none'
           }}

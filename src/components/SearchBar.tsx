@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react'
-import { SearchIcon, MicIcon, CameraIcon, CloseIcon } from './icons'
+import { SearchIcon, MicIcon, CameraIcon, CloseIcon, HistoryIcon } from './icons'
 import { getAutocompleteSuggestions } from '../lib/opensearch'
 
 type Props = {
@@ -323,10 +323,7 @@ export function SearchBar({
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     {isRecent ? (
-                      <svg className="size-3.5 shrink-0 text-slate-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
+                      <HistoryIcon className="size-3.5 shrink-0 text-slate-400 dark:text-zinc-500" />
                     ) : (
                       <SearchIcon className="size-3.5 shrink-0 text-slate-400 dark:text-zinc-500" />
                     )}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CloseIcon } from './icons'
 
 export function Footer() {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
@@ -42,9 +43,10 @@ export function Footer() {
               </h3>
               <button
                 onClick={() => setModalOpen(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 text-sm cursor-pointer p-1"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 rounded-full p-1 transition-colors cursor-pointer"
+                aria-label="Close"
               >
-                ✕
+                <CloseIcon className="size-4" />
               </button>
             </div>
             <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">

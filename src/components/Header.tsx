@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Wordmark } from './Wordmark'
-import { WaffleGridIcon, SunIcon, MoonIcon } from './icons'
+import { WaffleGridIcon, SunIcon, MoonIcon, MedicalIcon, BotIcon, BriefcaseIcon } from './icons'
 
 type Props = {
   activeMode?: string
@@ -72,7 +72,7 @@ export function Header({
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
                   <div className="size-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">M</span>
+                    <MedicalIcon className="size-4" />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Med Russia</span>
                   <span className="text-[10px] text-slate-400 dark:text-zinc-500">Medical</span>
@@ -85,7 +85,7 @@ export function Header({
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
                   <div className="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">AI</span>
+                    <BotIcon className="size-4" />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Placement AI</span>
                   <span className="text-[10px] text-slate-400 dark:text-zinc-500">Prep</span>
@@ -98,7 +98,7 @@ export function Header({
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
                   <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <span className="font-mono text-xs font-bold">P</span>
+                    <BriefcaseIcon className="size-4" />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Portfolio</span>
                   <span className="text-[10px] text-slate-400 dark:text-zinc-500">Monu</span>

@@ -1,186 +1,146 @@
 import type { SVGProps } from 'react'
+import type { LucideProps } from 'lucide-react'
+import {
+  Search,
+  Mic,
+  Camera,
+  LayoutGrid,
+  SunMedium,
+  Moon,
+  MapPin,
+  PlaySquare,
+  Video,
+  Settings2,
+  SlidersHorizontal,
+  Globe,
+  Image as LucideImage,
+  Newspaper,
+  GraduationCap,
+  Code2,
+  ChevronDown as LucideChevronDown,
+  ArrowLeft as LucideArrowLeft,
+  X,
+  History,
+  Clock,
+  ArrowUpRight,
+  Sparkles,
+  HeartPulse,
+  Briefcase,
+  Bot,
+} from 'lucide-react'
 
-const base = {
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.6,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-  viewBox: '0 0 24 24',
+// ==========================================
+// Professional UI System Icons (Lucide-based)
+// Consistent 1.8px stroke, 24x24 viewBox, modern optics
+// ==========================================
+
+export function SearchIcon(props: LucideProps) {
+  return <Search strokeWidth={1.8} {...props} />
 }
 
-export function SearchIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
-  )
+export function MicIcon(props: LucideProps) {
+  return <Mic strokeWidth={1.8} {...props} />
 }
 
-export function MicIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8" />
-    </svg>
-  )
+export function CameraIcon(props: LucideProps) {
+  return <Camera strokeWidth={1.8} {...props} />
 }
 
-export function CameraIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
-      <circle cx="12" cy="13" r="3" />
-    </svg>
-  )
+export function WaffleGridIcon(props: LucideProps) {
+  return <LayoutGrid strokeWidth={1.8} {...props} />
 }
 
-export function WaffleGridIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
-      <circle cx="5" cy="5" r="1.8" />
-      <circle cx="12" cy="5" r="1.8" />
-      <circle cx="19" cy="5" r="1.8" />
-      <circle cx="5" cy="12" r="1.8" />
-      <circle cx="12" cy="12" r="1.8" />
-      <circle cx="19" cy="12" r="1.8" />
-      <circle cx="5" cy="19" r="1.8" />
-      <circle cx="12" cy="19" r="1.8" />
-      <circle cx="19" cy="19" r="1.8" />
-    </svg>
-  )
+export function SunIcon(props: LucideProps) {
+  return <SunMedium strokeWidth={1.8} {...props} />
 }
 
-export function SunIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-    </svg>
-  )
+export function MoonIcon(props: LucideProps) {
+  return <Moon strokeWidth={1.8} {...props} />
 }
 
-export function MoonIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-    </svg>
-  )
+export function MapPinIcon(props: LucideProps) {
+  return <MapPin strokeWidth={1.8} {...props} />
 }
 
-export function MapPinIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  )
+export function VideoPlayIcon(props: LucideProps) {
+  return <PlaySquare strokeWidth={1.8} {...props} />
 }
 
-export function VideoPlayIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <rect x="2" y="4" width="20" height="16" rx="3" />
-      <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none" />
-    </svg>
-  )
+export function GearIcon(props: LucideProps) {
+  return <Settings2 strokeWidth={1.8} {...props} />
 }
 
-export function GearIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <circle cx="12" cy="12" r="3.2" />
-      <path d="M12 2.8v2.2M12 19v2.2M4.4 7l1.9 1.1M17.7 15.9l1.9 1.1M4.4 17l1.9-1.1M17.7 8.1l1.9-1.1M2.8 12H5M19 12h2.2" />
-    </svg>
-  )
+export function ToolsIcon(props: LucideProps) {
+  return <SlidersHorizontal strokeWidth={1.8} {...props} />
 }
 
-export function ToolsIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
-    </svg>
-  )
+export function GlobeIcon(props: LucideProps) {
+  return <Globe strokeWidth={1.8} {...props} />
 }
 
-export function GlobeIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18M12 3c2.6 2.4 2.6 15.6 0 18M12 3c-2.6 2.4-2.6 15.6 0 18" />
-    </svg>
-  )
+export function ImageIcon(props: LucideProps) {
+  return <LucideImage strokeWidth={1.8} {...props} />
 }
 
-export function ImageIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-      <circle cx="8.5" cy="9.5" r="1.6" />
-      <path d="m4 17 4.5-4.5 4 4L16 13l4 4" />
-    </svg>
-  )
+export function NewsIcon(props: LucideProps) {
+  return <Newspaper strokeWidth={1.8} {...props} />
 }
 
-export function NewsIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
-      <path d="M7 9h6M7 12.5h10M7 16h10" />
-    </svg>
-  )
+export function VideoIcon(props: LucideProps) {
+  return <Video strokeWidth={1.8} {...props} />
 }
 
-export function VideoIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="m10 8.5 6 3.5-6 3.5Z" />
-    </svg>
-  )
+export function AcademicIcon(props: LucideProps) {
+  return <GraduationCap strokeWidth={1.8} {...props} />
 }
 
-export function AcademicIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="m12 4 9 4.5-9 4.5-9-4.5L12 4Z" />
-      <path d="M6.5 11v4.2c0 1 2.5 2.3 5.5 2.3s5.5-1.3 5.5-2.3V11" />
-    </svg>
-  )
+export function CodeIcon(props: LucideProps) {
+  return <Code2 strokeWidth={1.8} {...props} />
 }
 
-export function CodeIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="m8.5 8-4 4 4 4M15.5 8l4 4-4 4" />
-    </svg>
-  )
+export function ChevronDown(props: LucideProps) {
+  return <LucideChevronDown strokeWidth={2} {...props} />
 }
 
-export function ChevronDown(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
+export function ArrowLeft(props: LucideProps) {
+  return <LucideArrowLeft strokeWidth={2} {...props} />
 }
 
-export function ArrowLeft(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M20 12H4M10 6l-6 6 6 6" />
-    </svg>
-  )
+export function CloseIcon(props: LucideProps) {
+  return <X strokeWidth={2} {...props} />
 }
 
-export function CloseIcon(p: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...base} {...p}>
-      <path d="M18 6 6 18M6 6l12 12" />
-    </svg>
-  )
+export function HistoryIcon(props: LucideProps) {
+  return <History strokeWidth={1.8} {...props} />
 }
+
+export function ClockIcon(props: LucideProps) {
+  return <Clock strokeWidth={1.8} {...props} />
+}
+
+export function ExternalLinkIcon(props: LucideProps) {
+  return <ArrowUpRight strokeWidth={1.8} {...props} />
+}
+
+export function SparklesIcon(props: LucideProps) {
+  return <Sparkles strokeWidth={1.8} {...props} />
+}
+
+export function MedicalIcon(props: LucideProps) {
+  return <HeartPulse strokeWidth={1.8} {...props} />
+}
+
+export function BriefcaseIcon(props: LucideProps) {
+  return <Briefcase strokeWidth={1.8} {...props} />
+}
+
+export function BotIcon(props: LucideProps) {
+  return <Bot strokeWidth={1.8} {...props} />
+}
+
+// ==========================================
+// Brand Vector Icons (Pixel-accurate SVG paths)
+// ==========================================
 
 export function GithubIcon(p: SVGProps<SVGSVGElement>) {
   return (
