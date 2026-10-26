@@ -9,7 +9,6 @@ import { Header } from "./components/Header"
 import { Footer } from "./components/Footer"
 import { Wordmark } from "./components/Wordmark"
 import { SearchBar } from "./components/SearchBar"
-import { ModePills } from "./components/ModePills"
 import { Results } from "./components/Results"
 
 class ResultsErrorBoundary extends Component<{
@@ -224,7 +223,7 @@ export default function App() {
             </p>
 
             {/* Centered Search Bar */}
-            <div className="w-full mb-6">
+            <div className="w-full">
               <SearchBar
                 value={query}
                 onChange={setQuery}
@@ -233,17 +232,12 @@ export default function App() {
                 placeholder="Ask anything privately"
               />
             </div>
-
-            {/* Category / Mode Pills */}
-            <div className="w-full flex justify-center">
-              <ModePills active={mode} onChange={handleModeChange} />
-            </div>
           </div>
         ) : (
           /* Search Results View matching uploaded screenshot */
           <div className="w-full max-w-5xl mx-auto pt-2 sm:pt-4 pb-12 animate-in fade-in duration-200">
             {/* Top Search Bar & Mode Pills */}
-            <div className="mb-5 space-y-3.5">
+            <div className="mb-6">
               <div className="w-full max-w-2xl">
                 <SearchBar
                   value={query}
@@ -252,11 +246,6 @@ export default function App() {
                   compact
                   placeholder="Ask anything privately"
                 />
-              </div>
-
-              {/* Mode Pills row */}
-              <div className="flex justify-start overflow-x-auto py-0.5">
-                <ModePills active={mode} onChange={handleModeChange} compact />
               </div>
             </div>
 

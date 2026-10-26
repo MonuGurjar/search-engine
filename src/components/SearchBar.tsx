@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react'
-import { Atom, ChevronDown, Check } from 'lucide-react'
+import { Atom, Check } from 'lucide-react'
 import { SearchIcon, CloseIcon, HistoryIcon } from './icons'
 import { getAutocompleteSuggestions } from '../lib/opensearch'
 
@@ -17,14 +17,6 @@ type Props = {
 const RECENT_KEY = 'void_recent_searches'
 const MAX_RECENT = 5
 
-const AI_MODELS = [
-  '6 Luna',
-  'DeepSeek R1',
-  'Claude 3.5 Sonnet',
-  'GPT-4o',
-  'Gemini 1.5 Pro',
-]
-
 const TIME_FILTERS = [
   'Any time',
   'Past 24 hours',
@@ -34,7 +26,7 @@ const TIME_FILTERS = [
 ]
 
 // ==========================================
-// Custom UI Glyphs matching the user's reference design
+// Custom UI Glyphs matching the reference design
 // ==========================================
 
 function ToolsTwoNodeIcon({ className = 'size-4' }: { className?: string }) {
@@ -81,16 +73,13 @@ export function SearchBar({
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
 
-  // Interactive controls matching reference UI
-  const [modeTab, setModeTab] = useState<'search' | 'ai'>('ai')
+  // Default to 'search' so only search bar is shown initially
+  const [modeTab, setModeTab] = useState<'search' | 'ai'>('search')
   const [reasoningActive, setReasoningActive] = useState(false)
-  const [selectedModel, setSelectedModel] = useState('6 Luna')
-  const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
   const [timeFilter, setTimeFilter] = useState('Any time')
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const modelMenuRef = useRef<HTMLDivElement>(null)
   const toolsMenuRef = useRef<HTMLDivElement>(null)
 
   // Load recent searches on mount
@@ -108,7 +97,6 @@ export function SearchBar({
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setFocused(false)
-        setModelMenuOpen(false)
         setToolsOpen(false)
       }
     }
@@ -266,8 +254,14 @@ export function SearchBar({
               : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 shadow-sm'
           }`}
         >
-          {/* Top Row: Clean Input Field (no camera or left search icon) + Search/Ask AI Pill */}
-          <div className="flex items-center justify-between px-4 sm:px-5 pt-3 sm:pt-3.5 pb-2 gap-2">
+          {/* Main Input Row */}
+          <div
+            className={`flex items-center justify-between px-4 sm:px-5 gap-2 transition-all duration-150 ${
+              modeTab === 'ai'
+                ? 'pt-3 sm:pt-3.5 pb-2'
+                : 'py-2.5 sm:py-3'
+            }`}
+          >
             {/* Input field with reference placeholder */}
             <input
               autoFocus={autoFocus}
@@ -308,7 +302,6 @@ export function SearchBar({
                 type="button"
                 onClick={() => {
                   setModeTab('search')
-                  if (value.trim()) handleSubmit()
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
                   modeTab === 'search'
@@ -324,7 +317,6 @@ export function SearchBar({
                 type="button"
                 onClick={() => {
                   setModeTab('ai')
-                  if (value.trim()) handleSubmit()
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
                   modeTab === 'ai'
@@ -336,108 +328,13 @@ export function SearchBar({
                 <span>Ask AI</span>
               </button>
             </div>
-          </div>
 
-          {/* Bottom Toolbar: Tools on Left, Reasoning / Model / Mic on Right */}
-          <div className="flex items-center justify-between px-4 sm:px-5 pb-2.5 sm:pb-3 pt-0.5 text-xs text-slate-600 dark:text-zinc-400">
-            {/* Left: Tools button */}
-            <div className="relative" ref={toolsMenuRef}>
-              <button
-                type="button"
-                onClick={() => setToolsOpen(!toolsOpen)}
-                className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer py-1 ${
-                  toolsOpen || timeFilter !== 'Any time'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title="Search Tools & Filters"
-              >
-                <ToolsTwoNodeIcon className="size-3.5 sm:size-4" />
-                <span>Tools</span>
-              </button>
-
-              {/* Tools dropdown */}
-              {toolsOpen && (
-                <div className="absolute left-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-zinc-800 shadow-xl p-1.5 z-50 animate-in fade-in duration-100">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-2 py-1 block">
-                    Time Filter
-                  </span>
-                  {TIME_FILTERS.map((tf) => (
-                    <button
-                      key={tf}
-                      type="button"
-                      onClick={() => {
-                        setTimeFilter(tf)
-                        setToolsOpen(false)
-                      }}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                    >
-                      <span>{tf}</span>
-                      {timeFilter === tf && <Check className="size-3 text-blue-500" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Right: Reasoning Toggle, Model Selector, Audio Waveform Mic */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              {/* Reasoning Button */}
-              <button
-                type="button"
-                onClick={() => setReasoningActive(!reasoningActive)}
-                className={`flex items-center gap-1.5 font-medium transition-all cursor-pointer px-2 py-1 rounded-lg ${
-                  reasoningActive
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                    : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-                title="Toggle deep reasoning mode"
-              >
-                <Atom className="size-3.5 sm:size-4" />
-                <span className="text-xs">Reasoning</span>
-              </button>
-
-              {/* Model Selector Pill (e.g. 6 Luna ∨) */}
-              <div className="relative" ref={modelMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setModelMenuOpen(!modelMenuOpen)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-200/70 dark:bg-[#28292d] text-slate-700 dark:text-zinc-200 hover:bg-slate-300/70 dark:hover:bg-zinc-700 transition-colors font-medium cursor-pointer text-xs"
-                  title="Choose AI Model"
-                >
-                  <span>{selectedModel}</span>
-                  <ChevronDown className="size-3 opacity-70" />
-                </button>
-
-                {/* Model dropdown menu */}
-                {modelMenuOpen && (
-                  <div className="absolute right-0 bottom-full mb-2 w-44 rounded-xl bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-zinc-800 shadow-xl p-1.5 z-50 animate-in fade-in duration-100">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-2 py-1 block">
-                      AI Model
-                    </span>
-                    {AI_MODELS.map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => {
-                          setSelectedModel(m)
-                          setModelMenuOpen(false)
-                        }}
-                        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                      >
-                        <span>{m}</span>
-                        {selectedModel === m && <Check className="size-3 text-blue-500" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Voice Mic Button (Audio Waveform glyph) */}
+            {/* Voice Mic Button shown on main row when in 'search' mode */}
+            {modeTab === 'search' && (
               <button
                 type="button"
                 onClick={handleVoiceSearch}
-                className={`size-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                className={`size-7.5 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                   listening
                     ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
                     : 'bg-slate-200/80 dark:bg-[#34353a] text-slate-700 dark:text-zinc-200 hover:bg-slate-300 dark:hover:bg-zinc-600'
@@ -447,8 +344,86 @@ export function SearchBar({
               >
                 <AudioWaveformIcon className="size-3 sm:size-3.5" active={listening} />
               </button>
-            </div>
+            )}
           </div>
+
+          {/* Expanded Bottom Row: ONLY shown when tapped on 'Ask AI' */}
+          {modeTab === 'ai' && (
+            <div className="flex items-center justify-between px-4 sm:px-5 pb-2.5 sm:pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200/50 dark:border-zinc-800/50 animate-in fade-in slide-in-from-top-1 duration-150">
+              {/* Left: Tools button */}
+              <div className="relative" ref={toolsMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setToolsOpen(!toolsOpen)}
+                  className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer py-1 ${
+                    toolsOpen || timeFilter !== 'Any time'
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Search Tools & Filters"
+                >
+                  <ToolsTwoNodeIcon className="size-3.5 sm:size-4" />
+                  <span>Tools</span>
+                </button>
+
+                {/* Tools dropdown */}
+                {toolsOpen && (
+                  <div className="absolute left-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-zinc-800 shadow-xl p-1.5 z-50 animate-in fade-in duration-100">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-2 py-1 block">
+                      Time Filter
+                    </span>
+                    {TIME_FILTERS.map((tf) => (
+                      <button
+                        key={tf}
+                        type="button"
+                        onClick={() => {
+                          setTimeFilter(tf)
+                          setToolsOpen(false)
+                        }}
+                        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                      >
+                        <span>{tf}</span>
+                        {timeFilter === tf && <Check className="size-3 text-blue-500" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Reasoning Toggle and Audio Waveform Mic */}
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                {/* Reasoning Button */}
+                <button
+                  type="button"
+                  onClick={() => setReasoningActive(!reasoningActive)}
+                  className={`flex items-center gap-1.5 font-medium transition-all cursor-pointer px-2 py-1 rounded-lg ${
+                    reasoningActive
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
+                      : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                  title="Toggle deep reasoning mode"
+                >
+                  <Atom className="size-3.5 sm:size-4" />
+                  <span className="text-xs">Reasoning</span>
+                </button>
+
+                {/* Voice Mic Button */}
+                <button
+                  type="button"
+                  onClick={handleVoiceSearch}
+                  className={`size-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    listening
+                      ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
+                      : 'bg-slate-200/80 dark:bg-[#34353a] text-slate-700 dark:text-zinc-200 hover:bg-slate-300 dark:hover:bg-zinc-600'
+                  }`}
+                  title="Search by voice"
+                  aria-label="Search by voice"
+                >
+                  <AudioWaveformIcon className="size-3 sm:size-3.5" active={listening} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </form>
 
