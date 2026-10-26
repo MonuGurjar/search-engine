@@ -254,164 +254,92 @@ export function SearchBar({
               : 'border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 shadow-sm'
           }`}
         >
-          {/* Main Input Row */}
-          <div
-            className={`flex items-center justify-between px-4 sm:px-5 gap-2 transition-all duration-150 ${
-              modeTab === 'ai'
-                ? 'pt-3 sm:pt-3.5 pb-2'
-                : 'py-2.5 sm:py-3'
-            }`}
-          >
-            {/* Input field with reference placeholder */}
-            <input
-              autoFocus={autoFocus}
-              value={value}
-              onChange={(e) => {
-                onChange(e.target.value)
-                setSelectedIndex(-1)
-              }}
-              onFocus={() => setFocused(true)}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              aria-label={placeholder}
-              autoComplete="off"
-              spellCheck="false"
-              className={`min-w-0 flex-1 bg-transparent outline-none text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-sans ${
-                compact ? 'text-sm py-0.5' : 'text-[15px] sm:text-base py-0.5'
+            {/* Main Input Row */}
+            <div
+              className={`flex items-center justify-between px-3 sm:px-5 gap-1.5 sm:gap-2 transition-all duration-150 ${
+                modeTab === 'ai'
+                  ? 'pt-3 sm:pt-3.5 pb-2'
+                  : 'py-2 sm:py-3'
               }`}
-            />
-
-            {/* Clear Button (appears when query is typed) */}
-            {value.trim() && (
-              <button
-                type="button"
-                onClick={() => {
-                  onChange('')
-                  setSuggestions([])
+            >
+              {/* Input field with reference placeholder */}
+              <input
+                autoFocus={autoFocus}
+                value={value}
+                onChange={(e) => {
+                  onChange(e.target.value)
+                  setSelectedIndex(-1)
                 }}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
-                title="Clear"
-              >
-                <CloseIcon className="size-3.5" />
-              </button>
-            )}
-
-            {/* Segmented Pill: [Search] [Ask AI] */}
-            <div className="flex items-center p-0.5 rounded-full bg-slate-200/80 dark:bg-[#28292d] text-xs font-medium shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setModeTab('search')
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  modeTab === 'search'
-                    ? 'bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold'
-                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                onFocus={() => setFocused(true)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                aria-label={placeholder}
+                autoComplete="off"
+                spellCheck="false"
+                className={`min-w-0 flex-1 bg-transparent outline-none text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-sans ${
+                  compact ? 'text-sm py-0.5' : 'text-[15px] sm:text-base py-0.5'
                 }`}
-              >
-                <SearchIcon className="size-3.5" />
-                <span>Search</span>
-              </button>
+              />
 
-              <button
-                type="button"
-                onClick={() => {
-                  setModeTab('ai')
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  modeTab === 'ai'
-                    ? 'bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold'
-                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-                }`}
-              >
-                <SparklesChatIcon className="size-3.5" />
-                <span>Ask AI</span>
-              </button>
-            </div>
-
-            {/* Voice Mic Button shown on main row when in 'search' mode */}
-            {modeTab === 'search' && (
-              <button
-                type="button"
-                onClick={handleVoiceSearch}
-                className={`size-7.5 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
-                  listening
-                    ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
-                    : 'bg-slate-200/80 dark:bg-[#34353a] text-slate-700 dark:text-zinc-200 hover:bg-slate-300 dark:hover:bg-zinc-600'
-                }`}
-                title="Search by voice"
-                aria-label="Search by voice"
-              >
-                <AudioWaveformIcon className="size-3 sm:size-3.5" active={listening} />
-              </button>
-            )}
-          </div>
-
-          {/* Expanded Bottom Row: ONLY shown when tapped on 'Ask AI' */}
-          {modeTab === 'ai' && (
-            <div className="flex items-center justify-between px-4 sm:px-5 pb-2.5 sm:pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200/50 dark:border-zinc-800/50 animate-in fade-in slide-in-from-top-1 duration-150">
-              {/* Left: Tools button */}
-              <div className="relative" ref={toolsMenuRef}>
+              {/* Clear Button (appears when query is typed) */}
+              {value.trim() && (
                 <button
                   type="button"
-                  onClick={() => setToolsOpen(!toolsOpen)}
-                  className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer py-1 ${
-                    toolsOpen || timeFilter !== 'Any time'
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                  title="Search Tools & Filters"
+                  onClick={() => {
+                    onChange('')
+                    setSuggestions([])
+                  }}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+                  title="Clear"
+                  aria-label="Clear"
                 >
-                  <ToolsTwoNodeIcon className="size-3.5 sm:size-4" />
-                  <span>Tools</span>
+                  <CloseIcon className="size-3.5" />
+                </button>
+              )}
+
+              {/* Segmented Pill: [Search] [Ask AI] - Mobile shows icon only for optimal screen space */}
+              <div className="flex items-center p-0.5 rounded-full bg-slate-200/80 dark:bg-[#28292d] text-xs font-medium shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModeTab('search')
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                    modeTab === 'search'
+                      ? 'bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                  }`}
+                  title="Search"
+                  aria-label="Search"
+                >
+                  <SearchIcon className="size-3.5" />
+                  <span className="hidden sm:inline">Search</span>
                 </button>
 
-                {/* Tools dropdown */}
-                {toolsOpen && (
-                  <div className="absolute left-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-zinc-800 shadow-xl p-1.5 z-50 animate-in fade-in duration-100">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-2 py-1 block">
-                      Time Filter
-                    </span>
-                    {TIME_FILTERS.map((tf) => (
-                      <button
-                        key={tf}
-                        type="button"
-                        onClick={() => {
-                          setTimeFilter(tf)
-                          setToolsOpen(false)
-                        }}
-                        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                      >
-                        <span>{tf}</span>
-                        {timeFilter === tf && <Check className="size-3 text-blue-500" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModeTab('ai')
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                    modeTab === 'ai'
+                      ? 'bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                  }`}
+                  title="Ask AI"
+                  aria-label="Ask AI"
+                >
+                  <SparklesChatIcon className="size-3.5" />
+                  <span className="hidden sm:inline">Ask AI</span>
+                </button>
               </div>
 
-              {/* Right: Reasoning Toggle and Audio Waveform Mic */}
-              <div className="flex items-center gap-2 sm:gap-2.5">
-                {/* Reasoning Button */}
-                <button
-                  type="button"
-                  onClick={() => setReasoningActive(!reasoningActive)}
-                  className={`flex items-center gap-1.5 font-medium transition-all cursor-pointer px-2 py-1 rounded-lg ${
-                    reasoningActive
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                      : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                  title="Toggle deep reasoning mode"
-                >
-                  <Atom className="size-3.5 sm:size-4" />
-                  <span className="text-xs">Reasoning</span>
-                </button>
-
-                {/* Voice Mic Button */}
+              {/* Voice Mic Button shown on main row when in 'search' mode */}
+              {modeTab === 'search' && (
                 <button
                   type="button"
                   onClick={handleVoiceSearch}
-                  className={`size-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  className={`size-7 sm:size-7.5 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                     listening
                       ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
                       : 'bg-slate-200/80 dark:bg-[#34353a] text-slate-700 dark:text-zinc-200 hover:bg-slate-300 dark:hover:bg-zinc-600'
@@ -421,9 +349,88 @@ export function SearchBar({
                 >
                   <AudioWaveformIcon className="size-3 sm:size-3.5" active={listening} />
                 </button>
-              </div>
+              )}
             </div>
-          )}
+
+            {/* Expanded Bottom Row: ONLY shown when tapped on 'Ask AI' */}
+            {modeTab === 'ai' && (
+              <div className="flex items-center justify-between px-3 sm:px-5 pb-2.5 sm:pb-3 pt-1 text-xs text-slate-600 dark:text-zinc-400 border-t border-slate-200/50 dark:border-zinc-800/50 animate-in fade-in slide-in-from-top-1 duration-150">
+                {/* Left: Tools button */}
+                <div className="relative" ref={toolsMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setToolsOpen(!toolsOpen)}
+                    className={`flex items-center gap-1.5 font-medium transition-colors cursor-pointer py-1 ${
+                      toolsOpen || timeFilter !== 'Any time'
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                    title="Search Tools & Filters"
+                    aria-label="Search Tools & Filters"
+                  >
+                    <ToolsTwoNodeIcon className="size-3.5 sm:size-4" />
+                    <span className="hidden sm:inline">Tools</span>
+                  </button>
+
+                  {/* Tools dropdown */}
+                  {toolsOpen && (
+                    <div className="absolute left-0 bottom-full mb-2 w-48 rounded-xl bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-zinc-800 shadow-xl p-1.5 z-50 animate-in fade-in duration-100">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-2 py-1 block">
+                        Time Filter
+                      </span>
+                      {TIME_FILTERS.map((tf) => (
+                        <button
+                          key={tf}
+                          type="button"
+                          onClick={() => {
+                            setTimeFilter(tf)
+                            setToolsOpen(false)
+                          }}
+                          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        >
+                          <span>{tf}</span>
+                          {timeFilter === tf && <Check className="size-3 text-blue-500" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Reasoning Toggle and Audio Waveform Mic */}
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  {/* Reasoning Button */}
+                  <button
+                    type="button"
+                    onClick={() => setReasoningActive(!reasoningActive)}
+                    className={`flex items-center gap-1.5 font-medium transition-all cursor-pointer px-2 py-1 rounded-lg ${
+                      reasoningActive
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
+                        : 'text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                    title="Toggle deep reasoning mode"
+                    aria-label="Toggle deep reasoning mode"
+                  >
+                    <Atom className="size-3.5 sm:size-4" />
+                    <span className="text-xs hidden sm:inline">Reasoning</span>
+                  </button>
+
+                  {/* Voice Mic Button */}
+                  <button
+                    type="button"
+                    onClick={handleVoiceSearch}
+                    className={`size-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      listening
+                        ? 'bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30'
+                        : 'bg-slate-200/80 dark:bg-[#34353a] text-slate-700 dark:text-zinc-200 hover:bg-slate-300 dark:hover:bg-zinc-600'
+                    }`}
+                    title="Search by voice"
+                    aria-label="Search by voice"
+                  >
+                    <AudioWaveformIcon className="size-3 sm:size-3.5" active={listening} />
+                  </button>
+                </div>
+              </div>
+            )}
         </div>
       </form>
 
