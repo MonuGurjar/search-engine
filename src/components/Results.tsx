@@ -121,20 +121,27 @@ export function Results({ query, mode, onSearch }: Props) {
         }
 
         // 2. Local fallback if local crawler is running and OpenSearch has no hits
-        const localDocs = await fetch('http://localhost:3001/api/crawler/indexed', {
-          signal: controller.signal,
-        })
-          .then(async (res) => {
-            if (!res.ok) return []
-            const text = await res.text()
-            if (!text || !text.trim()) return []
-            try {
-              return JSON.parse(text)
-            } catch {
-              return []
-            }
-          })
-          .catch(() => [])
+        const isLocalDev =
+          typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+          window.location.protocol === 'http:'
+
+        const localDocs = isLocalDev
+          ? await fetch('http://localhost:3001/api/crawler/indexed', {
+              signal: controller.signal,
+            })
+              .then(async (res) => {
+                if (!res.ok) return []
+                const text = await res.text()
+                if (!text || !text.trim()) return []
+                try {
+                  return JSON.parse(text)
+                } catch {
+                  return []
+                }
+              })
+              .catch(() => [])
+          : []
 
         if (cancelled) return
 

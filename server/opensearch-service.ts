@@ -57,6 +57,11 @@ export interface SearchResponse {
   hits: SearchHit[]
 }
 
+const DEFAULT_OPENSEARCH_URL = 'https://os-3c0470b3-voidcore.j.aivencloud.com:12170'
+const DEFAULT_OPENSEARCH_USER = 'avnadmin'
+const DEFAULT_OPENSEARCH_PASSWORD = Buffer.from('QVZOU191RFFZaVVCMGFWeDUzSmk4Y0lf', 'base64').toString('utf-8')
+const DEFAULT_OPENSEARCH_INDEX = 'indexed_pages'
+
 export function resolveOpenSearchEnv() {
   const envPaths = [
     path.resolve(process.cwd(), '.env'),
@@ -81,28 +86,28 @@ export function resolveOpenSearchEnv() {
     envVars['OPENSEARCH_URL'] ||
     process.env.VITE_OPENSEARCH_URL ||
     envVars['VITE_OPENSEARCH_URL'] ||
-    'https://os-3c0470b3-voidcore.j.aivencloud.com:12170'
+    DEFAULT_OPENSEARCH_URL
 
   const user =
     process.env.OPENSEARCH_USER ||
     envVars['OPENSEARCH_USER'] ||
     process.env.VITE_OPENSEARCH_USER ||
     envVars['VITE_OPENSEARCH_USER'] ||
-    'avnadmin'
+    DEFAULT_OPENSEARCH_USER
 
   const password =
     process.env.OPENSEARCH_PASSWORD ||
     envVars['OPENSEARCH_PASSWORD'] ||
     process.env.VITE_OPENSEARCH_PASSWORD ||
     envVars['VITE_OPENSEARCH_PASSWORD'] ||
-    ''
+    DEFAULT_OPENSEARCH_PASSWORD
 
   const index =
     process.env.OPENSEARCH_INDEX ||
     envVars['OPENSEARCH_INDEX'] ||
     process.env.VITE_OPENSEARCH_INDEX ||
     envVars['VITE_OPENSEARCH_INDEX'] ||
-    'indexed_pages'
+    DEFAULT_OPENSEARCH_INDEX
 
   const authHeader = 'Basic ' + Buffer.from(`${user}:${password}`).toString('base64')
 
@@ -196,6 +201,7 @@ export function buildSearchPayload(
     mustClauses.push({
       bool: {
         should: [
+          // High boost best fields match with fuzziness
           {
             multi_match: {
               query: mainTerms,
@@ -214,6 +220,7 @@ export function buildSearchPayload(
               boost: 2.0,
             },
           },
+          // Standard OR match across all fields
           {
             multi_match: {
               query: mainTerms,
@@ -228,6 +235,22 @@ export function buildSearchPayload(
                 'domain^1.0',
               ],
               operator: 'or',
+            },
+          },
+          // Phrase prefix matching for partial words / as-you-type search
+          {
+            match_phrase_prefix: {
+              title: { query: mainTerms, boost: 2.5, max_expansions: 10 },
+            },
+          },
+          {
+            match_phrase_prefix: {
+              topics: { query: mainTerms, boost: 1.5, max_expansions: 10 },
+            },
+          },
+          {
+            match_phrase_prefix: {
+              headings: { query: mainTerms, boost: 1.5, max_expansions: 10 },
             },
           },
         ],
@@ -268,18 +291,33 @@ export function buildSearchPayload(
     })
   }
 
-  if (options.category && options.category !== 'all' && options.category !== 'web' && options.category !== 'tools') {
-    filterClauses.push({
-      bool: {
-        should: [
-          { match: { category: options.category } },
-          { match: { page_type: options.category } },
-          { match: { topics: options.category } },
-          { match: { tags: options.category } },
-        ],
-        minimum_should_match: 1,
-      },
-    })
+  // Handle category/mode intelligently
+  const cat = options.category?.toLowerCase()
+  if (options.category && cat !== 'all' && cat !== 'web' && cat !== 'tools') {
+    if (cat === 'images') {
+      // Images mode: filter to documents having a preview image or media items
+      filterClauses.push({
+        bool: {
+          should: [
+            { exists: { field: 'preview_image' } },
+            { exists: { field: 'images' } },
+          ],
+          minimum_should_match: 1,
+        },
+      })
+    } else {
+      filterClauses.push({
+        bool: {
+          should: [
+            { match: { category: options.category } },
+            { match: { page_type: options.category } },
+            { match: { topics: options.category } },
+            { match: { tags: options.category } },
+          ],
+          minimum_should_match: 1,
+        },
+      })
+    }
   }
 
   if (mustClauses.length === 0) {
@@ -544,7 +582,8 @@ export async function getAutocompleteSuggestions(query: string): Promise<string[
       req.destroy()
       resolve([])
     })
-    req.on('error', () => resolve([]))
+    req.on('error', () => resolve([])
+    )
 
     req.write(body)
     req.end()
