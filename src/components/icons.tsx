@@ -1,141 +1,140 @@
 import type { SVGProps } from 'react'
-import type { LucideProps } from 'lucide-react'
+import type { IconBaseProps } from 'react-icons'
 import {
-  Search,
-  Mic,
-  Camera,
-  LayoutGrid,
-  SunMedium,
-  Moon,
-  MapPin,
-  PlaySquare,
-  Video,
-  Settings2,
-  SlidersHorizontal,
-  Globe,
-  Image as LucideImage,
-  Newspaper,
-  GraduationCap,
-  Code2,
-  ChevronDown as LucideChevronDown,
-  ArrowLeft as LucideArrowLeft,
-  X,
-  History,
-  Clock,
-  ArrowUpRight,
-  Sparkles,
-  HeartPulse,
-  Briefcase,
-  Bot,
-} from 'lucide-react'
+  MdSearch,
+  MdMic,
+  MdPhotoCamera,
+  MdApps,
+  MdWbSunny,
+  MdDarkMode,
+  MdLocationOn,
+  MdVideocam,
+  MdSettings,
+  MdTune,
+  MdPublic,
+  MdImage,
+  MdNewspaper,
+  MdSchool,
+  MdCode,
+  MdExpandMore,
+  MdArrowBack,
+  MdClose,
+  MdHistory,
+  MdAccessTime,
+  MdOpenInNew,
+  MdAutoAwesome,
+  MdMedicalServices,
+  MdWork,
+  MdSmartToy,
+} from 'react-icons/md'
 
 // ==========================================
-// Professional UI System Icons (Lucide-based)
-// Consistent 1.8px stroke, 24x24 viewBox, modern optics
+// Google Material Design Filled Icons
+// Official solid-fill Google Search design system
 // ==========================================
 
-export function SearchIcon(props: LucideProps) {
-  return <Search strokeWidth={1.8} {...props} />
+export function SearchIcon(props: IconBaseProps) {
+  return <MdSearch {...props} />
 }
 
-export function MicIcon(props: LucideProps) {
-  return <Mic strokeWidth={1.8} {...props} />
+export function MicIcon(props: IconBaseProps) {
+  return <MdMic {...props} />
 }
 
-export function CameraIcon(props: LucideProps) {
-  return <Camera strokeWidth={1.8} {...props} />
+export function CameraIcon(props: IconBaseProps) {
+  return <MdPhotoCamera {...props} />
 }
 
-export function WaffleGridIcon(props: LucideProps) {
-  return <LayoutGrid strokeWidth={1.8} {...props} />
+export function WaffleGridIcon(props: IconBaseProps) {
+  return <MdApps {...props} />
 }
 
-export function SunIcon(props: LucideProps) {
-  return <SunMedium strokeWidth={1.8} {...props} />
+export function SunIcon(props: IconBaseProps) {
+  return <MdWbSunny {...props} />
 }
 
-export function MoonIcon(props: LucideProps) {
-  return <Moon strokeWidth={1.8} {...props} />
+export function MoonIcon(props: IconBaseProps) {
+  return <MdDarkMode {...props} />
 }
 
-export function MapPinIcon(props: LucideProps) {
-  return <MapPin strokeWidth={1.8} {...props} />
+export function MapPinIcon(props: IconBaseProps) {
+  return <MdLocationOn {...props} />
 }
 
-export function VideoPlayIcon(props: LucideProps) {
-  return <PlaySquare strokeWidth={1.8} {...props} />
+export function VideoPlayIcon(props: IconBaseProps) {
+  return <MdVideocam {...props} />
 }
 
-export function GearIcon(props: LucideProps) {
-  return <Settings2 strokeWidth={1.8} {...props} />
+export function GearIcon(props: IconBaseProps) {
+  return <MdSettings {...props} />
 }
 
-export function ToolsIcon(props: LucideProps) {
-  return <SlidersHorizontal strokeWidth={1.8} {...props} />
+export function ToolsIcon(props: IconBaseProps) {
+  return <MdTune {...props} />
 }
 
-export function GlobeIcon(props: LucideProps) {
-  return <Globe strokeWidth={1.8} {...props} />
+export function GlobeIcon(props: IconBaseProps) {
+  return <MdPublic {...props} />
 }
 
-export function ImageIcon(props: LucideProps) {
-  return <LucideImage strokeWidth={1.8} {...props} />
+export function ImageIcon(props: IconBaseProps) {
+  return <MdImage {...props} />
 }
 
-export function NewsIcon(props: LucideProps) {
-  return <Newspaper strokeWidth={1.8} {...props} />
+export function NewsIcon(props: IconBaseProps) {
+  return <MdNewspaper {...props} />
 }
 
-export function VideoIcon(props: LucideProps) {
-  return <Video strokeWidth={1.8} {...props} />
+export function VideoIcon(props: IconBaseProps) {
+  return <MdVideocam {...props} />
 }
 
-export function AcademicIcon(props: LucideProps) {
-  return <GraduationCap strokeWidth={1.8} {...props} />
+export function AcademicIcon(props: IconBaseProps) {
+  return <MdSchool {...props} />
 }
 
-export function CodeIcon(props: LucideProps) {
-  return <Code2 strokeWidth={1.8} {...props} />
+export function CodeIcon(props: IconBaseProps) {
+  return <MdCode {...props} />
 }
 
-export function ChevronDown(props: LucideProps) {
-  return <LucideChevronDown strokeWidth={2} {...props} />
+export function ChevronDown(props: IconBaseProps) {
+  return <MdExpandMore {...props} />
 }
 
-export function ArrowLeft(props: LucideProps) {
-  return <LucideArrowLeft strokeWidth={2} {...props} />
+export function ArrowLeft(props: IconBaseProps) {
+  return <MdArrowBack {...props} />
 }
 
-export function CloseIcon(props: LucideProps) {
-  return <X strokeWidth={2} {...props} />
+export function CloseIcon(props: IconBaseProps) {
+  return <MdClose {...props} />
 }
 
-export function HistoryIcon(props: LucideProps) {
-  return <History strokeWidth={1.8} {...props} />
+export function HistoryIcon(props: IconBaseProps) {
+  return <MdHistory {...props} />
 }
 
-export function ClockIcon(props: LucideProps) {
-  return <Clock strokeWidth={1.8} {...props} />
+export function ClockIcon(props: IconBaseProps) {
+  return <MdAccessTime {...props} />
 }
 
-export function ExternalLinkIcon(props: LucideProps) {
-  return <ArrowUpRight strokeWidth={1.8} {...props} />
+export function ExternalLinkIcon(props: IconBaseProps) {
+  return <MdOpenInNew {...props} />
 }
 
-export function SparklesIcon(props: LucideProps) {
-  return <Sparkles strokeWidth={1.8} {...props} />
+export function SparklesIcon(props: IconBaseProps) {
+  return <MdAutoAwesome {...props} />
 }
 
-export function MedicalIcon(props: LucideProps) {
-  return <HeartPulse strokeWidth={1.8} {...props} />
+export function MedicalIcon(props: IconBaseProps) {
+  return <MdMedicalServices {...props} />
 }
 
-export function BriefcaseIcon(props: LucideProps) {
-  return <Briefcase strokeWidth={1.8} {...props} />
+export function BriefcaseIcon(props: IconBaseProps) {
+  return <MdWork {...props} />
 }
 
-export function BotIcon(props: LucideProps) {
-  return <Bot strokeWidth={1.8} {...props} />
+export function BotIcon(props: IconBaseProps) {
+  return <MdAutoAwesome {...props} />
 }
 
 // ==========================================
