@@ -111,7 +111,20 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
     name: "figma-site-configuration",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url?.split("?")[0] === "/api/search") {
+        const cleanUrl = req.url?.split("?")[0]
+        if (cleanUrl === "/api/crawler/search") {
+          try {
+            const { default: handler } = await import("./api/crawler/search.ts")
+            await handler(req as any, res as any)
+          } catch (err) {
+            console.error("Dev server API /api/crawler/search error:", err)
+            res.statusCode = 500
+            res.setHeader("Content-Type", "application/json")
+            res.end(JSON.stringify({ error: "Internal server error" }))
+          }
+          return
+        }
+        if (cleanUrl === "/api/search") {
           try {
             const { default: handler } = await import("./api/search.ts")
             await handler(req as any, res as any)

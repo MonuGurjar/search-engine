@@ -1,25 +1,47 @@
 /**
  * Client for VOID Search Engine
- * All OpenSearch queries are proxied securely through the /api/search server endpoint.
+ * All OpenSearch queries are proxied securely through the /api/search and /api/crawler/search server endpoints.
  * Zero credentials, passwords, or cluster URLs are exposed in browser code.
  */
 
 export type OpenSearchDocument = {
   id?: string
   url: string
+  canonical_url?: string
+  canonicalUrl?: string
   title: string
+  raw_title?: string
+  rawTitle?: string
   domain: string
+  site_name?: string
+  siteName?: string
   category?: string
   page_type?: string
+  pageType?: string
+  description?: string
   summary?: string
+  ai_summary?: string
+  aiSummary?: string
+  content?: string
+  headings?: string[]
   topics?: string[]
   tags?: string[]
+  language?: string
+  favicon?: string | null
   indexed_at?: string
-  preview_image?: string
+  indexedAt?: string
+  preview_image?: string | null
+  previewImage?: string | null
   images?: string[]
   http_status?: number
+  httpStatus?: number
+  score?: number
   highlightedTitle?: string
   highlightedSummary?: string
+  highlightedContent?: string
+  highlightedHeadings?: string[]
+  extraction_method?: string
+  extractionMethod?: string
 }
 
 export type OpenSearchResult = {
@@ -28,7 +50,7 @@ export type OpenSearchResult = {
 }
 
 // In-memory TTL cache for high performance & low latency
-type CacheEntry<T,> = {
+type CacheEntry<T> = {
   data: T
   expiresAt: number
 }
@@ -78,9 +100,31 @@ export async function searchOpenSearch(
     }
 
     const data = await response.json()
+    const rawHits = Array.isArray(data.hits) ? data.hits : []
+
+    // Normalize hits whether returned in direct doc format or { document, score, highlights } format
+    const hits: OpenSearchDocument[] = rawHits.map((h: any) => {
+      if (h.document && typeof h.document === 'object') {
+        const doc = h.document
+        const titleHighlight = h.highlights?.title?.[0]
+        const contentHighlight = h.highlights?.content?.join(' ... ')
+        const summaryHighlight = h.highlights?.summary?.join(' ... ') || h.highlights?.ai_summary?.join(' ... ')
+        return {
+          ...doc,
+          id: doc.id || doc.url,
+          score: typeof h.score === 'number' ? h.score : doc.score,
+          highlightedTitle: titleHighlight || doc.title,
+          highlightedSummary: summaryHighlight || contentHighlight || doc.summary || doc.description,
+          highlightedContent: contentHighlight,
+          highlightedHeadings: h.highlights?.headings,
+        }
+      }
+      return h as OpenSearchDocument
+    })
+
     const result: OpenSearchResult = {
-      total: typeof data.total === "number" ? data.total : 0,
-      hits: Array.isArray(data.hits) ? data.hits : [],
+      total: typeof data.total === "number" ? data.total : hits.length,
+      hits,
     }
 
     // Save to cache

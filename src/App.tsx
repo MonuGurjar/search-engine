@@ -167,6 +167,18 @@ export default function App() {
 
   const isSearchActive = Boolean(submittedQuery.trim())
 
+  // 250ms debouncing for top global search bar during live search
+  useEffect(() => {
+    if (!isSearchActive) return
+    const q = query.trim()
+    if (q === submittedQuery) return
+    const timer = setTimeout(() => {
+      setSubmittedQuery(q)
+      updateUrl(q, mode)
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [query, isSearchActive, submittedQuery, mode, updateUrl])
+
   return (
     <div
       className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0c0d0e] text-slate-800 dark:text-zinc-100 transition-colors duration-200 ${theme}`}

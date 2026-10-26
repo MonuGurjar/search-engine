@@ -42,8 +42,12 @@ type SearchResultItem = {
   path: string
   url: string
   snippet: string
+  score?: number
+  headings?: string[]
+  canonicalUrl?: string
   highlightedTitle?: string
   highlightedSnippet?: string
+  highlightedContent?: string
   previewImage?: string
   images?: string[]
 }
@@ -99,9 +103,13 @@ export function Results({ query, mode, onSearch }: Props) {
                 domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ''),
                 path: pathname,
                 url: doc.url,
-                snippet: doc.summary || '',
+                canonicalUrl: doc.canonical_url || doc.canonicalUrl,
+                snippet: doc.summary || doc.description || '',
+                score: typeof doc.score === 'number' ? doc.score : undefined,
+                headings: Array.isArray(doc.headings) ? doc.headings : [],
                 highlightedTitle: doc.highlightedTitle,
-                highlightedSnippet: doc.highlightedSummary,
+                highlightedSnippet: doc.highlightedSummary || doc.highlightedContent,
+                highlightedContent: doc.highlightedContent,
                 previewImage: doc.preview_image || (doc as any).previewImage || undefined,
                 images: Array.isArray(doc.images) ? doc.images : [],
               }
@@ -350,12 +358,17 @@ export function Results({ query, mode, onSearch }: Props) {
                 <ol className="flex flex-col space-y-7 sm:space-y-8">
                   {displayedResults.map((r, i) => (
                     <li key={`${i}-${r.url}`} className="group max-w-3xl">
-                      {/* Domain and breadcrumb */}
+                      {/* Domain, breadcrumb & relevance score badge */}
                       <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
                         {getDomainIcon(r.domain)}
                         <span className="truncate">
                           {formatBreadcrumb(r.domain, r.path)}
                         </span>
+                        {typeof r.score === 'number' && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                            score {r.score.toFixed(1)}
+                          </span>
+                        )}
                       </div>
 
                       <div className="mt-1 flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -370,11 +383,25 @@ export function Results({ query, mode, onSearch }: Props) {
                             {r.title}
                           </a>
 
-                          {/* Snippet */}
+                          {/* Snippet with matching excerpt highlighting */}
                           <p
                             dangerouslySetInnerHTML={{ __html: r.highlightedSnippet || r.snippet }}
                             className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-zinc-400"
                           />
+
+                          {/* Matching section headings */}
+                          {r.headings && r.headings.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {r.headings.slice(0, 3).map((h, hIdx) => (
+                                <span
+                                  key={hIdx}
+                                  className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400 border border-slate-200/60 dark:border-zinc-700/60 font-sans"
+                                >
+                                  {h}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Image Preview Thumbnail (Google / Arc style with speed optimization & Instagram DP) */}

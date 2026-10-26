@@ -1,21 +1,52 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
+import {
+  searchOpenSearch,
+  getAutocompleteSuggestions,
+  buildSearchPayload,
+  parseQueryOperators,
+  resolveOpenSearchEnv,
+  type IndexedDocument,
+  type SearchHit,
+} from "../server/opensearch-service.ts"
 
 export interface OpenSearchDocument {
   id?: string
   url: string
+  canonical_url?: string
+  canonicalUrl?: string
   title: string
+  raw_title?: string
+  rawTitle?: string
   domain: string
+  site_name?: string
+  siteName?: string
   category?: string
   page_type?: string
+  pageType?: string
+  description?: string
   summary?: string
+  ai_summary?: string
+  aiSummary?: string
+  content?: string
+  headings?: string[]
   topics?: string[]
   tags?: string[]
+  language?: string
+  favicon?: string | null
   indexed_at?: string
-  preview_image?: string
+  indexedAt?: string
+  preview_image?: string | null
+  previewImage?: string | null
   images?: string[]
   http_status?: number
+  httpStatus?: number
+  score?: number
   highlightedTitle?: string
   highlightedSummary?: string
+  highlightedContent?: string
+  highlightedHeadings?: string[]
+  extraction_method?: string
+  extractionMethod?: string
 }
 
 export interface OpenSearchResult {
@@ -23,191 +54,7 @@ export interface OpenSearchResult {
   hits: OpenSearchDocument[]
 }
 
-// Server-only environment variables
-function getServerConfig() {
-  const url =
-    process.env.OPENSEARCH_URL ||
-    process.env.VITE_OPENSEARCH_URL ||
-    "https://os-3c0470b3-voidcore.j.aivencloud.com:12170"
-
-  const user =
-    process.env.OPENSEARCH_USER || process.env.VITE_OPENSEARCH_USER || ""
-  const password =
-    process.env.OPENSEARCH_PASSWORD ||
-    process.env.VITE_OPENSEARCH_PASSWORD ||
-    ""
-  const index =
-    process.env.OPENSEARCH_INDEX ||
-    process.env.VITE_OPENSEARCH_INDEX ||
-    "indexed_pages"
-
-  return { url, user, password, index }
-}
-
-function parseQueryOperators(rawQuery: string) {
-  let query = rawQuery.trim()
-  let siteFilter: string | null = null
-  const exclusions: string[] = []
-  const phrases: string[] = []
-
-  // Extract site:domain
-  const siteMatch = query.match(/(?:^|\s)site:([^\s]+)/i)
-  if (siteMatch) {
-    siteFilter = siteMatch[1]
-      .toLowerCase()
-      .replace(/^https?:\/\//, "")
-      .replace(/\/.*$/, "")
-    query = query.replace(siteMatch[0], " ").trim()
-  }
-
-  // Extract quoted exact phrases
-  const phraseMatches = query.match(/"([^"]+)"/g)
-  if (phraseMatches) {
-    for (const pm of phraseMatches) {
-      const phraseContent = pm.slice(1, -1).trim()
-      if (phraseContent) phrases.push(phraseContent)
-      query = query.replace(pm, " ").trim()
-    }
-  }
-
-  // Extract exclusions: -word
-  const words = query.split(/\s+/).filter(Boolean)
-  const remainingWords: string[] = []
-
-  for (const w of words) {
-    if (w.startsWith("-") && w.length > 1) {
-      exclusions.push(w.slice(1))
-    } else {
-      remainingWords.push(w)
-    }
-  }
-
-  return {
-    cleanQuery: remainingWords.join(" ").trim(),
-    siteFilter,
-    exclusions,
-    phrases,
-  }
-}
-
-function buildSearchPayload(query: string, mode: string, size: number) {
-  const {
-    cleanQuery: mainTerms,
-    siteFilter,
-    exclusions,
-    phrases,
-  } = parseQueryOperators(query)
-
-  const mustClauses: any[] = []
-  const mustNotClauses: any[] = []
-
-  if (mainTerms) {
-    mustClauses.push({
-      bool: {
-        should: [
-          {
-            multi_match: {
-              query: mainTerms,
-              fields: [
-                "title^4",
-                "summary^2.5",
-                "topics^2",
-                "tags^2",
-                "domain^1.5",
-                "url",
-              ],
-              type: "best_fields",
-              boost: 2.0,
-            },
-          },
-          {
-            multi_match: {
-              query: mainTerms,
-              fields: [
-                "title^3",
-                "summary^2",
-                "topics^1.5",
-                "tags^1.5",
-                "domain^1.2",
-                "url",
-              ],
-              fuzziness: "AUTO",
-              operator: "or",
-            },
-          },
-        ],
-        minimum_should_match: 1,
-      },
-    })
-  }
-
-  for (const phrase of phrases) {
-    mustClauses.push({
-      multi_match: {
-        query: phrase,
-        type: "phrase",
-        fields: ["title^4", "summary^2", "url"],
-        boost: 3.0,
-      },
-    })
-  }
-
-  if (siteFilter) {
-    mustClauses.push({
-      bool: {
-        should: [
-          { wildcard: { domain: `*${siteFilter}*` } },
-          { wildcard: { url: `*${siteFilter}*` } },
-        ],
-        minimum_should_match: 1,
-      },
-    })
-  }
-
-  for (const excl of exclusions) {
-    mustNotClauses.push({
-      multi_match: {
-        query: excl,
-        fields: ["title", "summary", "url", "topics", "tags"],
-      },
-    })
-  }
-
-  if (mode && mode !== "all" && mode !== "web" && mode !== "tools") {
-    mustClauses.push({
-      bool: {
-        should: [
-          { match: { category: mode } },
-          { match: { page_type: mode } },
-          { match: { topics: mode } },
-          { match: { tags: mode } },
-        ],
-        minimum_should_match: 1,
-      },
-    })
-  }
-
-  if (mustClauses.length === 0) {
-    mustClauses.push({ match_all: {} })
-  }
-
-  return {
-    size,
-    query: {
-      bool: {
-        must: mustClauses,
-        must_not: mustNotClauses.length > 0 ? mustNotClauses : undefined,
-      },
-    },
-    highlight: {
-      pre_tags: ['<mark class="highlight-term">'],
-      post_tags: ["</mark>"],
-      fields: {
-        summary: { number_of_fragments: 2, fragment_size: 160 },
-      },
-    },
-  }
-}
+export { buildSearchPayload, parseQueryOperators }
 
 async function readBody(req: IncomingMessage): Promise<any> {
   const reqWithBody = req as any
@@ -246,15 +93,45 @@ export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST")
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204
+    return res.end()
+  }
+
+  if (req.method !== "POST" && req.method !== "GET") {
+    res.setHeader("Allow", "GET, POST")
     return sendJson(res, 405, { error: "Method not allowed" })
   }
 
   try {
-    const body = await readBody(req)
-    const action = typeof body.action === "string" ? body.action : "search"
-    const rawQuery = typeof body.query === "string" ? body.query : ""
+    let action = "search"
+    let rawQuery = ""
+    let mode = "all"
+    let limit = 100
+    let page = 1
+
+    if (req.method === "GET") {
+      const parsedUrl = new URL(req.url || "/", "http://localhost")
+      const p = parsedUrl.searchParams
+      rawQuery = p.get("q") || p.get("query") || ""
+      action = p.get("action") || (rawQuery.startsWith("suggest:") ? "suggest" : "search")
+      mode = p.get("category") || p.get("mode") || "all"
+      limit = parseInt(p.get("limit") || p.get("size") || "100", 10)
+      page = parseInt(p.get("page") || "1", 10)
+    } else {
+      const body = await readBody(req)
+      action = typeof body.action === "string" ? body.action : "search"
+      rawQuery = typeof body.query === "string" ? body.query : (typeof body.q === "string" ? body.q : "")
+      mode = typeof body.mode === "string" ? body.mode : (typeof body.category === "string" ? body.category : "all")
+      const requestedSize = typeof body.size === "number" ? body.size : (typeof body.limit === "number" ? body.limit : 100)
+      limit = requestedSize > 0 ? requestedSize : 100
+      page = typeof body.page === "number" && body.page > 0 ? body.page : 1
+    }
+
     const cleanQuery = rawQuery.trim().slice(0, 300)
 
     if (!cleanQuery) {
@@ -264,124 +141,70 @@ export default async function handler(
       return sendJson(res, 200, { total: 0, hits: [] })
     }
 
-    const { url, user, password, index } = getServerConfig()
-
-    // Fail closed safely if server credentials are unavailable
-    if (!user || !password) {
-      console.warn(
-        "[api/search] OpenSearch credentials not configured on server.",
-      )
-      if (action === "suggest") {
-        return sendJson(res, 200, { suggestions: [] })
-      }
-      return sendJson(res, 200, { total: 0, hits: [] })
-    }
-
-    const authHeader =
-      "Basic " + Buffer.from(`${user}:${password}`).toString("base64")
-    const endpoint = `${url}/${encodeURIComponent(index)}/_search`
-
     if (action === "suggest") {
-      const suggestBody = {
-        size: 5,
-        _source: ["title", "topics", "domain"],
-        query: {
-          bool: {
-            should: [
-              {
-                match_phrase_prefix: {
-                  title: { query: cleanQuery, max_expansions: 10 },
-                },
-              },
-              { prefix: { domain: cleanQuery.toLowerCase() } },
-              { match_phrase_prefix: { topics: { query: cleanQuery } } },
-            ],
-          },
-        },
-      }
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authHeader,
-        },
-        body: JSON.stringify(suggestBody),
-      })
-
-      if (!response.ok) {
-        return sendJson(res, 200, { suggestions: [] })
-      }
-
-      const data: any = await response.json()
-      const suggestionsSet = new Set<string>()
-
-      for (const hit of data.hits?.hits || []) {
-        const src = hit._source || {}
-        if (
-          src.title &&
-          src.title.toLowerCase().includes(cleanQuery.toLowerCase())
-        ) {
-          suggestionsSet.add(src.title.trim())
-        }
-        if (Array.isArray(src.topics)) {
-          for (const t of src.topics) {
-            if (t && t.toLowerCase().includes(cleanQuery.toLowerCase())) {
-              suggestionsSet.add(t.trim())
-            }
-          }
-        }
-      }
-
-      return sendJson(res, 200, {
-        suggestions: Array.from(suggestionsSet).slice(0, 5),
-      })
+      const suggestions = await getAutocompleteSuggestions(cleanQuery)
+      return sendJson(res, 200, { suggestions })
     }
 
-    // Default: 'search'
-    const mode = typeof body.mode === "string" ? body.mode : "all"
-    const requestedSize =
-      typeof body.size === "number" && body.size > 0 ? body.size : 100
-    const size = Math.min(requestedSize, 100)
-
-    const searchPayload = buildSearchPayload(cleanQuery, mode, size)
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(searchPayload),
+    // BM25 Full-Text Search with boosts, canonical deduplication and highlights
+    const searchResponse = await searchOpenSearch(cleanQuery, {
+      category: mode && mode !== "all" ? mode : undefined,
+      page,
+      limit,
     })
 
-    if (!response.ok) {
-      console.error(`[api/search] Upstream response status: ${response.status}`)
-      return sendJson(res, 200, { total: 0, hits: [] })
-    }
+    const hits: OpenSearchDocument[] = searchResponse.hits.map((h: SearchHit) => {
+      const doc = h.document
+      const titleHighlight = h.highlights?.title?.[0]
+      const contentHighlight = h.highlights?.content?.join(" ... ")
+      const summaryHighlight = h.highlights?.summary?.join(" ... ") || h.highlights?.ai_summary?.join(" ... ")
+      const headingHighlights = h.highlights?.headings
 
-    const data: any = await response.json()
-    const total =
-      typeof data.hits?.total === "number"
-        ? data.hits.total
-        : data.hits?.total?.value || 0
+      return {
+        id: doc.id || doc.url,
+        url: doc.url,
+        canonical_url: doc.canonicalUrl || doc.canonical_url || doc.url,
+        canonicalUrl: doc.canonicalUrl || doc.canonical_url || doc.url,
+        title: doc.title,
+        raw_title: doc.rawTitle || doc.raw_title,
+        rawTitle: doc.rawTitle || doc.raw_title,
+        domain: doc.domain,
+        site_name: doc.siteName || doc.site_name,
+        siteName: doc.siteName || doc.site_name,
+        category: doc.category,
+        page_type: doc.pageType || doc.page_type || "WebPage",
+        pageType: doc.pageType || doc.page_type || "WebPage",
+        description: doc.description,
+        summary: doc.summary,
+        ai_summary: doc.aiSummary || doc.ai_summary,
+        aiSummary: doc.aiSummary || doc.ai_summary,
+        content: doc.content,
+        headings: doc.headings || [],
+        topics: doc.topics || [],
+        tags: doc.tags || [],
+        language: doc.language || "en",
+        favicon: doc.favicon,
+        indexed_at: doc.indexedAt || doc.indexed_at,
+        indexedAt: doc.indexedAt || doc.indexed_at,
+        preview_image: doc.previewImage || doc.preview_image,
+        previewImage: doc.previewImage || doc.preview_image,
+        images: doc.images || [],
+        http_status: doc.httpStatus || doc.http_status || 200,
+        httpStatus: doc.httpStatus || doc.http_status || 200,
+        score: h.score,
+        highlightedTitle: titleHighlight || doc.title,
+        highlightedSummary: summaryHighlight || contentHighlight || doc.summary || doc.description,
+        highlightedContent: contentHighlight,
+        highlightedHeadings: headingHighlights,
+        extraction_method: doc.extractionMethod || doc.extraction_method,
+        extractionMethod: doc.extractionMethod || doc.extraction_method,
+      }
+    })
 
-    const hits: OpenSearchDocument[] = (data.hits?.hits || []).map(
-      (hit: any) => {
-        const src = hit._source || {}
-        const highlightedTitle = hit.highlight?.title?.[0]
-        const highlightedSummary = hit.highlight?.summary?.join(" ... ")
-
-        return {
-          ...src,
-          id: hit._id || src.id,
-          highlightedTitle: highlightedTitle || src.title,
-          highlightedSummary: highlightedSummary || src.summary,
-        }
-      },
-    )
-
-    return sendJson(res, 200, { total, hits })
+    return sendJson(res, 200, {
+      total: searchResponse.total,
+      hits,
+    })
   } catch (err: any) {
     console.error("[api/search] Request error:", err?.message || err)
     return sendJson(res, 500, { error: "Search service error" })

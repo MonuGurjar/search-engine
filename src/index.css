@@ -135,7 +135,21 @@ body {
   }
 }
 
-/* Google Search-style keyword match highlighting: clean bold text with zero boxy blue backgrounds */
+/* Matching keyword highlighting across light and dark modes */
+mark {
+  background: rgba(16, 185, 129, 0.15);
+  color: inherit;
+  font-weight: 600;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.dark mark {
+  background: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+  font-weight: 600;
+}
+
 mark.highlight-term {
   background: transparent !important;
   color: #0f172a !important;
