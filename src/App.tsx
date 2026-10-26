@@ -230,7 +230,7 @@ export default function App() {
                 onChange={setQuery}
                 onSubmit={(q) => handleSearch(q, mode)}
                 autoFocus
-                placeholder="Search anything..."
+                placeholder="Ask anything privately"
               />
             </div>
 
@@ -250,7 +250,7 @@ export default function App() {
                   onChange={setQuery}
                   onSubmit={(q) => handleSearch(q, mode)}
                   compact
-                  placeholder="Search anything..."
+                  placeholder="Ask anything privately"
                 />
               </div>
 
