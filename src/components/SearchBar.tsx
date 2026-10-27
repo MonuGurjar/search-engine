@@ -282,10 +282,12 @@ export function SearchBar({
   function handleVoiceSearch() {
     const SpeechRecognition =
       (window as unknown as {
-        SpeechRecognition?: typeof window.webkitSpeechRecognition
+        SpeechRecognition?: any
+        webkitSpeechRecognition?: any
       }).SpeechRecognition ||
       (window as unknown as {
-        webkitSpeechRecognition?: typeof window.webkitSpeechRecognition
+        SpeechRecognition?: any
+        webkitSpeechRecognition?: any
       }).webkitSpeechRecognition
 
     if (!SpeechRecognition) {
@@ -294,7 +296,7 @@ export function SearchBar({
     }
 
     try {
-      const recognition = new SpeechRecognition()
+      const recognition = new (SpeechRecognition as any)()
       recognition.lang = "en-US"
       recognition.interimResults = false
 
@@ -302,8 +304,8 @@ export function SearchBar({
       recognition.onend = () => setListening(false)
       recognition.onerror = () => setListening(false)
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript
         if (transcript) {
           onChange(transcript)
           saveRecentSearch(transcript)

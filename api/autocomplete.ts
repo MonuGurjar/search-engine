@@ -33,6 +33,7 @@ async function readBody(req: IncomingMessage): Promise<any> {
         resolve({})
       }
     })
+    req.on("error", () => resolve({}))
   })
 }
 
@@ -40,33 +41,40 @@ export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-  if (req.method === "OPTIONS") {
-    res.statusCode = 204
-    return res.end()
-  }
-
-  // Rate Limiting (180 requests/min for autocomplete)
-  const rateLimit = checkRateLimit(req, { windowMs: 60000, maxRequests: 180 })
-  res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
-  res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
-  res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
-
-  if (!rateLimit.allowed) {
-    return sendJson(res, 429, {
-      error: "Too many autocomplete requests. Please slow down.",
-    })
-  }
-
-  if (req.method !== "GET" && req.method !== "POST") {
-    res.setHeader("Allow", "GET, POST")
-    return sendJson(res, 405, { error: "Method not allowed" })
-  }
-
   try {
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+    if (req.method === "OPTIONS") {
+      res.statusCode = 204
+      return res.end()
+    }
+
+    // Rate Limiting (180 requests/min for autocomplete)
+    try {
+      const rateLimit = checkRateLimit(req, {
+        windowMs: 60000,
+        maxRequests: 180,
+      })
+      res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
+      res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
+      res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
+
+      if (!rateLimit.allowed) {
+        return sendJson(res, 429, {
+          error: "Too many autocomplete requests. Please slow down.",
+        })
+      }
+    } catch (rlErr) {
+      console.warn("[api/autocomplete] Rate limit check skipped:", rlErr)
+    }
+
+    if (req.method !== "GET" && req.method !== "POST") {
+      res.setHeader("Allow", "GET, POST")
+      return sendJson(res, 405, { error: "Method not allowed" })
+    }
+
     let rawParams: any = {}
     if (req.method === "GET") {
       const parsedUrl = new URL(req.url || "/", "http://localhost")

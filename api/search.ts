@@ -74,6 +74,7 @@ async function readBody(req: IncomingMessage): Promise<any> {
         resolve({})
       }
     })
+    req.on("error", () => resolve({}))
   })
 }
 
@@ -94,33 +95,40 @@ export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ) {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-  if (req.method === "OPTIONS") {
-    res.statusCode = 204
-    return res.end()
-  }
-
-  // Abuse prevention rate limit
-  const rateLimit = checkRateLimit(req, { windowMs: 60000, maxRequests: 120 })
-  res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
-  res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
-  res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
-
-  if (!rateLimit.allowed) {
-    return sendJson(res, 429, {
-      error: "Rate limit exceeded. Please wait a moment.",
-    })
-  }
-
-  if (req.method !== "POST" && req.method !== "GET") {
-    res.setHeader("Allow", "GET, POST")
-    return sendJson(res, 405, { error: "Method not allowed" })
-  }
-
   try {
+    res.setHeader("Access-Control-Allow-Origin", "*")
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+    if (req.method === "OPTIONS") {
+      res.statusCode = 204
+      return res.end()
+    }
+
+    // Abuse prevention rate limit
+    try {
+      const rateLimit = checkRateLimit(req, {
+        windowMs: 60000,
+        maxRequests: 120,
+      })
+      res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
+      res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
+      res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
+
+      if (!rateLimit.allowed) {
+        return sendJson(res, 429, {
+          error: "Rate limit exceeded. Please wait a moment.",
+        })
+      }
+    } catch (rlErr) {
+      console.warn("[api/search] Rate limit check skipped:", rlErr)
+    }
+
+    if (req.method !== "POST" && req.method !== "GET") {
+      res.setHeader("Allow", "GET, POST")
+      return sendJson(res, 405, { error: "Method not allowed" })
+    }
+
     let rawParams: any = {}
     let action = "search"
 

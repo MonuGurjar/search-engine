@@ -158,8 +158,8 @@ export async function search(
       return result
     }
 
-    // Attempt GET fallback if POST was rejected or blocked by proxy
-    if (response.status === 405 || response.status === 502) {
+    // Attempt GET fallback if POST was rejected or failed
+    if (!response.ok) {
       const getUrl = `/api/search?q=${encodeURIComponent(cleanQuery)}&category=${encodeURIComponent(mode)}&limit=${size}`
       const getResponse = await fetch(getUrl, { signal })
       if (getResponse.ok) {

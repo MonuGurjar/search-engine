@@ -71,8 +71,8 @@ export function resolveOpenSearchEnv(): OpenSearchConfig {
 }
 
 /**
- * Performs a low-level HTTPS request to OpenSearch.
- * Uses IPv4 family to ensure reliable resolution across various host environments.
+ * Executes a query against OpenSearch.
+ * Uses IPv4 family to ensure reliable outbound connectivity on networks where IPv6 is unrouted.
  */
 export async function executeOpenSearchQuery<T = any>(
   endpointPath: string,
@@ -114,8 +114,8 @@ export async function executeOpenSearchQuery<T = any>(
               ),
             )
           }
-          const parsed = JSON.parse(data)
-          resolve(parsed as T)
+          const parsedData = JSON.parse(data)
+          resolve(parsedData as T)
         } catch (err: any) {
           reject(
             new Error(`Failed to parse OpenSearch response: ${err.message}`),
