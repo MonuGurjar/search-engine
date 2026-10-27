@@ -219,7 +219,7 @@ export function SearchBar({
     }
   }, [value])
 
-  const allItems: { type: "suggestion" | "recent" text: string }[] =
+  const allItems: Array<{ type: "suggestion" | "recent"; text: string }> =
     value.trim()
       ? [
           ...recentSearches

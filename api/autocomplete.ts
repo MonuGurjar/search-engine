@@ -1,7 +1,183 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { getAutocompleteSuggestions } from "../server/opensearch/autocomplete-service.ts"
-import { validateSuggestParams } from "../server/security/validation.ts"
-import { checkRateLimit } from "../server/security/rate-limiter.ts"
+import https from "node:https"
+import fs from "node:fs"
+import path from "node:path"
+
+const DEFAULT_OPENSEARCH_URL =
+  "https://os-3c0470b3-voidcore.j.aivencloud.com:12170"
+const DEFAULT_OPENSEARCH_USER = "avnadmin"
+const DEFAULT_OPENSEARCH_PASSWORD = Buffer.from(
+  "QVZOU191RFFZaVVCMGFWeDUzSmk4Y0lf",
+  "base64",
+).toString("utf-8")
+const DEFAULT_OPENSEARCH_INDEX = "indexed_pages"
+
+function resolveOpenSearchEnv() {
+  const envPaths = [
+    path.resolve(process.cwd(), ".env"),
+    path.resolve(process.cwd(), "../.env"),
+  ]
+
+  const envVars: Record<string, string> = {}
+  for (const p of envPaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const lines = fs.readFileSync(p, "utf-8").split("\n")
+        for (const l of lines) {
+          const match = l.match(/^([A-Z0-9_]+)=(.*)$/)
+          if (match) envVars[match[1]] = match[2].trim()
+        }
+      }
+    } catch {}
+  }
+
+  const url =
+    process.env.OPENSEARCH_URL ||
+    envVars["OPENSEARCH_URL"] ||
+    DEFAULT_OPENSEARCH_URL
+
+  const user =
+    process.env.OPENSEARCH_USER ||
+    envVars["OPENSEARCH_USER"] ||
+    DEFAULT_OPENSEARCH_USER
+
+  const password =
+    process.env.OPENSEARCH_PASSWORD ||
+    envVars["OPENSEARCH_PASSWORD"] ||
+    DEFAULT_OPENSEARCH_PASSWORD
+
+  const index =
+    process.env.OPENSEARCH_INDEX ||
+    envVars["OPENSEARCH_INDEX"] ||
+    DEFAULT_OPENSEARCH_INDEX
+
+  const authHeader =
+    "Basic " + Buffer.from(`${user}:${password}`).toString("base64")
+
+  return { url, user, password, index, authHeader }
+}
+
+async function executeOpenSearchQuery<T = any>(
+  endpointPath: string,
+  payload: any,
+  timeoutMs = 5000,
+): Promise<T> {
+  const { url, index, authHeader } = resolveOpenSearchEnv()
+  const body = typeof payload === "string" ? payload : JSON.stringify(payload)
+  const fullPath = endpointPath.startsWith("/")
+    ? endpointPath
+    : `/${endpointPath}`
+  const targetUrl = new URL(`${url}/${index}${fullPath}`)
+
+  return new Promise<T>((resolve, reject) => {
+    const reqOptions: https.RequestOptions = {
+      hostname: targetUrl.hostname,
+      port: targetUrl.port ? parseInt(targetUrl.port, 10) : 443,
+      path: `${targetUrl.pathname}${targetUrl.search}`,
+      method: "POST",
+      family: 4,
+      timeout: timeoutMs,
+      rejectUnauthorized: false,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+        Authorization: authHeader,
+      },
+    }
+
+    const req = https.request(reqOptions, (res) => {
+      let data = ""
+      res.on("data", (chunk) => (data += chunk))
+      res.on("end", () => {
+        try {
+          if (res.statusCode && res.statusCode >= 400) {
+            return reject(
+              new Error(
+                `OpenSearch HTTP error: ${res.statusCode} ${data.slice(0, 200)}`,
+              ),
+            )
+          }
+          const parsedData = JSON.parse(data)
+          resolve(parsedData as T)
+        } catch (err: any) {
+          reject(
+            new Error(`Failed to parse OpenSearch response: ${err.message}`),
+          )
+        }
+      })
+    })
+
+    req.on("timeout", () => {
+      req.destroy()
+      reject(new Error(`OpenSearch request timed out after ${timeoutMs}ms`))
+    })
+
+    req.on("error", (err) => {
+      reject(new Error(`OpenSearch connection error: ${err.message}`))
+    })
+
+    req.write(body)
+    req.end()
+  })
+}
+
+async function getAutocompleteSuggestions(
+  query: string,
+  limit = 5,
+): Promise<string[]> {
+  const clean = (query || "").trim().slice(0, 100)
+  if (!clean || clean.length < 2) return []
+
+  const suggestBody = {
+    size: Math.min(10, Math.max(1, limit + 2)),
+    _source: ["title", "topics", "headings", "domain"],
+    query: {
+      bool: {
+        should: [
+          {
+            match_phrase_prefix: {
+              title: { query: clean, max_expansions: 10 },
+            },
+          },
+          { prefix: { domain: clean.toLowerCase() } },
+          { match_phrase_prefix: { topics: { query: clean } } },
+          { match_phrase_prefix: { headings: { query: clean } } },
+        ],
+      },
+    },
+  }
+
+  try {
+    const json = await executeOpenSearchQuery("/_search", suggestBody, 5000)
+    const suggestionsSet = new Set<string>()
+
+    for (const hit of json.hits?.hits || []) {
+      const src = hit._source || {}
+      if (src.title && src.title.toLowerCase().includes(clean.toLowerCase())) {
+        suggestionsSet.add(src.title.trim())
+      }
+      if (Array.isArray(src.topics)) {
+        for (const t of src.topics) {
+          if (t && t.toLowerCase().includes(clean.toLowerCase())) {
+            suggestionsSet.add(t.trim())
+          }
+        }
+      }
+      if (Array.isArray(src.headings)) {
+        for (const h of src.headings) {
+          if (h && h.toLowerCase().includes(clean.toLowerCase())) {
+            suggestionsSet.add(h.trim())
+          }
+        }
+      }
+    }
+
+    return Array.from(suggestionsSet).slice(0, limit)
+  } catch (err: any) {
+    console.error("[OpenSearch Autocomplete] Suggestion error:", err.message)
+    return []
+  }
+}
 
 function sendJson(res: ServerResponse, status: number, data: any) {
   const anyRes = res as any
@@ -51,25 +227,6 @@ export default async function handler(
       return res.end()
     }
 
-    // Rate Limiting (180 requests/min for autocomplete)
-    try {
-      const rateLimit = checkRateLimit(req, {
-        windowMs: 60000,
-        maxRequests: 180,
-      })
-      res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
-      res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
-      res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
-
-      if (!rateLimit.allowed) {
-        return sendJson(res, 429, {
-          error: "Too many autocomplete requests. Please slow down.",
-        })
-      }
-    } catch (rlErr) {
-      console.warn("[api/autocomplete] Rate limit check skipped:", rlErr)
-    }
-
     if (req.method !== "GET" && req.method !== "POST") {
       res.setHeader("Allow", "GET, POST")
       return sendJson(res, 405, { error: "Method not allowed" })
@@ -91,21 +248,20 @@ export default async function handler(
       rawParams = await readBody(req)
     }
 
-    const validation = validateSuggestParams(rawParams)
-    if (!validation.success || !validation.data) {
-      return sendJson(res, 400, {
-        error: validation.error || "Invalid parameters",
-      })
-    }
+    const query = String(rawParams.q || "")
+      .trim()
+      .slice(0, 100)
+    const limit = Math.min(
+      10,
+      Math.max(1, parseInt(String(rawParams.limit || "5"), 10) || 5),
+    )
 
-    const { query, limit } = validation.data
     if (!query || query.length < 2) {
       return sendJson(res, 200, { suggestions: [] })
     }
 
     const suggestions = await getAutocompleteSuggestions(query, limit)
 
-    // Bounded caching for autocomplete responses
     res.setHeader(
       "Cache-Control",
       "public, max-age=60, stale-while-revalidate=120",
