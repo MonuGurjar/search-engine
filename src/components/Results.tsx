@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
 import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
-import { MODES } from "./modes"
+import { ExternalLink, X, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   ChevronDown,
   GlobeIcon,
@@ -28,7 +28,8 @@ type Props = {
   onSearch: (q: string) => void
 }
 
-const PAGE_SIZE = 10
+const TEXT_PAGE_SIZE = 10
+const IMAGE_PAGE_SIZE = 24
 
 const EXPLORATION_TOPICS = [
   "Monu Gurjar",
@@ -53,19 +54,54 @@ type SearchResultItem = {
   images?: string[]
 }
 
+export type ImageResultCard = {
+  id: string
+  imageUrl: string
+  title: string
+  pageUrl: string
+  domain: string
+}
+
+function isValidImageUrl(url?: string | null): boolean {
+  if (!url || typeof url !== "string") return false
+  const trimmed = url.trim()
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://"))
+    return false
+  if (
+    trimmed.includes("facebook.com/tr") ||
+    trimmed.includes("doubleclick.net") ||
+    trimmed.includes("google-analytics.com")
+  ) {
+    return false
+  }
+  if (
+    trimmed.startsWith("data:image/png;base64") ||
+    trimmed.startsWith("data:image/jpeg;base64")
+  ) {
+    return false
+  }
+  return true
+}
+
 export function Results({ query, mode, onSearch }: Props) {
+  const isImageMode = mode === "images"
+  const pageSize = isImageMode ? IMAGE_PAGE_SIZE : TEXT_PAGE_SIZE
   const hasQuery = Boolean(query.trim())
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [visibleCount, setVisibleCount] = useState(pageSize)
   const [latencyMs, setLatencyMs] = useState(0)
   const [retryTrigger, setRetryTrigger] = useState(0)
+  const [selectedImage, setSelectedImage] = useState<ImageResultCard | null>(
+    null,
+  )
 
   useEffect(() => {
     const q = query.trim()
-    setVisibleCount(PAGE_SIZE)
+    setVisibleCount(isImageMode ? IMAGE_PAGE_SIZE : TEXT_PAGE_SIZE)
     setError(null)
+    setSelectedImage(null)
 
     if (!q) {
       setResults([])
@@ -81,7 +117,6 @@ export function Results({ query, mode, onSearch }: Props) {
 
     async function executeSearch() {
       try {
-        // Query serverless API endpoint (/api/search)
         const openSearchResult = await searchOpenSearch(
           q,
           mode,
@@ -143,15 +178,80 @@ export function Results({ query, mode, onSearch }: Props) {
       cancelled = true
       controller.abort()
     }
-  }, [query, mode, retryTrigger])
+  }, [query, mode, retryTrigger, isImageMode])
 
-  const totalResults = results.length
+  // Extract all images for Google Images mode
+  const allImageCards: ImageResultCard[] = useMemo(() => {
+    if (!isImageMode) return []
+    const cards: ImageResultCard[] = []
+    const seenUrls = new Set<string>()
+
+    for (const r of results) {
+      const candidates: string[] = []
+      if (isValidImageUrl(r.previewImage)) candidates.push(r.previewImage!)
+      if (Array.isArray(r.images)) {
+        for (const img of r.images) {
+          if (isValidImageUrl(img)) candidates.push(img)
+        }
+      }
+
+      for (const imgUrl of candidates) {
+        if (!seenUrls.has(imgUrl)) {
+          seenUrls.add(imgUrl)
+          cards.push({
+            id: `${r.url}-${imgUrl}`,
+            imageUrl: imgUrl,
+            title: r.title,
+            pageUrl: r.url,
+            domain: r.domain,
+          })
+        }
+      }
+    }
+    return cards
+  }, [results, isImageMode])
+
+  // Handle modal keyboard navigation (Esc, ArrowLeft, ArrowRight)
+  const currentImageIdx = useMemo(() => {
+    if (!selectedImage) return -1
+    return allImageCards.findIndex((c) => c.imageUrl === selectedImage.imageUrl)
+  }, [selectedImage, allImageCards])
+
+  const showPreviousImage = useCallback(() => {
+    if (currentImageIdx > 0) {
+      setSelectedImage(allImageCards[currentImageIdx - 1])
+    }
+  }, [currentImageIdx, allImageCards])
+
+  const showNextImage = useCallback(() => {
+    if (currentImageIdx < allImageCards.length - 1) {
+      setSelectedImage(allImageCards[currentImageIdx + 1])
+    }
+  }, [currentImageIdx, allImageCards])
+
+  useEffect(() => {
+    if (!selectedImage) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSelectedImage(null)
+      } else if (e.key === "ArrowLeft") {
+        showPreviousImage()
+      } else if (e.key === "ArrowRight") {
+        showNextImage()
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [selectedImage, showPreviousImage, showNextImage])
+
+  const totalResults = isImageMode ? allImageCards.length : results.length
   const displayedResults = results.slice(0, visibleCount)
+  const displayedImages = allImageCards.slice(0, visibleCount)
   const hasMore = visibleCount < totalResults
   const remainingCount = Math.max(0, totalResults - visibleCount)
 
   function handleShowMore() {
-    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, totalResults))
+    setVisibleCount((prev) => Math.min(prev + pageSize, totalResults))
   }
 
   function getDomainIcon(domain: string) {
@@ -159,119 +259,118 @@ export function Results({ query, mode, onSearch }: Props) {
 
     if (d.includes("github")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#24292e] text-white">
-          <GithubIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#24292e] text-white shrink-0">
+          <GithubIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("twitter") || d.includes("x.com")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
-          <XIcon className="size-2.5" />
+        <span className="grid size-4 place-items-center rounded-full bg-black text-white shrink-0">
+          <XIcon className="size-2" />
         </span>
       )
     }
     if (d.includes("youtube")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#FF0000] text-white">
-          <YoutubeIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#FF0000] text-white shrink-0">
+          <YoutubeIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("instagram")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white">
-          <InstagramIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shrink-0">
+          <InstagramIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("linkedin")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#0A66C2] text-white">
-          <LinkedinIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#0A66C2] text-white shrink-0">
+          <LinkedinIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("reddit")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#FF4500] text-white">
-          <RedditIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#FF4500] text-white shrink-0">
+          <RedditIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("wikipedia")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
-          <WikipediaIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 shrink-0">
+          <WikipediaIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("facebook")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#1877F2] text-white">
-          <FacebookIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#1877F2] text-white shrink-0">
+          <FacebookIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("spotify")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#1DB954] text-white">
-          <SpotifyIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#1DB954] text-white shrink-0">
+          <SpotifyIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("stackoverflow")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#F48024] text-white">
-          <StackOverflowIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#F48024] text-white shrink-0">
+          <StackOverflowIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("discord")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#5865F2] text-white">
-          <DiscordIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#5865F2] text-white shrink-0">
+          <DiscordIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("figma")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
-          <FigmaIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-black text-white shrink-0">
+          <FigmaIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("google")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-white text-slate-800 shadow-xs">
-          <GoogleIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-white text-slate-800 shadow-xs shrink-0">
+          <GoogleIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("snapchat")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#FFFC00] text-black">
-          <SnapchatIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#FFFC00] text-black shrink-0">
+          <SnapchatIcon className="size-2.5" />
         </span>
       )
     }
     if (d.includes("pinterest")) {
       return (
-        <span className="grid size-4.5 place-items-center rounded-full bg-[#E60023] text-white">
-          <PinterestIcon className="size-3" />
+        <span className="grid size-4 place-items-center rounded-full bg-[#E60023] text-white shrink-0">
+          <PinterestIcon className="size-2.5" />
         </span>
       )
     }
 
-    // Dynamic favicon loader with clean initial fallback
     const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`
     return (
-      <span className="relative grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 overflow-hidden">
-        <GlobeIcon className="absolute size-2.5 text-slate-400 dark:text-zinc-500" />
+      <span className="relative grid size-4 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] font-semibold text-slate-600 dark:text-zinc-300 overflow-hidden shrink-0">
+        <GlobeIcon className="absolute size-2 text-slate-400 dark:text-zinc-500" />
         <img
           src={faviconUrl}
           alt={domain}
-          className="relative z-10 size-3.5 object-contain"
+          className="relative z-10 size-3 object-contain"
           onError={(e) => {
             ;(e.target as HTMLElement).style.display = "none"
           }}
@@ -294,14 +393,17 @@ export function Results({ query, mode, onSearch }: Props) {
             {/* Results meta stat line */}
             <div className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400 tracking-normal pb-4">
               {loading ? (
-                <span>Searching VOID index...</span>
+                <span>
+                  Searching VOID {isImageMode ? "images" : "index"}...
+                </span>
               ) : error ? (
                 <span className="text-rose-500 dark:text-rose-400">
                   Search notice
                 </span>
               ) : (
                 <span>
-                  About {totalResults.toLocaleString()} results (
+                  About {totalResults.toLocaleString()}{" "}
+                  {isImageMode ? "images" : "results"} (
                   {latencyMs ? (latencyMs / 1000).toFixed(2) : "0.04"} seconds)
                 </span>
               )}
@@ -311,7 +413,7 @@ export function Results({ query, mode, onSearch }: Props) {
               <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-zinc-500">
                 <div className="size-6 border-2 border-blue-600 dark:border-zinc-400 border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm font-light">
-                  Searching VOID private index...
+                  Searching VOID {isImageMode ? "images" : "private index"}...
                 </p>
               </div>
             ) : error ? (
@@ -330,16 +432,195 @@ export function Results({ query, mode, onSearch }: Props) {
             ) : totalResults === 0 ? (
               <div className="py-16 text-slate-500 dark:text-zinc-400">
                 <p className="text-base font-normal text-slate-800 dark:text-zinc-100">
-                  No results found for “{query}”
+                  No {isImageMode ? "images" : "results"} found for “{query}”
                 </p>
                 <p className="text-xs mt-2 text-slate-400 dark:text-zinc-500">
-                  This page hasn't been crawled yet. You can add it using your
-                  VOID Crawler Dashboard.
+                  {isImageMode
+                    ? "Try searching in the 'All' tab or using different keywords."
+                    : "This page hasn't been crawled yet. You can add it using your VOID Crawler Dashboard."}
                 </p>
               </div>
-            ) : (
+            ) : isImageMode ? (
+              /* ================================================================= */
+              /* GOOGLE IMAGES WALL / GRID                                         */
+              /* ================================================================= */
               <>
-                {/* Clean flat Google-style results list without boxy container */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
+                  {displayedImages.map((item, idx) => {
+                    const optimizedThumb = getOptimizedThumbnailUrl(
+                      item.imageUrl,
+                      400,
+                      300,
+                    )
+                    return (
+                      <div
+                        key={`${item.id}-${idx}`}
+                        onClick={() => setSelectedImage(item)}
+                        className="group relative flex flex-col cursor-pointer rounded-xl overflow-hidden bg-white dark:bg-[#151619] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 transition-all hover:shadow-md select-none"
+                      >
+                        {/* Image preview box with smooth hover zoom */}
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-zinc-900">
+                          <img
+                            src={optimizedThumb}
+                            alt={item.title}
+                            loading={idx < 12 ? "eager" : "lazy"}
+                            decoding="async"
+                            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              if (target.src !== item.imageUrl) {
+                                target.src = item.imageUrl
+                              } else {
+                                target.parentElement?.parentElement?.remove()
+                              }
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 pointer-events-none">
+                            <span className="text-[10px] text-white/95 font-medium truncate">
+                              {item.domain}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Google Images style caption */}
+                        <div className="p-2 sm:p-2.5 flex flex-col justify-between flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400">
+                            {getDomainIcon(item.domain)}
+                            <span className="truncate">{item.domain}</span>
+                          </div>
+                          <p className="mt-1 text-xs font-medium text-slate-800 dark:text-zinc-200 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-[#8ab4f8] transition-colors leading-tight">
+                            {item.title}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Show more images button */}
+                {hasMore && (
+                  <div className="mt-10 flex justify-center pt-4">
+                    <button
+                      type="button"
+                      onClick={handleShowMore}
+                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer"
+                    >
+                      <span>Show more images</span>
+                      <span className="text-slate-400 dark:text-zinc-500">
+                        ({remainingCount} remaining)
+                      </span>
+                      <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* GOOGLE IMAGES PREVIEW MODAL                                */}
+                {/* ========================================================= */}
+                {selectedImage && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <div
+                      className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-[#16171b] border border-slate-200 dark:border-zinc-800 shadow-2xl animate-in zoom-in-95 duration-200"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Modal Top Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+                        <div className="flex items-center gap-2 min-w-0 pr-4">
+                          {getDomainIcon(selectedImage.domain)}
+                          <span className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate">
+                            {selectedImage.domain}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* Visit original page button */}
+                          <a
+                            href={sanitizeHref(selectedImage.pageUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+                          >
+                            <span>Visit page</span>
+                            <ExternalLink className="size-3" />
+                          </a>
+
+                          {/* Close button */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedImage(null)}
+                            className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                            title="Close (Esc)"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Modal Main Image Display */}
+                      <div className="relative flex-1 min-h-[300px] max-h-[68vh] flex items-center justify-center bg-slate-950 p-2 sm:p-4 overflow-hidden select-none">
+                        <img
+                          src={selectedImage.imageUrl}
+                          alt={selectedImage.title}
+                          className="max-h-[64vh] max-w-full object-contain rounded-lg shadow-lg"
+                        />
+
+                        {/* Left Arrow Button */}
+                        {currentImageIdx > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              showPreviousImage()
+                            }}
+                            className="absolute left-3 p-2 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white backdrop-blur-xs transition-all cursor-pointer shadow-md"
+                            title="Previous image (Left Arrow)"
+                          >
+                            <ChevronLeft className="size-5" />
+                          </button>
+                        )}
+
+                        {/* Right Arrow Button */}
+                        {currentImageIdx < allImageCards.length - 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              showNextImage()
+                            }}
+                            className="absolute right-3 p-2 rounded-full bg-black/60 hover:bg-black/85 text-white/90 hover:text-white backdrop-blur-xs transition-all cursor-pointer shadow-md"
+                            title="Next image (Right Arrow)"
+                          >
+                            <ChevronRight className="size-5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Modal Bottom Footer / Caption */}
+                      <div className="px-4 py-3 flex items-center justify-between bg-white dark:bg-[#16171b] text-xs">
+                        <p className="font-medium text-slate-800 dark:text-zinc-200 truncate pr-4">
+                          {selectedImage.title}
+                        </p>
+                        <a
+                          href={sanitizeHref(selectedImage.imageUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-[#8ab4f8] shrink-0 font-sans"
+                        >
+                          Open image in new tab ↗
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ================================================================= */
+              /* STANDARD WEB SEARCH RESULTS LIST                                  */
+              /* ================================================================= */
+              <>
                 <ol className="flex flex-col space-y-7 sm:space-y-8">
                   {displayedResults.map((r, i) => {
                     const safeUrl = sanitizeHref(r.url)
@@ -453,10 +734,7 @@ export function Results({ query, mode, onSearch }: Props) {
 
 /**
  * Optimizes thumbnail image delivery:
- * 1. Passes through SVGs and local assets untouched
- * 2. Filters out broken/corrupt base64 splash artifacts
- * 3. Compresses uncompressed 1MB PNG/JPEG files down to ~2KB WebP via Cloudflare CDN proxy
- *    resulting in instantaneous image loads
+ * Compresses PNG/JPEG files down to ~2KB WebP via Cloudflare CDN proxy
  */
 function getOptimizedThumbnailUrl(
   src?: string,
@@ -472,7 +750,6 @@ function getOptimizedThumbnailUrl(
   ) {
     return trimmed
   }
-  // Filter out broken base64 raster splash artifacts
   if (
     trimmed.startsWith("data:image/png;base64") ||
     trimmed.startsWith("data:image/jpeg;base64")
@@ -498,7 +775,6 @@ function ResultThumbnail({
 
   const safeUrl = sanitizeHref(result.url)
   const rawImage = result.previewImage
-  // Ignore corrupt base64 raster splash images and generic SVG logos
   const isGenericOrCorrupt =
     rawImage?.startsWith("data:image/png;base64") ||
     rawImage?.startsWith("data:image/jpeg;base64") ||
@@ -549,7 +825,6 @@ function ResultThumbnail({
     )
   }
 
-  // Fallback for Instagram profile without direct picture: initial badge
   if (isInstagram) {
     const handle =
       result.url.split("instagram.com/")[1]?.replace(/[/?#].*$/, "") ||

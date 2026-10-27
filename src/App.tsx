@@ -253,7 +253,11 @@ export default function App() {
           </div>
         ) : (
           /* Search Results View matching uploaded screenshot */
-          <div className="w-full max-w-5xl mx-auto pt-2 sm:pt-4 pb-12 animate-in fade-in duration-200">
+          <div
+            className={`w-full ${
+              mode === "images" ? "max-w-7xl" : "max-w-5xl"
+            } mx-auto pt-2 sm:pt-4 pb-12 animate-in fade-in duration-200`}
+          >
             {/* Top Search Bar & Mode Pills */}
             <div className="mb-5 space-y-3.5">
               <div className="w-full max-w-2xl">

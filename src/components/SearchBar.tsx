@@ -296,7 +296,8 @@ export function SearchBar({
     }
 
     try {
-      const recognition = new (SpeechRecognition as any)()
+      const SpeechConstructor = SpeechRecognition as any
+      const recognition = new SpeechConstructor()
       recognition.lang = "en-US"
       recognition.interimResults = false
 
