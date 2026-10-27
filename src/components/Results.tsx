@@ -643,7 +643,7 @@ export function Results({ query, mode, onSearch }: Props) {
                           )}
                         </div>
 
-                        <div className="mt-1 flex flex-col sm:flex-row items-start justify-between gap-4">
+                        <div className="mt-1 flex flex-row items-start justify-between gap-3 sm:gap-4">
                           <div className="flex-1 min-w-0">
                             {/* Result Title with validated URL protocol */}
                             <a
