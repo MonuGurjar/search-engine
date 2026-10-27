@@ -2,9 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
 import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
 import { ExternalLink, X, ChevronLeft, ChevronRight } from "lucide-react"
-import medRussiaIcon from "../assets/app-medrussia.webp"
-import placementAiIcon from "../assets/app-placement-ai.webp"
-import portfolioIcon from "../assets/app-portfolio.webp"
 import {
   ChevronDown,
   GlobeIcon,
@@ -65,44 +62,9 @@ export type ImageResultCard = {
   domain: string
 }
 
-function getBrandAppImage(url?: string, title?: string): string | null {
-  if (!url) return null
-  const lowerUrl = url.toLowerCase()
-  const lowerTitle = (title || "").toLowerCase()
-  if (
-    lowerUrl.includes("med-russia.vercel.app") ||
-    lowerTitle.includes("med russia")
-  ) {
-    return medRussiaIcon
-  }
-  if (
-    lowerUrl.includes("ai-placement-preparation.vercel.app") ||
-    lowerTitle.includes("placement ai") ||
-    lowerTitle.includes("placement preparation")
-  ) {
-    return placementAiIcon
-  }
-  if (
-    lowerUrl.includes("monugurjar.vercel.app") ||
-    lowerTitle.includes("monu gurjar")
-  ) {
-    return portfolioIcon
-  }
-  return null
-}
-
 function isValidImageUrl(url?: string | null): boolean {
   if (!url || typeof url !== "string") return false
   const trimmed = url.trim()
-  if (
-    trimmed.startsWith("/") ||
-    trimmed.startsWith("assets/") ||
-    trimmed.includes("app-medrussia") ||
-    trimmed.includes("app-placement") ||
-    trimmed.includes("app-portfolio")
-  ) {
-    return true
-  }
   if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://"))
     return false
   if (
@@ -226,8 +188,6 @@ export function Results({ query, mode, onSearch }: Props) {
 
     for (const r of results) {
       const candidates: string[] = []
-      const brandImg = getBrandAppImage(r.url, r.title)
-      if (brandImg) candidates.push(brandImg)
       if (isValidImageUrl(r.previewImage)) candidates.push(r.previewImage!)
       if (Array.isArray(r.images)) {
         for (const img of r.images) {
@@ -813,14 +773,12 @@ function ResultThumbnail({
     result.domain?.toLowerCase().includes("instagram") ||
     result.url?.toLowerCase().includes("instagram.com")
 
-  const brandImg = getBrandAppImage(result.url, result.title)
   const safeUrl = sanitizeHref(result.url)
-  const rawImage = brandImg || result.previewImage
+  const rawImage = result.previewImage
   const isGenericOrCorrupt =
-    !brandImg &&
-    (rawImage?.startsWith("data:image/png;base64") ||
-      rawImage?.startsWith("data:image/jpeg;base64") ||
-      rawImage?.startsWith("data:image/svg+xml"))
+    rawImage?.startsWith("data:image/png;base64") ||
+    rawImage?.startsWith("data:image/jpeg;base64") ||
+    rawImage?.startsWith("data:image/svg+xml")
 
   const validImage = isGenericOrCorrupt ? undefined : rawImage
   const optimized = validImage
