@@ -4,10 +4,10 @@ import {
   WaffleGridIcon,
   SunIcon,
   MoonIcon,
-  MedicalIcon,
-  BotIcon,
-  BriefcaseIcon,
 } from "./icons"
+import medRussiaIcon from "../assets/app-medrussia.webp"
+import placementAiIcon from "../assets/app-placement-ai.webp"
+import portfolioIcon from "../assets/app-portfolio.webp"
 
 type Props = {
   activeMode?: string
@@ -80,8 +80,12 @@ export function Header({
                   rel="noopener noreferrer"
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
-                  <div className="size-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <MedicalIcon className="size-4" />
+                  <div className="size-9 rounded-xl overflow-hidden drop-shadow-sm mb-1.5 group-hover:scale-110 transition-transform flex items-center justify-center">
+                    <img
+                      src={medRussiaIcon}
+                      alt="Med Russia"
+                      className="size-full object-contain"
+                    />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
                     Med Russia
@@ -97,8 +101,12 @@ export function Header({
                   rel="noopener noreferrer"
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
-                  <div className="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <BotIcon className="size-4" />
+                  <div className="size-9 rounded-xl overflow-hidden drop-shadow-sm mb-1.5 group-hover:scale-110 transition-transform flex items-center justify-center">
+                    <img
+                      src={placementAiIcon}
+                      alt="Placement AI"
+                      className="size-full object-contain"
+                    />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
                     Placement AI
@@ -114,8 +122,12 @@ export function Header({
                   rel="noopener noreferrer"
                   className="flex flex-col items-center justify-center p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/70 text-center transition-all group"
                 >
-                  <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
-                    <BriefcaseIcon className="size-4" />
+                  <div className="size-9 rounded-xl overflow-hidden drop-shadow-sm mb-1.5 group-hover:scale-110 transition-transform flex items-center justify-center">
+                    <img
+                      src={portfolioIcon}
+                      alt="Portfolio"
+                      className="size-full object-contain"
+                    />
                   </div>
                   <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
                     Portfolio
