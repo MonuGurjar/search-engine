@@ -11,6 +11,7 @@ import { Wordmark } from "./components/Wordmark"
 import { SearchBar } from "./components/SearchBar"
 import { ModePills } from "./components/ModePills"
 import { Results } from "./components/Results"
+import { PrivacyTermsModal, type LegalTab } from "./components/PrivacyTermsModal"
 
 class ResultsErrorBoundary extends Component<{
   children: ReactNode
@@ -85,6 +86,33 @@ export default function App() {
     return "light"
   })
 
+  // Deep-linkable Privacy & Terms Glossy Modal state
+  const [legalModal, setLegalModal] = useState<{
+    isOpen: boolean
+    tab: LegalTab
+  }>(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname.toLowerCase()
+      const params = new URLSearchParams(window.location.search)
+      const modalParam = params.get("modal")?.toLowerCase()
+      const hash = window.location.hash.toLowerCase()
+      if (
+        path === "/privacy" ||
+        modalParam === "privacy" ||
+        hash === "#privacy"
+      ) {
+        return { isOpen: true, tab: "privacy" }
+      }
+      if (path === "/terms" || modalParam === "terms" || hash === "#terms") {
+        return { isOpen: true, tab: "terms" }
+      }
+      if (path === "/about" || modalParam === "about" || hash === "#about") {
+        return { isOpen: true, tab: "about" }
+      }
+    }
+    return { isOpen: false, tab: "privacy" }
+  })
+
   // Listen to browser Back / Forward buttons (popstate)
   useEffect(() => {
     function handlePopState() {
@@ -95,6 +123,18 @@ export default function App() {
       setSubmittedQuery(q)
       setMode(m)
       setPathname(window.location.pathname)
+
+      const path = window.location.pathname.toLowerCase()
+      const modalParam = params.get("modal")?.toLowerCase()
+      if (path === "/privacy" || modalParam === "privacy") {
+        setLegalModal({ isOpen: true, tab: "privacy" })
+      } else if (path === "/terms" || modalParam === "terms") {
+        setLegalModal({ isOpen: true, tab: "terms" })
+      } else if (path === "/about" || modalParam === "about") {
+        setLegalModal({ isOpen: true, tab: "about" })
+      } else if (path === "/" && !modalParam) {
+        setLegalModal((prev) => ({ ...prev, isOpen: false }))
+      }
     }
 
     window.addEventListener("popstate", handlePopState)
@@ -166,6 +206,10 @@ export default function App() {
   }
 
   const isSearchActive = Boolean(submittedQuery.trim())
+  const isLegalRoute =
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
+    pathname === "/about"
 
   // 250ms debouncing for top global search bar during live search
   useEffect(() => {
@@ -193,18 +237,19 @@ export default function App() {
         onHome={goHome}
         theme={theme}
         onToggleTheme={toggleTheme}
-        showLogo={isSearchActive || pathname !== "/"}
+        showLogo={isSearchActive || (pathname !== "/" && !isLegalRoute)}
+        onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })}
       />
 
       {/* Main Content Area */}
       <main
         className={`flex-1 flex flex-col px-4 sm:px-6 ${
-          isSearchActive && pathname === "/"
+          isSearchActive && (pathname === "/" || isLegalRoute)
             ? "justify-start"
             : "justify-center"
         }`}
       >
-        {pathname !== "/" ? (
+        {pathname !== "/" && !isLegalRoute ? (
           <div className="w-full max-w-md mx-auto text-center py-16 animate-in fade-in duration-300">
             <h2 className="text-xl font-medium text-slate-800 dark:text-zinc-100 mb-2">
               Page Not Found
@@ -292,7 +337,19 @@ export default function App() {
       </main>
 
       {/* Minimalist Footer */}
-      <Footer />
+      <Footer onOpenLegal={(tab) => setLegalModal({ isOpen: true, tab })} />
+
+      {/* Glossy Glassmorphic Privacy & Terms Modal */}
+      <PrivacyTermsModal
+        isOpen={legalModal.isOpen}
+        initialTab={legalModal.tab}
+        onClose={() => {
+          setLegalModal((prev) => ({ ...prev, isOpen: false }))
+          if (isLegalRoute) {
+            setPathname("/")
+          }
+        }}
+      />
     </div>
   )
 }

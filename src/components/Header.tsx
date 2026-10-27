@@ -16,6 +16,7 @@ type Props = {
   theme: "light" | "dark"
   onToggleTheme: () => void
   showLogo?: boolean
+  onOpenLegal?: (tab: "privacy" | "terms" | "about") => void
 }
 
 export function Header({
@@ -23,6 +24,7 @@ export function Header({
   theme,
   onToggleTheme,
   showLogo = true,
+  onOpenLegal,
 }: Props) {
   const [waffleOpen, setWaffleOpen] = useState(false)
   const waffleRef = useRef<HTMLDivElement>(null)
@@ -122,6 +124,42 @@ export function Header({
                     Monu
                   </span>
                 </a>
+              </div>
+
+              {/* Privacy & Terms Quick Access */}
+              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between px-2 text-[11px] text-slate-500 dark:text-zinc-400">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWaffleOpen(false)
+                    onOpenLegal?.("privacy")
+                  }}
+                  className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer transition-colors"
+                >
+                  Privacy
+                </button>
+                <span className="text-slate-300 dark:text-zinc-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWaffleOpen(false)
+                    onOpenLegal?.("terms")
+                  }}
+                  className="hover:text-cyan-600 dark:hover:text-cyan-400 cursor-pointer transition-colors"
+                >
+                  Terms
+                </button>
+                <span className="text-slate-300 dark:text-zinc-700">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWaffleOpen(false)
+                    onOpenLegal?.("about")
+                  }}
+                  className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                >
+                  About
+                </button>
               </div>
             </div>
           )}

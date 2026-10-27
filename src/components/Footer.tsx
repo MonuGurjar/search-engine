@@ -1,31 +1,51 @@
 import { useState } from "react"
 import { CloseIcon } from "./icons"
+import type { LegalTab } from "./PrivacyTermsModal"
 
-export function Footer() {
+type Props = {
+  onOpenLegal?: (tab: LegalTab) => void
+}
+
+export function Footer({ onOpenLegal }: Props) {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
 
   const links = [
     {
       label: "About",
+      isLegal: true,
+      tab: "about" as LegalTab,
       content:
         "VOID is a minimalist, privacy-focused search engine powered by Aiven OpenSearch distributed cluster with real-time neural and fuzzy BM25 ranking.",
     },
     {
       label: "Privacy",
+      isLegal: true,
+      tab: "privacy" as LegalTab,
       content:
         "VOID does not log personal tracking profiles or sell search history. Your queries remain private and lightweight.",
     },
     {
       label: "Terms",
+      isLegal: true,
+      tab: "terms" as LegalTab,
       content:
         "Free for open web search, developer documentation exploration, research discovery, and media lookup.",
     },
     {
       label: "Settings",
+      isLegal: false,
       content:
         "VOID Search Preferences: SafeSearch Moderate, Neural Ranking enabled, Aiven OpenSearch Cluster indexing.",
     },
   ]
+
+  const handleClick = (link: (typeof links)[number]) => {
+    if (link.isLegal && link.tab && onOpenLegal) {
+      onOpenLegal(link.tab)
+    } else {
+      setModalOpen(link.label)
+    }
+  }
 
   return (
     <>
@@ -35,7 +55,7 @@ export function Footer() {
           {links.map((link) => (
             <button
               key={link.label}
-              onClick={() => setModalOpen(link.label)}
+              onClick={() => handleClick(link)}
               className="hover:text-slate-900 dark:hover:text-zinc-200 transition-colors cursor-pointer"
             >
               {link.label}
@@ -49,10 +69,18 @@ export function Footer() {
         </div>
       </footer>
 
-      {/* Simple Information Modal if any link clicked */}
+      {/* Settings Modal if non-legal item clicked */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#141416] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setModalOpen(null)}
+        >
+          <div
+            className="bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
               <h3 className="font-semibold text-slate-900 dark:text-zinc-100 font-sans text-sm">
                 {modalOpen} — VOID
