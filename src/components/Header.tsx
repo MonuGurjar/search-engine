@@ -4,6 +4,7 @@ import {
   WaffleGridIcon,
   SunIcon,
   MoonIcon,
+  GithubIcon,
 } from "./icons"
 import medRussiaIcon from "../assets/app-medrussia.webp"
 import placementAiIcon from "../assets/app-placement-ai.webp"
@@ -138,40 +139,47 @@ export function Header({
                 </a>
               </div>
 
-              {/* Privacy & Terms Quick Access */}
-              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between px-2 text-[11px] text-slate-500 dark:text-zinc-400">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWaffleOpen(false)
-                    onOpenLegal?.("privacy")
-                  }}
-                  className="hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer transition-colors"
+              {/* About Developer: Monu Gurjar */}
+              <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800">
+                <a
+                  href="https://github.com/MonuGurjar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/80 border border-slate-200/60 dark:border-zinc-800 transition-all group"
+                  title="Visit Monu Gurjar on GitHub"
                 >
-                  Privacy
-                </button>
-                <span className="text-slate-300 dark:text-zinc-700">•</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWaffleOpen(false)
-                    onOpenLegal?.("terms")
-                  }}
-                  className="hover:text-cyan-600 dark:hover:text-cyan-400 cursor-pointer transition-colors"
-                >
-                  Terms
-                </button>
-                <span className="text-slate-300 dark:text-zinc-700">•</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWaffleOpen(false)
-                    onOpenLegal?.("about")
-                  }}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
-                >
-                  About
-                </button>
+                  <div className="relative size-8 rounded-full overflow-hidden ring-1 ring-slate-300 dark:ring-zinc-700 shrink-0 bg-zinc-900 grid place-items-center">
+                    <img
+                      src="https://avatars.githubusercontent.com/u/70533008?v=4"
+                      alt="Monu Gurjar"
+                      className="size-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none"
+                      }}
+                    />
+                    <div className="absolute inset-0 grid place-items-center -z-10 text-white">
+                      <GithubIcon className="size-4" />
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Monu Gurjar
+                      </span>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium shrink-0">
+                        Creator
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 block truncate">
+                      github.com/MonuGurjar
+                    </span>
+                  </div>
+
+                  <div className="text-slate-400 group-hover:text-slate-700 dark:text-zinc-500 dark:group-hover:text-zinc-300 transition-colors shrink-0 pr-1">
+                    <GithubIcon className="size-3.5" />
+                  </div>
+                </a>
               </div>
             </div>
           )}
