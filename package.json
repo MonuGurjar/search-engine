@@ -9,9 +9,9 @@
     "preview": "vite preview",
     "format": "oxfmt",
     "test": "node --test tests/*.test.mjs",
-    "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel",
-    "vercel:login": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel login",
-    "deploy": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel --prod"
+    "vercel": "node --dns-result-order=ipv4first ./node_modules/vercel/dist/index.js",
+    "vercel:login": "node --dns-result-order=ipv4first ./node_modules/vercel/dist/index.js login",
+    "deploy": "node --dns-result-order=ipv4first ./node_modules/vercel/dist/index.js --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
