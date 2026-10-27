@@ -1,14 +1,30 @@
-import { useState } from 'react'
-import { CloseIcon } from './icons'
+import { useState } from "react"
+import { CloseIcon } from "./icons"
 
 export function Footer() {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
 
   const links = [
-    { label: 'About', content: 'VOID is a minimalist, privacy-focused search engine powered by Aiven OpenSearch distributed cluster with real-time neural and fuzzy BM25 ranking.' },
-    { label: 'Privacy', content: 'VOID does not log personal tracking profiles or sell search history. Your queries remain private and lightweight.' },
-    { label: 'Terms', content: 'Free for open web search, developer documentation exploration, research discovery, and media lookup.' },
-    { label: 'Settings', content: 'VOID Search Preferences: SafeSearch Moderate, Neural Ranking enabled, Aiven OpenSearch Cluster indexing.' },
+    {
+      label: "About",
+      content:
+        "VOID is a minimalist, privacy-focused search engine powered by Aiven OpenSearch distributed cluster with real-time neural and fuzzy BM25 ranking.",
+    },
+    {
+      label: "Privacy",
+      content:
+        "VOID does not log personal tracking profiles or sell search history. Your queries remain private and lightweight.",
+    },
+    {
+      label: "Terms",
+      content:
+        "Free for open web search, developer documentation exploration, research discovery, and media lookup.",
+    },
+    {
+      label: "Settings",
+      content:
+        "VOID Search Preferences: SafeSearch Moderate, Neural Ranking enabled, Aiven OpenSearch Cluster indexing.",
+    },
   ]
 
   return (

@@ -4,10 +4,11 @@ import {
   getAutocompleteSuggestions,
   buildSearchPayload,
   parseQueryOperators,
-  resolveOpenSearchEnv,
   type IndexedDocument,
   type SearchHit,
 } from "../server/opensearch-service.ts"
+import { validateSearchParams } from "../server/security/validation.ts"
+import { checkRateLimit } from "../server/security/rate-limiter.ts"
 
 export interface OpenSearchDocument {
   id?: string
@@ -102,104 +103,151 @@ export default async function handler(
     return res.end()
   }
 
+  // Abuse prevention rate limit
+  const rateLimit = checkRateLimit(req, { windowMs: 60000, maxRequests: 120 })
+  res.setHeader("X-RateLimit-Limit", rateLimit.limit.toString())
+  res.setHeader("X-RateLimit-Remaining", rateLimit.remaining.toString())
+  res.setHeader("X-RateLimit-Reset", rateLimit.resetTime.toString())
+
+  if (!rateLimit.allowed) {
+    return sendJson(res, 429, {
+      error: "Rate limit exceeded. Please wait a moment.",
+    })
+  }
+
   if (req.method !== "POST" && req.method !== "GET") {
     res.setHeader("Allow", "GET, POST")
     return sendJson(res, 405, { error: "Method not allowed" })
   }
 
   try {
+    let rawParams: any = {}
     let action = "search"
-    let rawQuery = ""
-    let mode = "all"
-    let limit = 100
-    let page = 1
 
     if (req.method === "GET") {
       const parsedUrl = new URL(req.url || "/", "http://localhost")
       const p = parsedUrl.searchParams
-      rawQuery = p.get("q") || p.get("query") || ""
-      action = p.get("action") || (rawQuery.startsWith("suggest:") ? "suggest" : "search")
-      mode = p.get("category") || p.get("mode") || "all"
-      limit = parseInt(p.get("limit") || p.get("size") || "100", 10)
-      page = parseInt(p.get("page") || "1", 10)
+      const rawQ = p.get("q") || p.get("query") || ""
+      action =
+        p.get("action") || (rawQ.startsWith("suggest:") ? "suggest" : "search")
+      rawParams = {
+        q:
+          action === "suggest" && rawQ.startsWith("suggest:")
+            ? rawQ.slice(8)
+            : rawQ,
+        category: p.get("category") || p.get("mode"),
+        limit: p.get("limit") || p.get("size"),
+        page: p.get("page"),
+      }
     } else {
       const body = await readBody(req)
       action = typeof body.action === "string" ? body.action : "search"
-      rawQuery = typeof body.query === "string" ? body.query : (typeof body.q === "string" ? body.q : "")
-      mode = typeof body.mode === "string" ? body.mode : (typeof body.category === "string" ? body.category : "all")
-      const requestedSize = typeof body.size === "number" ? body.size : (typeof body.limit === "number" ? body.limit : 100)
-      limit = requestedSize > 0 ? requestedSize : 100
-      page = typeof body.page === "number" && body.page > 0 ? body.page : 1
+      rawParams = {
+        q: body.query ?? body.q ?? "",
+        category: body.mode ?? body.category,
+        limit: body.size ?? body.limit,
+        page: body.page,
+      }
     }
 
-    const cleanQuery = rawQuery.trim().slice(0, 300)
-
-    if (!cleanQuery) {
-      if (action === "suggest") {
+    // Handle legacy suggest action
+    if (action === "suggest") {
+      const cleanSuggestQuery = String(rawParams.q || "")
+        .trim()
+        .slice(0, 100)
+      if (!cleanSuggestQuery || cleanSuggestQuery.length < 2) {
         return sendJson(res, 200, { suggestions: [] })
       }
-      return sendJson(res, 200, { total: 0, hits: [] })
-    }
-
-    if (action === "suggest") {
-      const suggestions = await getAutocompleteSuggestions(cleanQuery)
+      const suggestions = await getAutocompleteSuggestions(cleanSuggestQuery)
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=60, stale-while-revalidate=120",
+      )
       return sendJson(res, 200, { suggestions })
     }
 
+    // Input validation
+    const validation = validateSearchParams(rawParams)
+    if (!validation.success || !validation.data) {
+      return sendJson(res, 400, {
+        error: validation.error || "Invalid search parameters",
+      })
+    }
+
+    const { query, category, page, limit } = validation.data
+
+    if (!query) {
+      return sendJson(res, 200, { total: 0, hits: [] })
+    }
+
     // BM25 Full-Text Search with boosts, canonical deduplication and highlights
-    const searchResponse = await searchOpenSearch(cleanQuery, {
-      category: mode && mode !== "all" ? mode : undefined,
+    const searchResponse = await searchOpenSearch(query, {
+      category,
       page,
       limit,
     })
 
-    const hits: OpenSearchDocument[] = searchResponse.hits.map((h: SearchHit) => {
-      const doc = h.document
-      const titleHighlight = h.highlights?.title?.[0]
-      const contentHighlight = h.highlights?.content?.join(" ... ")
-      const summaryHighlight = h.highlights?.summary?.join(" ... ") || h.highlights?.ai_summary?.join(" ... ")
-      const headingHighlights = h.highlights?.headings
+    const hits: OpenSearchDocument[] = searchResponse.hits.map(
+      (h: SearchHit) => {
+        const doc = h.document
+        const titleHighlight = h.highlights?.title?.[0]
+        const contentHighlight = h.highlights?.content?.join(" ... ")
+        const summaryHighlight =
+          h.highlights?.summary?.join(" ... ") ||
+          h.highlights?.ai_summary?.join(" ... ")
+        const headingHighlights = h.highlights?.headings
 
-      return {
-        id: doc.id || doc.url,
-        url: doc.url,
-        canonical_url: doc.canonicalUrl || doc.canonical_url || doc.url,
-        canonicalUrl: doc.canonicalUrl || doc.canonical_url || doc.url,
-        title: doc.title,
-        raw_title: doc.rawTitle || doc.raw_title,
-        rawTitle: doc.rawTitle || doc.raw_title,
-        domain: doc.domain,
-        site_name: doc.siteName || doc.site_name,
-        siteName: doc.siteName || doc.site_name,
-        category: doc.category,
-        page_type: doc.pageType || doc.page_type || "WebPage",
-        pageType: doc.pageType || doc.page_type || "WebPage",
-        description: doc.description,
-        summary: doc.summary,
-        ai_summary: doc.aiSummary || doc.ai_summary,
-        aiSummary: doc.aiSummary || doc.ai_summary,
-        content: doc.content,
-        headings: doc.headings || [],
-        topics: doc.topics || [],
-        tags: doc.tags || [],
-        language: doc.language || "en",
-        favicon: doc.favicon,
-        indexed_at: doc.indexedAt || doc.indexed_at,
-        indexedAt: doc.indexedAt || doc.indexed_at,
-        preview_image: doc.previewImage || doc.preview_image,
-        previewImage: doc.previewImage || doc.preview_image,
-        images: doc.images || [],
-        http_status: doc.httpStatus || doc.http_status || 200,
-        httpStatus: doc.httpStatus || doc.http_status || 200,
-        score: h.score,
-        highlightedTitle: titleHighlight || doc.title,
-        highlightedSummary: summaryHighlight || contentHighlight || doc.summary || doc.description,
-        highlightedContent: contentHighlight,
-        highlightedHeadings: headingHighlights,
-        extraction_method: doc.extractionMethod || doc.extraction_method,
-        extractionMethod: doc.extractionMethod || doc.extraction_method,
-      }
-    })
+        return {
+          id: doc.id || doc.url,
+          url: doc.url,
+          canonical_url: doc.canonicalUrl || doc.canonical_url || doc.url,
+          canonicalUrl: doc.canonicalUrl || doc.canonical_url || doc.url,
+          title: doc.title,
+          raw_title: doc.rawTitle || doc.raw_title,
+          rawTitle: doc.rawTitle || doc.raw_title,
+          domain: doc.domain,
+          site_name: doc.siteName || doc.site_name,
+          siteName: doc.siteName || doc.site_name,
+          category: doc.category,
+          page_type: doc.pageType || doc.page_type || "WebPage",
+          pageType: doc.pageType || doc.page_type || "WebPage",
+          description: doc.description,
+          summary: doc.summary,
+          ai_summary: doc.aiSummary || doc.ai_summary,
+          aiSummary: doc.aiSummary || doc.ai_summary,
+          content: doc.content,
+          headings: doc.headings || [],
+          topics: doc.topics || [],
+          tags: doc.tags || [],
+          language: doc.language || "en",
+          favicon: doc.favicon,
+          indexed_at: doc.indexedAt || doc.indexed_at,
+          indexedAt: doc.indexedAt || doc.indexed_at,
+          preview_image: doc.previewImage || doc.preview_image,
+          previewImage: doc.previewImage || doc.preview_image,
+          images: doc.images || [],
+          http_status: doc.httpStatus || doc.http_status || 200,
+          httpStatus: doc.httpStatus || doc.http_status || 200,
+          score: h.score,
+          highlightedTitle: titleHighlight || doc.title,
+          highlightedSummary:
+            summaryHighlight ||
+            contentHighlight ||
+            doc.summary ||
+            doc.description,
+          highlightedContent: contentHighlight,
+          highlightedHeadings: headingHighlights,
+          extraction_method: doc.extractionMethod || doc.extraction_method,
+          extractionMethod: doc.extractionMethod || doc.extraction_method,
+        }
+      },
+    )
+
+    // Search cache headers (30s cache, 60s stale-while-revalidate)
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=30, stale-while-revalidate=60",
+    )
 
     return sendJson(res, 200, {
       total: searchResponse.total,

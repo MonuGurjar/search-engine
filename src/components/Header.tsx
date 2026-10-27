@@ -1,12 +1,19 @@
-import { useState, useRef, useEffect } from 'react'
-import { Wordmark } from './Wordmark'
-import { WaffleGridIcon, SunIcon, MoonIcon, MedicalIcon, BotIcon, BriefcaseIcon } from './icons'
+import { useState, useRef, useEffect } from "react"
+import { Wordmark } from "./Wordmark"
+import {
+  WaffleGridIcon,
+  SunIcon,
+  MoonIcon,
+  MedicalIcon,
+  BotIcon,
+  BriefcaseIcon,
+} from "./icons"
 
 type Props = {
   activeMode?: string
   onSelectMode?: (modeId: string) => void
   onHome: () => void
-  theme: 'light' | 'dark'
+  theme: "light" | "dark"
   onToggleTheme: () => void
   showLogo?: boolean
 }
@@ -27,8 +34,8 @@ export function Header({
         setWaffleOpen(false)
       }
     }
-    window.addEventListener('mousedown', handleClickOutside)
-    return () => window.removeEventListener('mousedown', handleClickOutside)
+    window.addEventListener("mousedown", handleClickOutside)
+    return () => window.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   return (
@@ -74,8 +81,12 @@ export function Header({
                   <div className="size-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
                     <MedicalIcon className="size-4" />
                   </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Med Russia</span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Medical</span>
+                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
+                    Med Russia
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
+                    Medical
+                  </span>
                 </a>
 
                 <a
@@ -87,8 +98,12 @@ export function Header({
                   <div className="size-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
                     <BotIcon className="size-4" />
                   </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Placement AI</span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Prep</span>
+                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
+                    Placement AI
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
+                    Prep
+                  </span>
                 </a>
 
                 <a
@@ -100,8 +115,12 @@ export function Header({
                   <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 grid place-items-center mb-1 group-hover:scale-105 transition-transform">
                     <BriefcaseIcon className="size-4" />
                   </div>
-                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">Portfolio</span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">Monu</span>
+                  <span className="text-xs font-medium text-slate-800 dark:text-zinc-200">
+                    Portfolio
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-zinc-500">
+                    Monu
+                  </span>
                 </a>
               </div>
             </div>
@@ -115,10 +134,12 @@ export function Header({
         <button
           onClick={onToggleTheme}
           className="size-9 rounded-full flex items-center justify-center bg-slate-50 dark:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-700/80 text-slate-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-all cursor-pointer shadow-xs"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={
+            theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+          }
           aria-label="Toggle theme"
         >
-          {theme === 'dark' ? (
+          {theme === "dark" ? (
             <MoonIcon className="size-4.5 text-amber-300 dark:text-amber-300" />
           ) : (
             <SunIcon className="size-4.5 text-slate-600" />

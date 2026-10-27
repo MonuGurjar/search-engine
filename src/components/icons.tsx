@@ -1,5 +1,5 @@
-import type { SVGProps } from 'react'
-import type { IconBaseProps } from 'react-icons'
+import type { SVGProps } from "react"
+import type { IconBaseProps } from "react-icons"
 import {
   MdSearch,
   MdMic,
@@ -26,7 +26,7 @@ import {
   MdMedicalServices,
   MdWork,
   MdSmartToy,
-} from 'react-icons/md'
+} from "react-icons/md"
 
 // ==========================================
 // Google Material Design Filled Icons

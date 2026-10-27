@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { searchOpenSearch, type OpenSearchDocument } from '../lib/opensearch'
-import { MODES } from './modes'
+import { useState, useEffect } from "react"
+import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
+import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
+import { MODES } from "./modes"
 import {
   ChevronDown,
   GlobeIcon,
@@ -19,7 +20,7 @@ import {
   DiscordIcon,
   FigmaIcon,
   GoogleIcon,
-} from './icons'
+} from "./icons"
 
 type Props = {
   query: string
@@ -30,10 +31,10 @@ type Props = {
 const PAGE_SIZE = 10
 
 const EXPLORATION_TOPICS = [
-  'Monu Gurjar',
-  'Instagram Profile',
-  'Autonomous AI agents',
-  'Cryptographic privacy',
+  "Monu Gurjar",
+  "Instagram Profile",
+  "Autonomous AI agents",
+  "Cryptographic privacy",
 ]
 
 type SearchResultItem = {
@@ -54,26 +55,25 @@ type SearchResultItem = {
 
 export function Results({ query, mode, onSearch }: Props) {
   const hasQuery = Boolean(query.trim())
-  const modeLabel = MODES.find((m) => m.id === mode)?.label ?? 'Web'
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [searchedQuery, setSearchedQuery] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [latencyMs, setLatencyMs] = useState(0)
+  const [retryTrigger, setRetryTrigger] = useState(0)
 
   useEffect(() => {
     const q = query.trim()
     setVisibleCount(PAGE_SIZE)
+    setError(null)
 
     if (!q) {
       setResults([])
-      setSearchedQuery('')
       setLatencyMs(0)
       return
     }
 
     setLoading(true)
-    setSearchedQuery(q)
 
     const controller = new AbortController()
     let cancelled = false
@@ -81,100 +81,53 @@ export function Results({ query, mode, onSearch }: Props) {
 
     async function executeSearch() {
       try {
-        // 1. Query Aiven OpenSearch cluster (distributed full-text & fuzzy BM25)
+        // Query serverless API endpoint (/api/search)
         const openSearchResult = await searchOpenSearch(
           q,
           mode,
           100,
-          controller.signal
+          controller.signal,
         )
-
-        if (!cancelled && openSearchResult.hits.length > 0) {
-          const elapsed = Math.round(performance.now() - startTime)
-          setLatencyMs(elapsed)
-          const formatted: SearchResultItem[] = openSearchResult.hits.map(
-            (doc: OpenSearchDocument) => {
-              let pathname = '/'
-              try {
-                pathname = new URL(doc.url).pathname
-              } catch {}
-              return {
-                title: doc.title || doc.url,
-                domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ''),
-                path: pathname,
-                url: doc.url,
-                canonicalUrl: doc.canonical_url || doc.canonicalUrl,
-                snippet: doc.summary || doc.description || '',
-                score: typeof doc.score === 'number' ? doc.score : undefined,
-                headings: Array.isArray(doc.headings) ? doc.headings : [],
-                highlightedTitle: doc.highlightedTitle,
-                highlightedSnippet: doc.highlightedSummary || doc.highlightedContent,
-                highlightedContent: doc.highlightedContent,
-                previewImage: doc.preview_image || (doc as any).previewImage || undefined,
-                images: Array.isArray(doc.images) ? doc.images : [],
-              }
-            }
-          )
-          setResults(formatted)
-          setLoading(false)
-          return
-        }
-
-        // 2. Local fallback if local crawler is running and OpenSearch has no hits
-        const isLocalDev =
-          typeof window !== 'undefined' &&
-          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-          window.location.protocol === 'http:'
-
-        const localDocs = isLocalDev
-          ? await fetch('http://localhost:3001/api/crawler/indexed', {
-              signal: controller.signal,
-            })
-              .then(async (res) => {
-                if (!res.ok) return []
-                const text = await res.text()
-                if (!text || !text.trim()) return []
-                try {
-                  return JSON.parse(text)
-                } catch {
-                  return []
-                }
-              })
-              .catch(() => [])
-          : []
 
         if (cancelled) return
 
-        const qLow = q.toLowerCase()
-        const localMatches: SearchResultItem[] = (Array.isArray(localDocs) ? localDocs : [])
-          .filter((doc: any) => {
-            const inTitle = doc.title?.toLowerCase().includes(qLow)
-            const inUrl = doc.url?.toLowerCase().includes(qLow)
-            const inSummary = doc.summary?.toLowerCase().includes(qLow)
-            const inTags = doc.tags?.some((t: string) => t.toLowerCase().includes(qLow))
-            const inTopics = doc.topics?.some((t: string) => t.toLowerCase().includes(qLow))
-            return inTitle || inUrl || inSummary || inTags || inTopics
-          })
-          .map((doc: any) => {
-            let pathname = '/'
+        const elapsed = Math.round(performance.now() - startTime)
+        setLatencyMs(elapsed)
+
+        const formatted: SearchResultItem[] = openSearchResult.hits.map(
+          (doc: OpenSearchDocument) => {
+            let pathname = "/"
             try {
               pathname = new URL(doc.url).pathname
             } catch {}
             return {
-              title: doc.title,
-              domain: doc.domain,
+              title: doc.title || doc.url,
+              domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ""),
               path: pathname,
               url: doc.url,
-              snippet: doc.summary,
-              previewImage: doc.previewImage,
-              images: doc.images || [],
+              canonicalUrl: doc.canonical_url || doc.canonicalUrl,
+              snippet: doc.summary || doc.description || "",
+              score: typeof doc.score === "number" ? doc.score : undefined,
+              headings: Array.isArray(doc.headings) ? doc.headings : [],
+              highlightedTitle: doc.highlightedTitle,
+              highlightedSnippet:
+                doc.highlightedSummary || doc.highlightedContent,
+              highlightedContent: doc.highlightedContent,
+              previewImage:
+                doc.preview_image || (doc as any).previewImage || undefined,
+              images: Array.isArray(doc.images) ? doc.images : [],
             }
-          })
+          },
+        )
 
-        setResults(localMatches)
+        setResults(formatted)
+        setError(null)
       } catch (err: any) {
-        if (!cancelled && err.name !== 'AbortError') {
-          console.error('OpenSearch query error:', err)
+        if (!cancelled && err.name !== "AbortError") {
+          console.error("[Results] Search execution error:", err)
+          setError(
+            "Failed to fetch search results. The service might be temporarily unavailable.",
+          )
           setResults([])
         }
       } finally {
@@ -190,7 +143,7 @@ export function Results({ query, mode, onSearch }: Props) {
       cancelled = true
       controller.abort()
     }
-  }, [query, mode])
+  }, [query, mode, retryTrigger])
 
   const totalResults = results.length
   const displayedResults = results.slice(0, visibleCount)
@@ -204,105 +157,105 @@ export function Results({ query, mode, onSearch }: Props) {
   function getDomainIcon(domain: string) {
     const d = domain.toLowerCase()
 
-    if (d.includes('github')) {
+    if (d.includes("github")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#24292e] text-white">
           <GithubIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('twitter') || d.includes('x.com')) {
+    if (d.includes("twitter") || d.includes("x.com")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
           <XIcon className="size-2.5" />
         </span>
       )
     }
-    if (d.includes('youtube')) {
+    if (d.includes("youtube")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#FF0000] text-white">
           <YoutubeIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('instagram')) {
+    if (d.includes("instagram")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white">
           <InstagramIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('linkedin')) {
+    if (d.includes("linkedin")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#0A66C2] text-white">
           <LinkedinIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('reddit')) {
+    if (d.includes("reddit")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#FF4500] text-white">
           <RedditIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('wikipedia')) {
+    if (d.includes("wikipedia")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200">
           <WikipediaIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('facebook')) {
+    if (d.includes("facebook")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#1877F2] text-white">
           <FacebookIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('spotify')) {
+    if (d.includes("spotify")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#1DB954] text-white">
           <SpotifyIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('stackoverflow')) {
+    if (d.includes("stackoverflow")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#F48024] text-white">
           <StackOverflowIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('discord')) {
+    if (d.includes("discord")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#5865F2] text-white">
           <DiscordIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('figma')) {
+    if (d.includes("figma")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-black text-white">
           <FigmaIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('google')) {
+    if (d.includes("google")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-white text-slate-800 shadow-xs">
           <GoogleIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('snapchat')) {
+    if (d.includes("snapchat")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#FFFC00] text-black">
           <SnapchatIcon className="size-3" />
         </span>
       )
     }
-    if (d.includes('pinterest')) {
+    if (d.includes("pinterest")) {
       return (
         <span className="grid size-4.5 place-items-center rounded-full bg-[#E60023] text-white">
           <PinterestIcon className="size-3" />
@@ -320,7 +273,7 @@ export function Results({ query, mode, onSearch }: Props) {
           alt={domain}
           className="relative z-10 size-3.5 object-contain"
           onError={(e) => {
-            (e.target as HTMLElement).style.display = 'none'
+            ;(e.target as HTMLElement).style.display = "none"
           }}
         />
       </span>
@@ -328,9 +281,9 @@ export function Results({ query, mode, onSearch }: Props) {
   }
 
   function formatBreadcrumb(domain: string, path: string) {
-    const parts = path.split('/').filter(Boolean)
+    const parts = path.split("/").filter(Boolean)
     if (parts.length === 0) return domain
-    return `${domain} › ${parts.join(' › ')}`
+    return `${domain} › ${parts.join(" › ")}`
   }
 
   return (
@@ -342,9 +295,14 @@ export function Results({ query, mode, onSearch }: Props) {
             <div className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400 tracking-normal pb-4">
               {loading ? (
                 <span>Searching VOID index...</span>
+              ) : error ? (
+                <span className="text-rose-500 dark:text-rose-400">
+                  Search notice
+                </span>
               ) : (
                 <span>
-                  About {totalResults.toLocaleString()} results ({latencyMs ? (latencyMs / 1000).toFixed(2) : '0.04'} seconds)
+                  About {totalResults.toLocaleString()} results (
+                  {latencyMs ? (latencyMs / 1000).toFixed(2) : "0.04"} seconds)
                 </span>
               )}
             </div>
@@ -352,70 +310,99 @@ export function Results({ query, mode, onSearch }: Props) {
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-zinc-500">
                 <div className="size-6 border-2 border-blue-600 dark:border-zinc-400 border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm font-light">Searching VOID private index...</p>
+                <p className="text-sm font-light">
+                  Searching VOID private index...
+                </p>
+              </div>
+            ) : error ? (
+              <div className="py-12 text-center max-w-md mx-auto">
+                <p className="text-sm text-slate-700 dark:text-zinc-300 mb-3">
+                  {error}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setRetryTrigger((prev) => prev + 1)}
+                  className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 transition-opacity cursor-pointer font-sans"
+                >
+                  Retry Search
+                </button>
               </div>
             ) : totalResults === 0 ? (
               <div className="py-16 text-slate-500 dark:text-zinc-400">
-                <p className="text-base font-normal text-slate-800 dark:text-zinc-100">No results found for “{query}”</p>
-                <p className="text-xs mt-2 text-slate-400 dark:text-zinc-500">This page hasn't been crawled yet. You can add it using your VOID Crawler Dashboard.</p>
+                <p className="text-base font-normal text-slate-800 dark:text-zinc-100">
+                  No results found for “{query}”
+                </p>
+                <p className="text-xs mt-2 text-slate-400 dark:text-zinc-500">
+                  This page hasn't been crawled yet. You can add it using your
+                  VOID Crawler Dashboard.
+                </p>
               </div>
             ) : (
               <>
                 {/* Clean flat Google-style results list without boxy container */}
                 <ol className="flex flex-col space-y-7 sm:space-y-8">
-                  {displayedResults.map((r, i) => (
-                    <li key={`${i}-${r.url}`} className="group max-w-3xl">
-                      {/* Domain, breadcrumb & relevance score badge */}
-                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
-                        {getDomainIcon(r.domain)}
-                        <span className="truncate">
-                          {formatBreadcrumb(r.domain, r.path)}
-                        </span>
-                        {typeof r.score === 'number' && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                            score {r.score.toFixed(1)}
+                  {displayedResults.map((r, i) => {
+                    const safeUrl = sanitizeHref(r.url)
+                    const sanitizedSnippetHtml = sanitizeHighlightHtml(
+                      r.highlightedSnippet || r.snippet,
+                    )
+
+                    return (
+                      <li key={`${i}-${r.url}`} className="group max-w-3xl">
+                        {/* Domain, breadcrumb & relevance score badge */}
+                        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
+                          {getDomainIcon(r.domain)}
+                          <span className="truncate">
+                            {formatBreadcrumb(r.domain, r.path)}
                           </span>
-                        )}
-                      </div>
-
-                      <div className="mt-1 flex flex-col sm:flex-row items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          {/* Result Title */}
-                          <a
-                            href={r.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#8ab4f8] hover:underline leading-snug"
-                          >
-                            {r.title}
-                          </a>
-
-                          {/* Snippet with matching excerpt highlighting */}
-                          <p
-                            dangerouslySetInnerHTML={{ __html: r.highlightedSnippet || r.snippet }}
-                            className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-zinc-400"
-                          />
-
-                          {/* Matching section headings */}
-                          {r.headings && r.headings.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {r.headings.slice(0, 3).map((h, hIdx) => (
-                                <span
-                                  key={hIdx}
-                                  className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400 border border-slate-200/60 dark:border-zinc-700/60 font-sans"
-                                >
-                                  {h}
-                                </span>
-                              ))}
-                            </div>
+                          {typeof r.score === "number" && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                              score {r.score.toFixed(1)}
+                            </span>
                           )}
                         </div>
 
-                        {/* Image Preview Thumbnail (Google / Arc style with speed optimization & Instagram DP) */}
-                        <ResultThumbnail result={r} index={i} />
-                      </div>
-                    </li>
-                  ))}
+                        <div className="mt-1 flex flex-col sm:flex-row items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            {/* Result Title with validated URL protocol */}
+                            <a
+                              href={safeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#8ab4f8] hover:underline leading-snug"
+                            >
+                              {r.title}
+                            </a>
+
+                            {/* Snippet with sanitized excerpt highlighting */}
+                            <p
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizedSnippetHtml,
+                              }}
+                              className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-zinc-400"
+                            />
+
+                            {/* Matching section headings */}
+                            {r.headings && r.headings.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {r.headings.slice(0, 3).map((h, hIdx) => (
+                                  <span
+                                    key={hIdx}
+                                    className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400 border border-slate-200/60 dark:border-zinc-700/60 font-sans"
+                                  >
+                                    {h}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Image Preview Thumbnail (Google / Arc style with speed optimization & Instagram DP) */}
+                          <ResultThumbnail result={r} index={i} />
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ol>
 
                 {/* Show more results button */}
@@ -471,17 +458,28 @@ export function Results({ query, mode, onSearch }: Props) {
  * 3. Compresses uncompressed 1MB PNG/JPEG files down to ~2KB WebP via Cloudflare CDN proxy
  *    resulting in instantaneous image loads
  */
-function getOptimizedThumbnailUrl(src?: string, width = 192, height = 192): string {
-  if (!src) return ''
+function getOptimizedThumbnailUrl(
+  src?: string,
+  width = 192,
+  height = 192,
+): string {
+  if (!src) return ""
   const trimmed = src.trim()
-  if (trimmed.startsWith('data:image/svg+xml') || trimmed.endsWith('.svg') || trimmed.includes('.svg?')) {
+  if (
+    trimmed.startsWith("data:image/svg+xml") ||
+    trimmed.endsWith(".svg") ||
+    trimmed.includes(".svg?")
+  ) {
     return trimmed
   }
   // Filter out broken base64 raster splash artifacts
-  if (trimmed.startsWith('data:image/png;base64') || trimmed.startsWith('data:image/jpeg;base64')) {
-    return ''
+  if (
+    trimmed.startsWith("data:image/png;base64") ||
+    trimmed.startsWith("data:image/jpeg;base64")
+  ) {
+    return ""
   }
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return `https://images.weserv.nl/?url=${encodeURIComponent(trimmed)}&w=${width}&h=${height}&fit=cover&output=webp&q=80`
   }
   return trimmed
@@ -495,49 +493,51 @@ function ResultThumbnail({
   index: number
 }) {
   const isInstagram =
-    result.domain?.toLowerCase().includes('instagram') ||
-    result.url?.toLowerCase().includes('instagram.com')
+    result.domain?.toLowerCase().includes("instagram") ||
+    result.url?.toLowerCase().includes("instagram.com")
 
+  const safeUrl = sanitizeHref(result.url)
   const rawImage = result.previewImage
   // Ignore corrupt base64 raster splash images and generic SVG logos
   const isGenericOrCorrupt =
-    rawImage?.startsWith('data:image/png;base64') ||
-    rawImage?.startsWith('data:image/jpeg;base64') ||
-    rawImage?.startsWith('data:image/svg+xml')
+    rawImage?.startsWith("data:image/png;base64") ||
+    rawImage?.startsWith("data:image/jpeg;base64") ||
+    rawImage?.startsWith("data:image/svg+xml")
 
   const validImage = isGenericOrCorrupt ? undefined : rawImage
-  const optimized = validImage ? getOptimizedThumbnailUrl(validImage, 192, 192) : ''
+  const optimized = validImage
+    ? getOptimizedThumbnailUrl(validImage, 192, 192)
+    : ""
   const [src, setSrc] = useState(optimized)
   const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     const nextValid = isGenericOrCorrupt ? undefined : rawImage
-    setSrc(nextValid ? getOptimizedThumbnailUrl(nextValid, 192, 192) : '')
+    setSrc(nextValid ? getOptimizedThumbnailUrl(nextValid, 192, 192) : "")
     setHasError(false)
   }, [rawImage, isGenericOrCorrupt])
 
   if (validImage && !hasError) {
     return (
       <a
-        href={result.url}
+        href={safeUrl}
         target="_blank"
         rel="noopener noreferrer"
         className={`shrink-0 group/img relative overflow-hidden ${
           isInstagram
-            ? 'rounded-full border-2 border-pink-500/30 ring-2 ring-pink-500/10'
-            : 'rounded-xl border border-slate-200 dark:border-zinc-800'
+            ? "rounded-full border-2 border-pink-500/30 ring-2 ring-pink-500/10"
+            : "rounded-xl border border-slate-200 dark:border-zinc-800"
         } bg-slate-100 dark:bg-zinc-900/80 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all`}
       >
         <img
           src={src}
           alt={result.title}
-          loading={index < 3 ? 'eager' : 'lazy'}
-          fetchPriority={index < 3 ? 'high' : 'auto'}
+          loading={index < 3 ? "eager" : "lazy"}
+          fetchPriority={index < 3 ? "high" : "auto"}
           decoding="async"
           referrerPolicy="no-referrer"
           className="size-20 sm:size-24 object-cover object-top transition-transform duration-300 group-hover/img:scale-105"
           onError={() => {
-            // If edge proxy fails, attempt fallback to raw image
             if (src !== validImage && validImage) {
               setSrc(validImage)
             } else {
@@ -552,14 +552,16 @@ function ResultThumbnail({
   // Fallback for Instagram profile without direct picture: initial badge
   if (isInstagram) {
     const handle =
-      result.url.split('instagram.com/')[1]?.replace(/[/?#].*$/, '') ||
+      result.url.split("instagram.com/")[1]?.replace(/[/?#].*$/, "") ||
       result.title.match(/@([a-zA-Z0-9_.]+)/)?.[1] ||
-      'instagram'
-    const initial = (handle.replace(/[^a-zA-Z0-9]/g, '')[0] || 'I').toUpperCase()
+      "instagram"
+    const initial = (
+      handle.replace(/[^a-zA-Z0-9]/g, "")[0] || "I"
+    ).toUpperCase()
 
     return (
       <a
-        href={result.url}
+        href={safeUrl}
         target="_blank"
         rel="noopener noreferrer"
         title={`Instagram: @${handle}`}
@@ -567,7 +569,9 @@ function ResultThumbnail({
       >
         <div className="size-20 sm:size-24 rounded-full bg-slate-900/50 backdrop-blur-xs flex flex-col items-center justify-center text-white">
           <span className="text-xl font-bold tracking-tight">{initial}</span>
-          <span className="text-[10px] opacity-80 truncate max-w-[60px]">@{handle}</span>
+          <span className="text-[10px] opacity-80 truncate max-w-[60px]">
+            @{handle}
+          </span>
         </div>
       </a>
     )
@@ -575,5 +579,3 @@ function ResultThumbnail({
 
   return null
 }
-
-

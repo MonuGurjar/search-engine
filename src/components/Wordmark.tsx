@@ -1,6 +1,6 @@
-import type { CSSProperties, Ref } from 'react'
-import voidOIconWebp from '../assets/void-o-icon.webp'
-import voidOIconPng from '../assets/void-o-icon.png'
+import type { CSSProperties, Ref } from "react"
+import voidOIconWebp from "../assets/void-o-icon.webp"
+import voidOIconPng from "../assets/void-o-icon.png"
 
 type Props = {
   /** height of the wordmark in px */
@@ -19,7 +19,7 @@ type Props = {
  */
 export function Wordmark({
   size = 28,
-  className = '',
+  className = "",
   pulse = false,
   style,
   onClick,
@@ -64,7 +64,7 @@ export function Wordmark({
             src={voidOIconPng}
             alt="O"
             className={`w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 hover:scale-105 ${
-              pulse ? 'animate-pulse' : ''
+              pulse ? "animate-pulse" : ""
             }`}
             draggable={false}
           />

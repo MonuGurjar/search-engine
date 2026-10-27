@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, GearIcon } from './icons'
-import { SearchBar } from './SearchBar'
-import { Wordmark } from './Wordmark'
+import { useEffect, useRef, useState } from "react"
+import { ChevronDown, GearIcon } from "./icons"
+import { SearchBar } from "./SearchBar"
+import { Wordmark } from "./Wordmark"
 
 type Props = {
   query: string
@@ -12,8 +12,8 @@ type Props = {
 }
 
 const prefersReduced = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
 function smoothstep(min: number, max: number, value: number) {
   const x = Math.max(0, Math.min(1, (value - min) / (max - min)))
@@ -21,7 +21,7 @@ function smoothstep(min: number, max: number, value: number) {
 }
 
 function calculateMetrics() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
       transitionDistance: 800,
       heroMark: 104,
@@ -117,14 +117,14 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
   // Responsive mark size and mobile state
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)')
+    const mq = window.matchMedia("(max-width: 640px)")
     const updateSize = () => {
       setIsMobile(mq.matches)
       setMarkSize(mq.matches ? 64 : 104)
     }
     updateSize()
-    mq.addEventListener('change', updateSize)
-    return () => mq.removeEventListener('change', updateSize)
+    mq.addEventListener("change", updateSize)
+    return () => mq.removeEventListener("change", updateSize)
   }, [])
 
   // Continuous rAF animation loop driven by scroll
@@ -135,7 +135,11 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       const m = calculateMetrics()
       const sy = window.scrollY
       const rawT = Math.min(1, Math.max(0, sy / m.transitionDistance))
-      const t = prefersReduced() ? (rawT >= 0.5 ? 1 : 0) : smoothstep(0, 1, rawT)
+      const t = prefersReduced()
+        ? rawT >= 0.5
+          ? 1
+          : 0
+        : smoothstep(0, 1, rawT)
 
       // Turn off pulse when leaving hero
       const shouldPulse = rawT < 0.25
@@ -154,7 +158,10 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
         // Sphere geometry matching Scene.tsx (capped to 48% viewport height)
         const sphereD = isMobile
-          ? Math.min(300, Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))))
+          ? Math.min(
+              300,
+              Math.max(250, Math.round(Math.min(w * 0.65, h * 0.35))),
+            )
           : Math.min(480, Math.max(220, Math.min(w * 0.44, h * 0.48)))
         const sphereTopRatio = isMobile ? 0.09 : w <= 768 ? 0.06 : 0.07
         const sphereTop = Math.round(h * sphereTopRatio)
@@ -172,16 +179,18 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
           : smoothstep(0.04, 0.94, rawT)
 
         if (morphT <= 0.001) {
-          headerBgRef.current.style.opacity = '0'
-          headerBgRef.current.style.visibility = 'hidden'
-          headerBgRef.current.style.pointerEvents = 'none'
+          headerBgRef.current.style.opacity = "0"
+          headerBgRef.current.style.visibility = "hidden"
+          headerBgRef.current.style.pointerEvents = "none"
         } else {
-          headerBgRef.current.style.visibility = 'visible'
-          const op = smoothstep(0.04, 0.40, rawT)
+          headerBgRef.current.style.visibility = "visible"
+          const op = smoothstep(0.04, 0.4, rawT)
           headerBgRef.current.style.opacity = op.toFixed(3)
-          headerBgRef.current.style.pointerEvents = morphT >= 0.85 ? 'auto' : 'none'
+          headerBgRef.current.style.pointerEvents =
+            morphT >= 0.85 ? "auto" : "none"
 
-          const currentCenterY = sphereHeroCenterY + (targetCenterY - sphereHeroCenterY) * morphT
+          const currentCenterY =
+            sphereHeroCenterY + (targetCenterY - sphereHeroCenterY) * morphT
           const currentWidth = sphereD + (targetWidth - sphereD) * morphT
           const currentHeight = sphereD + (targetHeight - sphereD) * morphT
           const currentLeft = (w - currentWidth) / 2
@@ -189,7 +198,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
           // Target border radius: capsule pill on both mobile and desktop
           const targetRadius = targetHeight / 2
-          const currentRadius = sphereD / 2 + (targetRadius - sphereD / 2) * morphT
+          const currentRadius =
+            sphereD / 2 + (targetRadius - sphereD / 2) * morphT
 
           headerBgRef.current.style.left = `${currentLeft.toFixed(1)}px`
           headerBgRef.current.style.top = `${currentTop.toFixed(1)}px`
@@ -206,22 +216,25 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         if (isMobileNow) {
           // On mobile: Full VOID wordmark stays centered in hero and fades away smoothly as search bar moves to top
           const op = prefersReduced()
-            ? (rawT >= 0.2 ? 0 : 1)
+            ? rawT >= 0.2
+              ? 0
+              : 1
             : Math.max(0, 1 - rawT / 0.35)
           const ty = -24 * (1 - op)
           wordmarkRef.current.style.transform = `translate3d(0, ${(m.heroWordmarkY + ty).toFixed(2)}px, 0) scale(${(1 - 0.04 * (1 - op)).toFixed(3)})`
           wordmarkRef.current.style.opacity = op.toFixed(3)
-          wordmarkRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
-          wordmarkRef.current.style.pointerEvents = op <= 0.2 ? 'none' : 'auto'
+          wordmarkRef.current.style.visibility =
+            op <= 0.001 ? "hidden" : "visible"
+          wordmarkRef.current.style.pointerEvents = op <= 0.2 ? "none" : "auto"
         } else {
           // Desktop: full wordmark translates and scales to top-left of header capsule
           const dx = m.dxAt1 * t
           const dy = m.heroWordmarkY + (m.dyAt1 - m.heroWordmarkY) * t
           const scale = 1.0 + (m.markScaleRatio - 1.0) * t
           wordmarkRef.current.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`
-          wordmarkRef.current.style.opacity = '1'
-          wordmarkRef.current.style.visibility = 'visible'
-          wordmarkRef.current.style.pointerEvents = 'auto'
+          wordmarkRef.current.style.opacity = "1"
+          wordmarkRef.current.style.visibility = "visible"
+          wordmarkRef.current.style.pointerEvents = "auto"
         }
       }
 
@@ -231,7 +244,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         const ty = -14 * (1 - op)
         taglineRef.current.style.opacity = op.toFixed(3)
         taglineRef.current.style.transform = `translate3d(0, ${(m.heroTaglineY + ty).toFixed(2)}px, 0)`
-        taglineRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        taglineRef.current.style.visibility = op <= 0.001 ? "hidden" : "visible"
       }
 
       // 3. SearchBar (hero center -> fixed top bar, perfectly centered)
@@ -245,7 +258,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
       if (scrollIndicatorRef.current) {
         const op = Math.max(0, 1 - rawT / 0.12)
         scrollIndicatorRef.current.style.opacity = op.toFixed(3)
-        scrollIndicatorRef.current.style.visibility = op <= 0.001 ? 'hidden' : 'visible'
+        scrollIndicatorRef.current.style.visibility =
+          op <= 0.001 ? "hidden" : "visible"
       }
 
       rafId = requestAnimationFrame(tick)
@@ -257,23 +271,25 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
 
   function handleSubmit(q: string) {
     onSearch(q)
-    const transitionDistance = typeof window !== 'undefined' ? window.innerHeight : 800
-    if (typeof window !== 'undefined' && window.scrollY < transitionDistance) {
-      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
+    const transitionDistance =
+      typeof window !== "undefined" ? window.innerHeight : 800
+    if (typeof window !== "undefined" && window.scrollY < transitionDistance) {
+      window.scrollTo({ top: transitionDistance, behavior: "smooth" })
     }
   }
 
   function handleHomeClick() {
     onHome()
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
   function handleScrollDown() {
-    const transitionDistance = typeof window !== 'undefined' ? window.innerHeight : 800
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: transitionDistance, behavior: 'smooth' })
+    const transitionDistance =
+      typeof window !== "undefined" ? window.innerHeight : 800
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: transitionDistance, behavior: "smooth" })
     }
   }
 
@@ -288,13 +304,13 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         className="pointer-events-none fixed z-20"
         style={{
           opacity: 0,
-          visibility: 'hidden',
+          visibility: "hidden",
           background:
-            'linear-gradient(to bottom, rgba(247, 249, 250, 0.86) 0%, rgba(238, 242, 243, 0.80) 75%, rgba(238, 242, 243, 0.74) 100%)',
-          backdropFilter: 'blur(40px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
-          border: '1px solid rgba(216, 222, 224, 0.85)',
-          boxShadow: '0 10px 30px -8px rgba(37, 54, 60, 0.10)',
+            "linear-gradient(to bottom, rgba(247, 249, 250, 0.86) 0%, rgba(238, 242, 243, 0.80) 75%, rgba(238, 242, 243, 0.74) 100%)",
+          backdropFilter: "blur(40px) saturate(160%)",
+          WebkitBackdropFilter: "blur(40px) saturate(160%)",
+          border: "1px solid rgba(216, 222, 224, 0.85)",
+          boxShadow: "0 10px 30px -8px rgba(37, 54, 60, 0.10)",
         }}
       />
 
@@ -309,8 +325,8 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
             title="Settings"
             className="hidden sm:flex group size-9 sm:size-10 items-center justify-center rounded-full bg-void-glass text-void-ink backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-void-green/45 hover:bg-white cursor-pointer"
             style={{
-              border: '1px solid rgba(214,222,224,0.95)',
-              boxShadow: '0 8px 22px -16px rgba(37,54,60,0.4)',
+              border: "1px solid rgba(214,222,224,0.95)",
+              boxShadow: "0 8px 22px -16px rgba(37,54,60,0.4)",
             }}
           >
             <GearIcon className="size-4 sm:size-[18px] text-void-muted transition-all duration-300 group-hover:rotate-45 group-hover:text-void-green" />
@@ -323,7 +339,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         <div
           ref={wordmarkRef}
           style={{
-            transformOrigin: 'center center',
+            transformOrigin: "center center",
             transform: `translate3d(0, ${initialMetrics.heroWordmarkY}px, 0) scale(1)`,
           }}
           className="relative inline-flex items-center justify-center"
@@ -349,7 +365,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         <div
           ref={taglineRef}
           style={{
-            transformOrigin: 'center top',
+            transformOrigin: "center top",
             transform: `translate3d(0, ${initialMetrics.heroTaglineY}px, 0)`,
           }}
         >
@@ -364,7 +380,7 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
         <div
           ref={searchRef}
           style={{
-            transformOrigin: 'center top',
+            transformOrigin: "center top",
             transform: `translate3d(0, ${initialMetrics.heroSearchY}px, 0) scale(1)`,
           }}
         >
@@ -391,7 +407,10 @@ export function ScrollHero({ query, mode, onMode, onSearch, onHome }: Props) {
           className="pointer-events-auto flex flex-col items-center gap-1 text-void-muted transition-colors hover:text-void-ink cursor-pointer sm:gap-1.5"
           aria-label="Scroll to explore"
         >
-          <ChevronDown className="size-4 animate-bounce" style={{ animationDuration: '2.4s' }} />
+          <ChevronDown
+            className="size-4 animate-bounce"
+            style={{ animationDuration: "2.4s" }}
+          />
           <span className="void-label text-[10px]">Scroll to Explore</span>
         </button>
       </div>
