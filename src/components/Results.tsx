@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
 import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
-import { ExternalLink, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
 import {
   ChevronDown,
   GlobeIcon,
@@ -85,6 +85,7 @@ function isValidImageUrl(url?: string | null): boolean {
 
 export function Results({ query, mode, onSearch }: Props) {
   const isImageMode = mode === "images"
+  const isComingSoonMode = ["videos", "news", "maps", "academic", "tools"].includes(mode)
   const pageSize = isImageMode ? IMAGE_PAGE_SIZE : TEXT_PAGE_SIZE
   const hasQuery = Boolean(query.trim())
   const [results, setResults] = useState<SearchResultItem[]>([])
@@ -103,9 +104,10 @@ export function Results({ query, mode, onSearch }: Props) {
     setError(null)
     setSelectedImage(null)
 
-    if (!q) {
+    if (!q || isComingSoonMode) {
       setResults([])
       setLatencyMs(0)
+      setLoading(false)
       return
     }
 
@@ -427,6 +429,25 @@ export function Results({ query, mode, onSearch }: Props) {
                   className="px-4 py-2 text-xs font-medium rounded-full bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 transition-opacity cursor-pointer font-sans"
                 >
                   Retry Search
+                </button>
+              </div>
+            ) : isComingSoonMode ? (
+              <div className="py-16 text-center max-w-md mx-auto animate-in fade-in duration-200">
+                <div className="size-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500 grid place-items-center mx-auto mb-3">
+                  <Sparkles className="size-5 text-blue-500" />
+                </div>
+                <h3 className="text-base font-medium text-slate-800 dark:text-zinc-100">
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)} search is coming soon
+                </h3>
+                <p className="text-xs mt-2 text-slate-500 dark:text-zinc-400">
+                  We're building dedicated neural indexing for {mode}. In the meantime, explore in the All or Images tab.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onSearch(query)}
+                  className="mt-4 px-4 py-2 rounded-full text-xs font-medium bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 transition-opacity cursor-pointer font-sans"
+                >
+                  Switch to All Search
                 </button>
               </div>
             ) : totalResults === 0 ? (
