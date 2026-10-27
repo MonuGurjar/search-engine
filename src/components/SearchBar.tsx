@@ -5,9 +5,10 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react"
-import { Atom, Check } from "lucide-react"
+import { Atom, Check, MicOff, Sparkles, ShieldCheck, Zap } from "lucide-react"
 import { SearchIcon, CloseIcon, HistoryIcon } from "./icons"
 import { getAutocomplete } from "../services/search-client"
+import { CustomDialog } from "./CustomDialog"
 
 type Props = {
   value: string
@@ -131,6 +132,10 @@ export function SearchBar({
   const [reasoningActive, setReasoningActive] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
   const [timeFilter, setTimeFilter] = useState("Any time")
+
+  // Custom dialogues for Voice Search and Ask AI
+  const [voiceDialogOpen, setVoiceDialogOpen] = useState(false)
+  const [aiDialogOpen, setAiDialogOpen] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const toolsMenuRef = useRef<HTMLDivElement>(null)
@@ -291,7 +296,7 @@ export function SearchBar({
       }).webkitSpeechRecognition
 
     if (!SpeechRecognition) {
-      alert("Voice search is not supported in this browser.")
+      setVoiceDialogOpen(true)
       return
     }
 
@@ -404,17 +409,13 @@ export function SearchBar({
               <button
                 type="button"
                 onClick={() => {
-                  setModeTab("ai")
+                  setAiDialogOpen(true)
                 }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  modeTab === "ai"
-                    ? "bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold"
-                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
-                }`}
-                title="Ask AI"
-                aria-label="Ask AI"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+                title="Ask AI (Coming soon)"
+                aria-label="Ask AI (Coming soon)"
               >
-                <SparklesChatIcon className="size-3.5" />
+                <SparklesChatIcon className="size-3.5 text-amber-500" />
                 <span className="hidden sm:inline">Ask AI</span>
               </button>
             </div>
@@ -585,6 +586,41 @@ export function SearchBar({
           </ul>
         </div>
       )}
+
+      {/* Custom Dialogue: Voice Search Not Supported */}
+      <CustomDialog
+        isOpen={voiceDialogOpen}
+        onClose={() => setVoiceDialogOpen(false)}
+        icon={<MicOff className="size-5 text-rose-500" />}
+        badge="Voice Search"
+        badgeColor="rose"
+        title="Voice Search Not Supported"
+        description="Your browser doesn't currently support the Web Speech recognition API. To search with your voice on VOID, please open this page in Google Chrome, Brave, or Microsoft Edge."
+        actionLabel="Got it"
+      />
+
+      {/* Custom Dialogue: Ask AI Coming Soon */}
+      <CustomDialog
+        isOpen={aiDialogOpen}
+        onClose={() => setAiDialogOpen(false)}
+        icon={<Sparkles className="size-5 text-amber-500" />}
+        badge="VOID AI"
+        badgeColor="amber"
+        title="Ask AI is Coming Soon"
+        description="We are building an ultra-fast, private AI copilot that synthesizes web knowledge with zero tracking and real-time neural grounding."
+        actionLabel="Understood"
+      >
+        <div className="pt-1.5 space-y-2">
+          <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 text-[11px] leading-snug text-slate-600 dark:text-zinc-300">
+            <ShieldCheck className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+            <span>Zero prompt profiling — queries are never saved or sold to advertisers.</span>
+          </div>
+          <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 text-[11px] leading-snug text-slate-600 dark:text-zinc-300">
+            <Zap className="size-4 text-cyan-500 shrink-0 mt-0.5" />
+            <span>Direct source citations from our distributed OpenSearch cluster.</span>
+          </div>
+        </div>
+      </CustomDialog>
     </div>
   )
 }
