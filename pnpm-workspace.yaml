@@ -1,3 +1,5 @@
+allowBuilds:
+  esbuild: true
 minimumReleaseAgeExclude:
   - '@supabase/auth-js@2.117.0'
   - '@supabase/functions-js@2.117.0'
