@@ -253,3 +253,69 @@ export async function getAutocomplete(
 
   return []
 }
+
+export interface AiOverviewSource {
+  title: string
+  url: string
+  domain: string
+  snippet?: string
+}
+
+export interface AiOverviewResult {
+  query: string
+  summary: string
+  keyPoints?: string[]
+  suggestedFollowups?: string[]
+  sources?: AiOverviewSource[]
+}
+
+const aiOverviewCache = new Map<string, { data: AiOverviewResult; expiresAt: number }>()
+
+export async function fetchAiOverview(
+  query: string,
+  context?: AiOverviewSource[],
+  signal?: AbortSignal,
+): Promise<AiOverviewResult | null> {
+  const clean = query.trim()
+  if (!clean) return null
+
+  const cacheKey = clean.toLowerCase()
+  const cached = aiOverviewCache.get(cacheKey)
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data
+  }
+
+  try {
+    const res = await fetch("/api/ai-overview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        q: clean,
+        context: (context || []).slice(0, 5).map((c) => ({
+          title: c.title,
+          url: c.url,
+          domain: c.domain,
+          snippet: c.snippet,
+        })),
+      }),
+      signal,
+    })
+
+    if (res.ok) {
+      const data: AiOverviewResult = await res.json()
+      if (data && (data.summary || (data.keyPoints && data.keyPoints.length > 0))) {
+        aiOverviewCache.set(cacheKey, {
+          data,
+          expiresAt: Date.now() + CACHE_TTL_MS,
+        })
+        return data
+      }
+    }
+  } catch (err: any) {
+    if (err?.name === "AbortError") throw err
+    console.warn("[search-client] AI Overview fetch error:", err)
+  }
+
+  return null
+}
+

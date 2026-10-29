@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
 import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
 import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
+import { AiOverview } from "./AiOverview"
 import {
   ChevronDown,
   GlobeIcon,
@@ -642,6 +643,11 @@ export function Results({ query, mode, onSearch }: Props) {
               /* STANDARD WEB SEARCH RESULTS LIST                                  */
               /* ================================================================= */
               <>
+                <AiOverview
+                  query={query}
+                  contextResults={results}
+                  onSearch={onSearch}
+                />
                 <ol className="flex flex-col space-y-7 sm:space-y-8">
                   {displayedResults.map((r, i) => {
                     const safeUrl = sanitizeHref(r.url)
