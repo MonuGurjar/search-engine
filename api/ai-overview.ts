@@ -163,7 +163,7 @@ export default async function handler(
   }
 
   const systemPrompt = `You are VOID Search AI, an intelligent, objective, privacy-first search assistant.
-Generate a concise, high-quality, Google AI Overview-style summary answering the user query.
+Generate a concise, high-quality VOID AI Overview answering the user query.
 Guidelines:
 - Deliver a clear, direct explanation (2-3 concise paragraphs).
 - Bold key terms and technical concepts (**like this**).

@@ -349,7 +349,7 @@ export function PrivacyTermsModal({
                   3. Browser Local Storage & Settings
                 </h3>
                 <p className="text-xs leading-relaxed text-slate-600 dark:text-zinc-300">
-                  VOID does not store third-party cookies on your device. We use
+                  VOID does not store tracking cookies on your device. Google Analytics runs in strict cookieless mode (client_storage: none with anonymized IPs). We use
                   the browser's native <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 font-mono text-[11px]">localStorage</code> strictly
                   for two non-identifying purposes:
                 </p>
