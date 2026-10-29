@@ -19,10 +19,11 @@ export type { OpenSearchDocument, OpenSearchResult }
 export async function searchOpenSearch(
   query: string,
   mode = "all",
-  size = 100,
+  size = 12,
   signal?: AbortSignal,
+  page = 1,
 ): Promise<OpenSearchResult> {
-  return search(query, mode, size, signal)
+  return search(query, mode, size, signal, page)
 }
 
 /**

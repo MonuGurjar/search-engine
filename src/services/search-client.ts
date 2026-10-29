@@ -113,8 +113,9 @@ function normalizeHit(h: any): OpenSearchDocument {
 export async function search(
   query: string,
   mode = "all",
-  size = 100,
+  size = 12,
   signal?: AbortSignal,
+  page = 1,
 ): Promise<OpenSearchResult> {
   const cleanQuery = query.trim()
   if (!cleanQuery) {
@@ -122,7 +123,7 @@ export async function search(
   }
 
   // Check client-side in-memory cache
-  const cacheKey = `${cleanQuery.toLowerCase()}::${mode}::${size}`
+  const cacheKey = `${cleanQuery.toLowerCase()}::${mode}::${size}::${page}`
   const cached = searchCache.get(cacheKey)
   if (cached && Date.now() < cached.expiresAt) {
     return cached.data
@@ -139,6 +140,7 @@ export async function search(
         query: cleanQuery,
         mode,
         size,
+        page,
       }),
       signal,
     })
@@ -160,7 +162,7 @@ export async function search(
 
     // Attempt GET fallback if POST was rejected or failed
     if (!response.ok) {
-      const getUrl = `/api/search?q=${encodeURIComponent(cleanQuery)}&category=${encodeURIComponent(mode)}&limit=${size}`
+      const getUrl = `/api/search?q=${encodeURIComponent(cleanQuery)}&category=${encodeURIComponent(mode)}&limit=${size}&page=${page}`
       const getResponse = await fetch(getUrl, { signal })
       if (getResponse.ok) {
         const getData = await getResponse.json()

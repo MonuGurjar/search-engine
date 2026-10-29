@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { searchOpenSearch, type OpenSearchDocument } from "../lib/opensearch"
 import { sanitizeHref, sanitizeHighlightHtml } from "../lib/sanitizer"
-import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
+import { ExternalLink, X, ChevronLeft, ChevronRight, Sparkles, Loader2 } from "lucide-react"
 import { AiOverview } from "./AiOverview"
 import {
   ChevronDown,
@@ -29,8 +29,8 @@ type Props = {
   onSearch: (q: string) => void
 }
 
-const TEXT_PAGE_SIZE = 10
-const IMAGE_PAGE_SIZE = 24
+const TEXT_PAGE_SIZE = 12
+const IMAGE_PAGE_SIZE = 18
 
 const EXPLORATION_TOPICS = [
   "Monu Gurjar",
@@ -84,15 +84,42 @@ function isValidImageUrl(url?: string | null): boolean {
   return true
 }
 
+function formatHit(doc: OpenSearchDocument): SearchResultItem {
+  let pathname = "/"
+  try {
+    pathname = new URL(doc.url).pathname
+  } catch {}
+  return {
+    title: doc.title || doc.url,
+    domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ""),
+    path: pathname,
+    url: doc.url,
+    canonicalUrl: doc.canonical_url || doc.canonicalUrl,
+    snippet: doc.summary || doc.description || "",
+    score: typeof doc.score === "number" ? doc.score : undefined,
+    headings: Array.isArray(doc.headings) ? doc.headings : [],
+    highlightedTitle: doc.highlightedTitle,
+    highlightedSnippet:
+      doc.highlightedSummary || doc.highlightedContent,
+    highlightedContent: doc.highlightedContent,
+    previewImage:
+      doc.preview_image || (doc as any).previewImage || undefined,
+    images: Array.isArray(doc.images) ? doc.images : [],
+  }
+}
+
 export function Results({ query, mode, onSearch }: Props) {
   const isImageMode = mode === "images"
   const isComingSoonMode = ["videos", "news", "maps", "academic", "tools"].includes(mode)
   const pageSize = isImageMode ? IMAGE_PAGE_SIZE : TEXT_PAGE_SIZE
   const hasQuery = Boolean(query.trim())
   const [results, setResults] = useState<SearchResultItem[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasServerMore, setHasServerMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [visibleCount, setVisibleCount] = useState(pageSize)
   const [latencyMs, setLatencyMs] = useState(0)
   const [retryTrigger, setRetryTrigger] = useState(0)
   const [selectedImage, setSelectedImage] = useState<ImageResultCard | null>(
@@ -101,12 +128,14 @@ export function Results({ query, mode, onSearch }: Props) {
 
   useEffect(() => {
     const q = query.trim()
-    setVisibleCount(isImageMode ? IMAGE_PAGE_SIZE : TEXT_PAGE_SIZE)
     setError(null)
     setSelectedImage(null)
+    setCurrentPage(1)
+    setHasServerMore(false)
 
     if (!q || isComingSoonMode) {
       setResults([])
+      setTotalCount(0)
       setLatencyMs(0)
       setLoading(false)
       return
@@ -123,8 +152,9 @@ export function Results({ query, mode, onSearch }: Props) {
         const openSearchResult = await searchOpenSearch(
           q,
           mode,
-          100,
+          pageSize,
           controller.signal,
+          1,
         )
 
         if (cancelled) return
@@ -132,33 +162,14 @@ export function Results({ query, mode, onSearch }: Props) {
         const elapsed = Math.round(performance.now() - startTime)
         setLatencyMs(elapsed)
 
-        const formatted: SearchResultItem[] = openSearchResult.hits.map(
-          (doc: OpenSearchDocument) => {
-            let pathname = "/"
-            try {
-              pathname = new URL(doc.url).pathname
-            } catch {}
-            return {
-              title: doc.title || doc.url,
-              domain: doc.domain || (doc.url ? new URL(doc.url).hostname : ""),
-              path: pathname,
-              url: doc.url,
-              canonicalUrl: doc.canonical_url || doc.canonicalUrl,
-              snippet: doc.summary || doc.description || "",
-              score: typeof doc.score === "number" ? doc.score : undefined,
-              headings: Array.isArray(doc.headings) ? doc.headings : [],
-              highlightedTitle: doc.highlightedTitle,
-              highlightedSnippet:
-                doc.highlightedSummary || doc.highlightedContent,
-              highlightedContent: doc.highlightedContent,
-              previewImage:
-                doc.preview_image || (doc as any).previewImage || undefined,
-              images: Array.isArray(doc.images) ? doc.images : [],
-            }
-          },
-        )
+        const formatted = openSearchResult.hits.map(formatHit)
 
         setResults(formatted)
+        setTotalCount(openSearchResult.total)
+        setCurrentPage(1)
+        setHasServerMore(
+          formatted.length >= pageSize && formatted.length < openSearchResult.total,
+        )
         setError(null)
       } catch (err: any) {
         if (!cancelled && err.name !== "AbortError") {
@@ -167,6 +178,7 @@ export function Results({ query, mode, onSearch }: Props) {
             "Failed to fetch search results. The service might be temporarily unavailable.",
           )
           setResults([])
+          setTotalCount(0)
         }
       } finally {
         if (!cancelled) {
@@ -181,7 +193,7 @@ export function Results({ query, mode, onSearch }: Props) {
       cancelled = true
       controller.abort()
     }
-  }, [query, mode, retryTrigger, isImageMode])
+  }, [query, mode, retryTrigger, pageSize, isComingSoonMode])
 
   // Extract all images for Google Images mode
   const allImageCards: ImageResultCard[] = useMemo(() => {
@@ -247,14 +259,55 @@ export function Results({ query, mode, onSearch }: Props) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [selectedImage, showPreviousImage, showNextImage])
 
-  const totalResults = isImageMode ? allImageCards.length : results.length
-  const displayedResults = results.slice(0, visibleCount)
-  const displayedImages = allImageCards.slice(0, visibleCount)
-  const hasMore = visibleCount < totalResults
-  const remainingCount = Math.max(0, totalResults - visibleCount)
+  const totalResults = isImageMode
+    ? Math.max(allImageCards.length, totalCount)
+    : totalCount
+  const displayedResults = results
+  const displayedImages = allImageCards
+  const remainingCount = Math.max(0, totalCount - results.length)
+  const hasMore = hasServerMore && remainingCount > 0
 
-  function handleShowMore() {
-    setVisibleCount((prev) => Math.min(prev + pageSize, totalResults))
+  async function handleShowMore() {
+    const q = query.trim()
+    if (!q || loadingMore || !hasServerMore) return
+
+    const nextPage = currentPage + 1
+    setLoadingMore(true)
+
+    try {
+      const openSearchResult = await searchOpenSearch(
+        q,
+        mode,
+        pageSize,
+        undefined,
+        nextPage,
+      )
+
+      const formatted = openSearchResult.hits.map(formatHit)
+
+      if (formatted.length === 0) {
+        setHasServerMore(false)
+      } else {
+        setResults((prev) => {
+          const existingUrls = new Set(prev.map((r) => r.url))
+          const newUnique = formatted.filter((r) => !existingUrls.has(r.url))
+          const merged = [...prev, ...newUnique]
+          if (
+            merged.length >= openSearchResult.total ||
+            formatted.length < pageSize
+          ) {
+            setHasServerMore(false)
+          }
+          return merged
+        })
+        setCurrentPage(nextPage)
+        setTotalCount(openSearchResult.total)
+      }
+    } catch (err) {
+      console.error("[Results] Error fetching next results page:", err)
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   function getDomainIcon(domain: string) {
@@ -525,13 +578,25 @@ export function Results({ query, mode, onSearch }: Props) {
                     <button
                       type="button"
                       onClick={handleShowMore}
-                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer"
+                      disabled={loadingMore}
+                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <span>Show more images</span>
-                      <span className="text-slate-400 dark:text-zinc-500">
-                        ({remainingCount} remaining)
-                      </span>
-                      <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="size-3.5 animate-spin text-slate-500 dark:text-zinc-400" />
+                          <span>Loading more images...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Show more images</span>
+                          {remainingCount > 0 && (
+                            <span className="text-slate-400 dark:text-zinc-500">
+                              ({remainingCount} remaining)
+                            </span>
+                          )}
+                          <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
+                        </>
+                      )}
                     </button>
                   </div>
                 )}
@@ -719,13 +784,25 @@ export function Results({ query, mode, onSearch }: Props) {
                     <button
                       type="button"
                       onClick={handleShowMore}
-                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-2 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer"
+                      disabled={loadingMore}
+                      className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-5 py-2.5 text-xs font-medium text-slate-700 dark:text-zinc-300 shadow-xs transition-all hover:border-slate-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <span>Show more results</span>
-                      <span className="text-slate-400 dark:text-zinc-500">
-                        ({remainingCount} remaining)
-                      </span>
-                      <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="size-3.5 animate-spin text-slate-500 dark:text-zinc-400" />
+                          <span>Loading more results...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Show more results</span>
+                          {remainingCount > 0 && (
+                            <span className="text-slate-400 dark:text-zinc-500">
+                              ({remainingCount} remaining)
+                            </span>
+                          )}
+                          <ChevronDown className="size-3.5 text-slate-400 dark:text-zinc-500 group-hover:text-slate-700 dark:group-hover:text-zinc-300 transition-transform group-hover:translate-y-0.5" />
+                        </>
+                      )}
                     </button>
                   </div>
                 )}
