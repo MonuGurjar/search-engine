@@ -5,7 +5,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react"
-import { Atom, Check, MicOff } from "lucide-react"
+import { Atom, Check, MicOff, ArrowUp } from "lucide-react"
 import { SearchIcon, CloseIcon, HistoryIcon } from "./icons"
 import { getAutocomplete } from "../services/search-client"
 import { CustomDialog } from "./CustomDialog"
@@ -421,6 +421,9 @@ export function SearchBar({
                 type="button"
                 onClick={() => {
                   setModeTab("search")
+                  if (initialAiMode && value.trim()) {
+                    onSubmit(value.trim())
+                  }
                 }}
                 className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer ${
                   modeTab === "search"
@@ -438,7 +441,7 @@ export function SearchBar({
                 type="button"
                 onClick={() => {
                   setModeTab("ai")
-                  if (compact && value.trim() && onAskAi) {
+                  if (value.trim() && onAskAi) {
                     onAskAi(value.trim(), {
                       reasoning: reasoningActive,
                       timeFilter,
@@ -559,6 +562,17 @@ export function SearchBar({
                     className="size-3 sm:size-3.5"
                     active={listening}
                   />
+                </button>
+
+                {/* Submit / Ask AI Button */}
+                <button
+                  type="submit"
+                  disabled={!value.trim()}
+                  title="Send to VOID AI"
+                  aria-label="Send to VOID AI"
+                  className="size-7 rounded-full flex items-center justify-center bg-slate-900 text-white dark:bg-zinc-100 dark:text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <ArrowUp className="size-3.5" />
                 </button>
               </div>
             </div>

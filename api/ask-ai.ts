@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import dns from "node:dns"
+import https from "node:https"
 import fs from "node:fs"
 import path from "node:path"
-import { searchOpenSearch } from "../server/opensearch-service.ts"
 
 try {
   dns.setDefaultResultOrder("ipv4first")
@@ -16,27 +16,106 @@ function sendJson(res: ServerResponse, status: number, body: any) {
   res.end(JSON.stringify(body))
 }
 
+function readEnvVar(name: string): string {
+  const direct = process.env[name]
+  if (direct && direct.trim()) return direct.trim()
+
+  try {
+    const envPath = path.resolve(process.cwd(), ".env")
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, "utf-8")
+      const regex = new RegExp(`^${name}=(.+)$`, "m")
+      const match = envContent.match(regex)
+      if (match && match[1]) return match[1].trim()
+    }
+  } catch {}
+
+  return ""
+}
+
 function getGeminiApiKey(): string {
-  let apiKey = (
-    process.env.GEMINI_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY ||
-    ""
-  ).trim()
+  return readEnvVar("GEMINI_API_KEY") || readEnvVar("VITE_GEMINI_API_KEY")
+}
 
-  if (!apiKey) {
-    try {
-      const envPath = path.resolve(process.cwd(), ".env")
-      if (fs.existsSync(envPath)) {
-        const envContent = fs.readFileSync(envPath, "utf-8")
-        const match = envContent.match(/^GEMINI_API_KEY=(.+)$/m)
-        if (match && match[1]) {
-          apiKey = match[1].trim()
-        }
-      }
-    } catch {}
+async function fetchGroundingSources(
+  query: string,
+): Promise<Array<{ title: string; url: string; domain: string; snippet?: string }>> {
+  const clusterUrl = readEnvVar("OPENSEARCH_URL")
+  const user = readEnvVar("OPENSEARCH_USER")
+  const pass = readEnvVar("OPENSEARCH_PASSWORD")
+  const index = readEnvVar("OPENSEARCH_INDEX") || "indexed_pages"
+
+  if (!clusterUrl || !user || !pass) return []
+
+  try {
+    const targetUrl = new URL(`/${index}/_search`, clusterUrl)
+    const auth = Buffer.from(`${user}:${pass}`).toString("base64")
+    const payload = JSON.stringify({
+      size: 4,
+      _source: ["title", "url", "domain", "summary", "description"],
+      query: {
+        multi_match: {
+          query,
+          fields: ["title^3.5", "headings^2.5", "summary^2.0", "content"],
+          type: "best_fields",
+          fuzziness: "AUTO",
+        },
+      },
+    })
+
+    const json: any = await new Promise((resolve, reject) => {
+      const req = https.request(
+        {
+          hostname: targetUrl.hostname,
+          port: targetUrl.port || 443,
+          path: targetUrl.pathname,
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(payload),
+          },
+          timeout: 2500,
+        },
+        (res) => {
+          let data = ""
+          res.on("data", (chunk) => (data += chunk))
+          res.on("end", () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data))
+              } catch (e) {
+                reject(e)
+              }
+            } else {
+              reject(new Error(`OpenSearch HTTP ${res.statusCode}`))
+            }
+          })
+        },
+      )
+      req.on("timeout", () => {
+        req.destroy()
+        reject(new Error("OpenSearch timeout"))
+      })
+      req.on("error", reject)
+      req.write(payload)
+      req.end()
+    })
+
+    const hits = json?.hits?.hits
+    if (!Array.isArray(hits)) return []
+
+    return hits.slice(0, 4).map((h: any) => ({
+      title: String(h._source?.title || h._source?.url || "").slice(0, 140),
+      url: String(h._source?.url || ""),
+      domain: String(h._source?.domain || ""),
+      snippet: String(
+        h._source?.summary || h._source?.description || "",
+      ).slice(0, 280),
+    }))
+  } catch {
+    return []
   }
-
-  return apiKey
 }
 
 export default async function handler(
@@ -98,22 +177,7 @@ export default async function handler(
   }
 
   // Ground the answer in real OpenSearch results from VOID's index
-  let sources: Array<{ title: string; url: string; domain: string; snippet?: string }> = []
-  try {
-    const searchRes = await searchOpenSearch(query, { limit: 4 })
-    if (Array.isArray(searchRes.hits)) {
-      sources = searchRes.hits.slice(0, 4).map((h: any) => ({
-        title: String(h.document?.title || h.document?.url || "").slice(0, 140),
-        url: String(h.document?.url || ""),
-        domain: String(h.document?.domain || ""),
-        snippet: String(
-          h.document?.summary || h.document?.description || "",
-        ).slice(0, 280),
-      }))
-    }
-  } catch {
-    // Grounding is best-effort; continue even if index lookup fails
-  }
+  const sources = await fetchGroundingSources(query)
 
   const contextBlock =
     sources.length > 0
