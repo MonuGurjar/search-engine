@@ -11,6 +11,7 @@ import { Wordmark } from "./components/Wordmark"
 import { SearchBar } from "./components/SearchBar"
 import { ModePills } from "./components/ModePills"
 import { Results } from "./components/Results"
+import { AskAiView } from "./components/AskAiView"
 import { PrivacyTermsModal, type LegalTab } from "./components/PrivacyTermsModal"
 
 class ResultsErrorBoundary extends Component<{
@@ -176,14 +177,37 @@ export default function App() {
     window.history.pushState(null, "", url.toString())
   }, [])
 
+  const [aiOptions, setAiOptions] = useState<{
+    reasoning: boolean
+    timeFilter: string
+  }>({ reasoning: false, timeFilter: "Any time" })
+
   function handleSearch(q: string, newMode = mode) {
     const clean = q.trim()
+    const targetMode = newMode === "ai" ? "all" : newMode
+    if (targetMode !== mode) {
+      setMode(targetMode)
+    }
     setQuery(clean)
     setSubmittedQuery(clean)
-    updateUrl(clean, newMode)
+    updateUrl(clean, targetMode)
     if (clean) {
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
+  }
+
+  function handleAskAi(
+    q: string,
+    options: { reasoning: boolean; timeFilter: string },
+  ) {
+    const clean = q.trim()
+    if (!clean) return
+    setAiOptions(options)
+    setMode("ai")
+    setQuery(clean)
+    setSubmittedQuery(clean)
+    updateUrl(clean, "ai")
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function handleModeChange(newMode: string) {
@@ -274,6 +298,8 @@ export default function App() {
                 value={query}
                 onChange={setQuery}
                 onSubmit={(q) => handleSearch(q, mode)}
+                onAskAi={handleAskAi}
+                initialAiMode={mode === "ai"}
                 autoFocus
                 placeholder="Ask anything privately"
               />
@@ -298,6 +324,8 @@ export default function App() {
                   value={query}
                   onChange={setQuery}
                   onSubmit={(q) => handleSearch(q, mode)}
+                  onAskAi={handleAskAi}
+                  initialAiMode={mode === "ai"}
                   compact
                   placeholder="Ask anything privately"
                 />
@@ -309,16 +337,25 @@ export default function App() {
               </div>
             </div>
 
-            {/* Search Results with Error Boundary */}
+            {/* Search Results or Ask AI View with Error Boundary */}
             <ResultsErrorBoundary
-              key={submittedQuery}
+              key={`${mode}:${submittedQuery}`}
               onReset={() => handleSearch(submittedQuery, mode)}
             >
-              <Results
-                query={submittedQuery}
-                mode={mode}
-                onSearch={(q) => handleSearch(q, mode)}
-              />
+              {mode === "ai" ? (
+                <AskAiView
+                  initialQuery={submittedQuery}
+                  initialReasoning={aiOptions.reasoning}
+                  timeFilter={aiOptions.timeFilter}
+                  onSwitchToWebSearch={(q) => handleSearch(q, "all")}
+                />
+              ) : (
+                <Results
+                  query={submittedQuery}
+                  mode={mode}
+                  onSearch={(q) => handleSearch(q, mode)}
+                />
+              )}
             </ResultsErrorBoundary>
           </div>
         )}

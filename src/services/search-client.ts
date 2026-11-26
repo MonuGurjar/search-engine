@@ -321,3 +321,52 @@ export async function fetchAiOverview(
   return null
 }
 
+export interface AskAiMessage {
+  role: "user" | "assistant"
+  content: string
+  sources?: AiOverviewSource[]
+  followups?: string[]
+  mode?: string
+}
+
+export interface AskAiResponse {
+  answer: string
+  followups: string[]
+  sources: AiOverviewSource[]
+  mode: string
+}
+
+export async function fetchAskAi(
+  query: string,
+  options: {
+    history?: Array<{ role: "user" | "assistant"; content: string }>
+    reasoning?: boolean
+    timeFilter?: string
+    signal?: AbortSignal
+  } = {},
+): Promise<AskAiResponse> {
+  const clean = query.trim()
+  if (!clean) {
+    throw new Error("Question cannot be empty")
+  }
+
+  const res = await fetch("/api/ask-ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: clean,
+      history: options.history || [],
+      reasoning: Boolean(options.reasoning),
+      timeFilter: options.timeFilter || "Any time",
+    }),
+    signal: options.signal,
+  })
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}))
+    throw new Error(errBody.error || "VOID AI failed to respond")
+  }
+
+  return res.json()
+}
+

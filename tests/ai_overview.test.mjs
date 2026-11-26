@@ -4,6 +4,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { EventEmitter } from "node:events"
 import aiOverviewHandler from "../api/ai-overview.ts"
+import askAiHandler from "../api/ask-ai.ts"
 
 function createMockReqRes(options) {
   const req = new EventEmitter()
@@ -56,7 +57,7 @@ describe("AI Overview (Gemini Integration)", () => {
       const match = fs.readFileSync(".env", "utf-8").match(/^GEMINI_API_KEY=(.+)$/m)
       if (match) key = match[1].trim()
     }
-    const srcFiles = ["src/components/AiOverview.tsx", "src/services/search-client.ts", "src/components/Results.tsx"]
+    const srcFiles = ["src/components/AiOverview.tsx", "src/components/AskAiView.tsx", "src/services/search-client.ts", "src/components/Results.tsx"]
     for (const relPath of srcFiles) {
       const fullPath = path.resolve(relPath)
       const content = fs.readFileSync(fullPath, "utf-8")
@@ -96,5 +97,29 @@ describe("AI Overview (Gemini Integration)", () => {
     assert.ok(Array.isArray(data.keyPoints))
     assert.ok(Array.isArray(data.sources))
     assert.equal(data.sources[0]?.domain, "opensearch.org")
+  })
+
+  it("6. Ask AI endpoint generates answer, followups, and grounded sources", async () => {
+    const { req, res } = createMockReqRes({
+      method: "POST",
+      url: "/api/ask-ai",
+    })
+
+    const payload = JSON.stringify({
+      query: "what is bm25 ranking",
+      reasoning: false,
+    })
+
+    const promise = askAiHandler(req, res)
+    req.emit("data", payload)
+    req.emit("end")
+    await promise
+
+    assert.equal(res.statusCode, 200)
+    const data = JSON.parse(res.body)
+    assert.ok(data.answer && data.answer.length > 20)
+    assert.ok(Array.isArray(data.followups))
+    assert.ok(Array.isArray(data.sources))
+    assert.equal(data.mode, "VOID AI")
   })
 })

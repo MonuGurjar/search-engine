@@ -467,16 +467,26 @@ export function Results({ query, mode, onSearch }: Props) {
 
             {loading ? (
               isImageMode ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 animate-pulse" aria-busy="true">
-                  {Array.from({ length: 10 }).map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded-xl border border-slate-200/70 dark:border-zinc-800/80 bg-slate-100/60 dark:bg-zinc-900/50 overflow-hidden"
-                    >
-                      <div className="aspect-[4/3] bg-slate-200/70 dark:bg-zinc-800/80" />
-                      <div className="p-2.5 space-y-1.5">
-                        <div className="h-2.5 w-1/2 rounded bg-slate-200/80 dark:bg-zinc-800" />
-                        <div className="h-3 w-4/5 rounded bg-slate-200/70 dark:bg-zinc-800/70" />
+                <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-4 sm:gap-5 animate-pulse" aria-busy="true">
+                  {[
+                    "aspect-[3/4]",
+                    "aspect-square",
+                    "aspect-[4/3]",
+                    "aspect-[4/5]",
+                    "aspect-[3/4]",
+                    "aspect-[16/10]",
+                    "aspect-[4/5]",
+                    "aspect-square",
+                    "aspect-[3/4]",
+                    "aspect-[4/3]",
+                  ].map((aspectClass, idx) => (
+                    <div key={idx} className="break-inside-avoid mb-4 sm:mb-5">
+                      <div
+                        className={`w-full ${aspectClass} rounded-2xl bg-slate-200/70 dark:bg-zinc-800/80`}
+                      />
+                      <div className="mt-2 px-1 flex items-center gap-2">
+                        <div className="size-3.5 rounded-full bg-slate-200/80 dark:bg-zinc-800 shrink-0" />
+                        <div className="h-3 w-3/4 rounded bg-slate-200/70 dark:bg-zinc-800/70" />
                       </div>
                     </div>
                   ))}
@@ -540,30 +550,29 @@ export function Results({ query, mode, onSearch }: Props) {
               </div>
             ) : isImageMode ? (
               /* ================================================================= */
-              /* GOOGLE IMAGES WALL / GRID                                         */
+              /* PINTEREST-STYLE MASONRY IMAGES WALL                               */
               /* ================================================================= */
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
+                <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-4 sm:gap-5">
                   {displayedImages.map((item, idx) => {
                     const optimizedThumb = getOptimizedThumbnailUrl(
                       item.imageUrl,
-                      400,
-                      300,
+                      520,
                     )
                     return (
                       <div
                         key={`${item.id}-${idx}`}
                         onClick={() => setSelectedImage(item)}
-                        className="group relative flex flex-col cursor-pointer rounded-xl overflow-hidden bg-white dark:bg-[#151619] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 transition-all hover:shadow-md select-none"
+                        className="break-inside-avoid mb-4 sm:mb-5 group cursor-pointer"
                       >
-                        {/* Image preview box with smooth hover zoom */}
-                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-zinc-900">
+                        {/* Smooth uncropped image pin */}
+                        <div className="relative w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-zinc-900/70 transition-shadow duration-200 group-hover:shadow-lg">
                           <img
                             src={optimizedThumb}
                             alt={item.title}
                             loading={idx < 12 ? "eager" : "lazy"}
                             decoding="async"
-                            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="w-full h-auto block transition-transform duration-300 ease-out group-hover:scale-[1.03]"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement
                               if (target.src !== item.imageUrl) {
@@ -573,21 +582,18 @@ export function Results({ query, mode, onSearch }: Props) {
                               }
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 pointer-events-none">
-                            <span className="text-[10px] text-white/95 font-medium truncate">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-between p-3 pointer-events-none">
+                            <bdi className="text-[11px] text-white/95 font-medium truncate">
                               {item.domain}
-                            </span>
+                            </bdi>
                           </div>
                         </div>
 
-                        {/* Google Images style caption */}
-                        <div className="p-2 sm:p-2.5 flex flex-col justify-between flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400">
-                            {getDomainIcon(item.domain)}
-                            <span className="truncate">{item.domain}</span>
-                          </div>
-                          <p className="mt-1 text-xs font-medium text-slate-800 dark:text-zinc-200 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-[#8ab4f8] transition-colors leading-tight">
-                            {item.title}
+                        {/* Minimal Pinterest-style caption below pin */}
+                        <div className="px-1 pt-2 flex items-center gap-1.5 min-w-0">
+                          {getDomainIcon(item.domain)}
+                          <p className="text-xs font-medium text-slate-700 dark:text-zinc-300 truncate group-hover:text-slate-950 dark:group-hover:text-white transition-colors">
+                            {item.title || item.domain}
                           </p>
                         </div>
                       </div>
@@ -866,7 +872,7 @@ export function Results({ query, mode, onSearch }: Props) {
 function getOptimizedThumbnailUrl(
   src?: string,
   width = 192,
-  height = 192,
+  height?: number,
 ): string {
   if (!src) return ""
   const trimmed = src.trim()
@@ -884,7 +890,8 @@ function getOptimizedThumbnailUrl(
     return ""
   }
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return `https://images.weserv.nl/?url=${encodeURIComponent(trimmed)}&w=${width}&h=${height}&fit=cover&output=webp&q=80`
+    const sizeParams = height ? `w=${width}&h=${height}&fit=cover` : `w=${width}`
+    return `https://images.weserv.nl/?url=${encodeURIComponent(trimmed)}&${sizeParams}&output=webp&q=80`
   }
   return trimmed
 }

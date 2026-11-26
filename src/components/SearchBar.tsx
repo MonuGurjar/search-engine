@@ -5,7 +5,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react"
-import { Atom, Check, MicOff, Sparkles, ShieldCheck, Zap } from "lucide-react"
+import { Atom, Check, MicOff } from "lucide-react"
 import { SearchIcon, CloseIcon, HistoryIcon } from "./icons"
 import { getAutocomplete } from "../services/search-client"
 import { CustomDialog } from "./CustomDialog"
@@ -14,6 +14,11 @@ type Props = {
   value: string
   onChange: (v: string) => void
   onSubmit: (v: string) => void
+  onAskAi?: (
+    v: string,
+    options: { reasoning: boolean; timeFilter: string },
+  ) => void
+  initialAiMode?: boolean
   compact?: boolean
   autoFocus?: boolean
   onHome?: () => void
@@ -117,6 +122,8 @@ export function SearchBar({
   value,
   onChange,
   onSubmit,
+  onAskAi,
+  initialAiMode = false,
   compact = false,
   autoFocus,
   placeholder = "Ask anything privately",
@@ -127,15 +134,19 @@ export function SearchBar({
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
 
-  // Default to 'search' so only search bar is shown initially
-  const [modeTab, setModeTab] = useState<"search" | "ai">("search")
+  const [modeTab, setModeTab] = useState<"search" | "ai">(
+    initialAiMode ? "ai" : "search",
+  )
   const [reasoningActive, setReasoningActive] = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
   const [timeFilter, setTimeFilter] = useState("Any time")
 
-  // Custom dialogues for Voice Search and Ask AI
+  // Custom dialogue for Voice Search
   const [voiceDialogOpen, setVoiceDialogOpen] = useState(false)
-  const [aiDialogOpen, setAiDialogOpen] = useState(false)
+
+  useEffect(() => {
+    setModeTab(initialAiMode ? "ai" : "search")
+  }, [initialAiMode])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const toolsMenuRef = useRef<HTMLDivElement>(null)
@@ -251,9 +262,14 @@ export function SearchBar({
       selectedIndex >= 0 && allItems[selectedIndex]
         ? allItems[selectedIndex].text
         : value
-    if (finalQuery.trim()) {
-      saveRecentSearch(finalQuery)
-      onSubmit(finalQuery.trim())
+    const clean = finalQuery.trim()
+    if (clean) {
+      saveRecentSearch(clean)
+      if (modeTab === "ai" && onAskAi) {
+        onAskAi(clean, { reasoning: reasoningActive, timeFilter })
+      } else {
+        onSubmit(clean)
+      }
       setSuggestions([])
       setFocused(false)
     }
@@ -262,7 +278,11 @@ export function SearchBar({
   function selectItem(text: string) {
     onChange(text)
     saveRecentSearch(text)
-    onSubmit(text)
+    if (modeTab === "ai" && onAskAi) {
+      onAskAi(text, { reasoning: reasoningActive, timeFilter })
+    } else {
+      onSubmit(text)
+    }
     setSuggestions([])
     setFocused(false)
   }
@@ -362,8 +382,16 @@ export function SearchBar({
               }}
               onFocus={() => setFocused(true)}
               onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              aria-label={placeholder}
+              placeholder={
+                modeTab === "ai"
+                  ? reasoningActive
+                    ? "Ask VOID AI with deep reasoning…"
+                    : "Ask VOID AI anything…"
+                  : placeholder
+              }
+              aria-label={
+                modeTab === "ai" ? "Ask VOID AI anything" : placeholder
+              }
               autoComplete="off"
               spellCheck="false"
               className={`min-w-0 flex-1 bg-transparent outline-none text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-sans ${
@@ -409,13 +437,23 @@ export function SearchBar({
               <button
                 type="button"
                 onClick={() => {
-                  setAiDialogOpen(true)
+                  setModeTab("ai")
+                  if (compact && value.trim() && onAskAi) {
+                    onAskAi(value.trim(), {
+                      reasoning: reasoningActive,
+                      timeFilter,
+                    })
+                  }
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
-                title="Ask AI (Coming soon)"
-                aria-label="Ask AI (Coming soon)"
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  modeTab === "ai"
+                    ? "bg-white dark:bg-[#121315] text-slate-900 dark:text-white shadow-xs font-semibold"
+                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+                }`}
+                title="Ask VOID AI"
+                aria-label="Ask VOID AI"
               >
-                <SparklesChatIcon className="size-3.5 text-amber-500" />
+                <SparklesChatIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span className="hidden sm:inline">Ask AI</span>
               </button>
             </div>
@@ -598,29 +636,6 @@ export function SearchBar({
         description="Your browser doesn't currently support the Web Speech recognition API. To search with your voice on VOID, please open this page in Google Chrome, Brave, or Microsoft Edge."
         actionLabel="Got it"
       />
-
-      {/* Custom Dialogue: Ask AI Coming Soon */}
-      <CustomDialog
-        isOpen={aiDialogOpen}
-        onClose={() => setAiDialogOpen(false)}
-        icon={<Sparkles className="size-5 text-amber-500" />}
-        badge="VOID AI"
-        badgeColor="amber"
-        title="Ask AI is Coming Soon"
-        description="We are building an ultra-fast, private AI copilot that synthesizes web knowledge with zero tracking and real-time neural grounding."
-        actionLabel="Understood"
-      >
-        <div className="pt-1.5 space-y-2">
-          <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 text-[11px] leading-snug text-slate-600 dark:text-zinc-300">
-            <ShieldCheck className="size-4 text-emerald-500 shrink-0 mt-0.5" />
-            <span>Zero prompt profiling — queries are never saved or sold to advertisers.</span>
-          </div>
-          <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200/60 dark:border-zinc-700/50 text-[11px] leading-snug text-slate-600 dark:text-zinc-300">
-            <Zap className="size-4 text-cyan-500 shrink-0 mt-0.5" />
-            <span>Direct source citations from our distributed OpenSearch cluster.</span>
-          </div>
-        </div>
-      </CustomDialog>
     </div>
   )
 }

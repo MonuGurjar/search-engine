@@ -160,6 +160,18 @@ function figmaSiteConfiguration(config: FigmaSiteConfiguration): Plugin {
           }
           return
         }
+        if (cleanUrl === "/api/ask-ai") {
+          try {
+            const { default: handler } = await import("./api/ask-ai.ts")
+            await handler(req as any, res as any)
+          } catch (err) {
+            console.error("Dev server API /api/ask-ai error:", err)
+            res.statusCode = 500
+            res.setHeader("Content-Type", "application/json")
+            res.end(JSON.stringify({ error: "Internal server error" }))
+          }
+          return
+        }
         if (!robotsTxt || req.url?.split("?")[0] !== "/robots.txt")
           return next()
 
