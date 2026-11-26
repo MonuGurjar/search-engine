@@ -367,7 +367,7 @@ export function SearchBar({
               autoComplete="off"
               spellCheck="false"
               className={`min-w-0 flex-1 bg-transparent outline-none text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-sans ${
-                compact ? "text-sm py-0.5" : "text-[15px] sm:text-base py-0.5"
+                compact ? "text-base sm:text-sm py-0.5" : "text-base py-0.5"
               }`}
             />
 

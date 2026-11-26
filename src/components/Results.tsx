@@ -447,10 +447,10 @@ export function Results({ query, mode, onSearch }: Props) {
         {hasQuery ? (
           <>
             {/* Results meta stat line */}
-            <div className="text-xs sm:text-[13px] text-slate-500 dark:text-zinc-400 tracking-normal pb-4">
+            <div className="text-xs sm:text-[0.8125rem] text-slate-500 dark:text-zinc-400 pb-4 tabular-nums">
               {loading ? (
                 <span>
-                  Searching VOID {isImageMode ? "images" : "index"}...
+                  Searching VOID {isImageMode ? "images" : "index"}…
                 </span>
               ) : error ? (
                 <span className="text-rose-500 dark:text-rose-400">
@@ -466,12 +466,35 @@ export function Results({ query, mode, onSearch }: Props) {
             </div>
 
             {loading ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-zinc-500">
-                <div className="size-6 border-2 border-blue-600 dark:border-zinc-400 border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm font-light">
-                  Searching VOID {isImageMode ? "images" : "private index"}...
-                </p>
-              </div>
+              isImageMode ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 animate-pulse" aria-busy="true">
+                  {Array.from({ length: 10 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-slate-200/70 dark:border-zinc-800/80 bg-slate-100/60 dark:bg-zinc-900/50 overflow-hidden"
+                    >
+                      <div className="aspect-[4/3] bg-slate-200/70 dark:bg-zinc-800/80" />
+                      <div className="p-2.5 space-y-1.5">
+                        <div className="h-2.5 w-1/2 rounded bg-slate-200/80 dark:bg-zinc-800" />
+                        <div className="h-3 w-4/5 rounded bg-slate-200/70 dark:bg-zinc-800/70" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-7 max-w-3xl animate-pulse" aria-busy="true">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="h-3 w-48 rounded bg-slate-200/70 dark:bg-zinc-800/80" />
+                      <div className="h-5 w-3/4 rounded bg-slate-200/90 dark:bg-zinc-800" />
+                      <div className="space-y-1.5 max-w-[65ch]">
+                        <div className="h-3.5 w-full rounded bg-slate-200/60 dark:bg-zinc-800/70" />
+                        <div className="h-3.5 w-5/6 rounded bg-slate-200/60 dark:bg-zinc-800/70" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : error ? (
               <div className="py-12 text-center max-w-md mx-auto">
                 <p className="text-sm text-slate-700 dark:text-zinc-300 mb-3">
@@ -584,13 +607,13 @@ export function Results({ query, mode, onSearch }: Props) {
                       {loadingMore ? (
                         <>
                           <Loader2 className="size-3.5 animate-spin text-slate-500 dark:text-zinc-400" />
-                          <span>Loading more images...</span>
+                          <span>Loading more images…</span>
                         </>
                       ) : (
                         <>
                           <span>Show more images</span>
                           {remainingCount > 0 && (
-                            <span className="text-slate-400 dark:text-zinc-500">
+                            <span className="text-slate-400 dark:text-zinc-500 tabular-nums">
                               ({remainingCount} remaining)
                             </span>
                           )}
@@ -725,11 +748,11 @@ export function Results({ query, mode, onSearch }: Props) {
                         {/* Domain, breadcrumb & relevance score badge */}
                         <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-400">
                           {getDomainIcon(r.domain)}
-                          <span className="truncate">
+                          <bdi className="truncate">
                             {formatBreadcrumb(r.domain, r.path)}
-                          </span>
+                          </bdi>
                           {typeof r.score === "number" && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-medium tabular-nums bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                               score {r.score.toFixed(1)}
                             </span>
                           )}
@@ -742,7 +765,7 @@ export function Results({ query, mode, onSearch }: Props) {
                               href={safeUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block font-sans text-lg sm:text-[19px] font-medium tracking-tight text-blue-600 dark:text-[#8ab4f8] hover:underline leading-snug"
+                              className="block font-sans text-lg sm:text-[1.1875rem] font-medium tracking-[-0.01em] text-blue-600 dark:text-[#8ab4f8] hover:underline underline-offset-4 leading-[1.3] text-balance"
                             >
                               {r.title}
                             </a>
@@ -752,7 +775,7 @@ export function Results({ query, mode, onSearch }: Props) {
                               dangerouslySetInnerHTML={{
                                 __html: sanitizedSnippetHtml,
                               }}
-                              className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-zinc-400"
+                              className="mt-1.5 text-[0.875rem] leading-[1.55] text-slate-600 dark:text-zinc-400 text-pretty max-w-[68ch]"
                             />
 
                             {/* Matching section headings */}
@@ -790,13 +813,13 @@ export function Results({ query, mode, onSearch }: Props) {
                       {loadingMore ? (
                         <>
                           <Loader2 className="size-3.5 animate-spin text-slate-500 dark:text-zinc-400" />
-                          <span>Loading more results...</span>
+                          <span>Loading more results…</span>
                         </>
                       ) : (
                         <>
                           <span>Show more results</span>
                           {remainingCount > 0 && (
-                            <span className="text-slate-400 dark:text-zinc-500">
+                            <span className="text-slate-400 dark:text-zinc-500 tabular-nums">
                               ({remainingCount} remaining)
                             </span>
                           )}

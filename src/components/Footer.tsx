@@ -49,14 +49,14 @@ export function Footer({ onOpenLegal }: Props) {
 
   return (
     <>
-      <footer className="w-full px-6 sm:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans text-slate-500 dark:text-zinc-500 select-none relative z-20">
+      <footer className="w-full px-6 sm:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans text-slate-500 dark:text-zinc-400 relative z-20">
         {/* Left Links */}
         <div className="flex items-center gap-5 sm:gap-6 flex-wrap justify-center sm:justify-start">
           {links.map((link) => (
             <button
               key={link.label}
               onClick={() => handleClick(link)}
-              className="hover:text-slate-900 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+              className="hover:text-slate-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
             >
               {link.label}
             </button>
@@ -64,7 +64,7 @@ export function Footer({ onOpenLegal }: Props) {
         </div>
 
         {/* Right Tagline */}
-        <div className="text-slate-400 dark:text-zinc-500 text-center sm:text-right text-[12px] font-sans">
+        <div className="text-slate-500 dark:text-zinc-400 text-center sm:text-right text-xs font-sans text-pretty">
           Search without boundaries.
         </div>
       </footer>

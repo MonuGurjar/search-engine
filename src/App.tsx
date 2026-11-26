@@ -213,7 +213,7 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col justify-between bg-white dark:bg-[#0c0d0e] text-slate-800 dark:text-zinc-100 transition-colors duration-200 ${theme}`}
+      className={`min-h-dvh flex flex-col justify-between bg-white dark:bg-[#0c0d0e] text-slate-800 dark:text-zinc-100 transition-colors duration-200 ${theme}`}
     >
       {/* Top Navigation Header */}
       <Header
@@ -239,10 +239,10 @@ export default function App() {
       >
         {pathname !== "/" && !isLegalRoute ? (
           <div className="w-full max-w-md mx-auto text-center py-16 animate-in fade-in duration-300">
-            <h2 className="text-xl font-medium text-slate-800 dark:text-zinc-100 mb-2">
+            <h2 className="text-xl font-medium text-slate-800 dark:text-zinc-100 mb-2 text-balance">
               Page Not Found
             </h2>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mb-6 font-sans">
+            <p className="text-sm text-slate-500 dark:text-zinc-400 mb-6 font-sans text-pretty">
               The requested page could not be found.
             </p>
             <button
@@ -264,7 +264,7 @@ export default function App() {
             </h1>
 
             {/* Tagline */}
-            <p className="text-[12px] sm:text-[13px] font-sans uppercase tracking-[0.28em] text-slate-400 dark:text-zinc-500 font-medium mb-8 sm:mb-9">
+            <p className="text-xs sm:text-[0.8125rem] font-sans uppercase tracking-[0.28em] text-slate-500 dark:text-zinc-400 font-medium mb-8 sm:mb-9 text-balance">
               A QUIETER WAY TO SEARCH
             </p>
 
