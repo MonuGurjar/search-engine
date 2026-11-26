@@ -10,6 +10,15 @@ try {
   // Ignore in environments where not supported
 }
 
+interface GroundingSource {
+  title: string
+  url: string
+  domain: string
+  snippet?: string
+  pubDate?: string
+  isLiveNews?: boolean
+}
+
 function sendJson(res: ServerResponse, status: number, body: any) {
   res.statusCode = status
   res.setHeader("Content-Type", "application/json; charset=utf-8")
@@ -37,9 +46,133 @@ function getGeminiApiKey(): string {
   return readEnvVar("GEMINI_API_KEY") || readEnvVar("VITE_GEMINI_API_KEY")
 }
 
-async function fetchGroundingSources(
-  query: string,
-): Promise<Array<{ title: string; url: string; domain: string; snippet?: string }>> {
+function decodeXmlEntities(str: string): string {
+  return str
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/<[^>]+>/g, "")
+    .trim()
+}
+
+function extractXmlTag(block: string, tag: string): string {
+  const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "i"))
+  return match ? decodeXmlEntities(match[1]) : ""
+}
+
+function unwrapUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl)
+    if (parsed.hostname.includes("bing.com") && parsed.searchParams.get("url")) {
+      return parsed.searchParams.get("url") || rawUrl
+    }
+  } catch {}
+  return rawUrl
+}
+
+function getDomain(urlStr: string, fallback = "news"): string {
+  try {
+    return new URL(urlStr).hostname.replace(/^www\./, "")
+  } catch {
+    return fallback
+  }
+}
+
+/**
+ * Scrapes live news & current events from Bing News RSS (with Google News RSS fallback).
+ */
+async function scrapeLiveNews(query: string): Promise<GroundingSource[]> {
+  const clean = query.trim()
+  if (!clean) return []
+
+  const sources: GroundingSource[] = []
+
+  // 1. Primary: Bing News RSS (includes snippets, direct URLs, pubDate, and source)
+  try {
+    const controller = new AbortController()
+    const tid = setTimeout(() => controller.abort(), 2800)
+    const rssUrl = `https://www.bing.com/news/search?q=${encodeURIComponent(clean)}&format=rss`
+    const res = await fetch(rssUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+      },
+      signal: controller.signal,
+    })
+    clearTimeout(tid)
+
+    if (res.ok) {
+      const xml = await res.text()
+      const items = xml.match(/<item>([\s\S]*?)<\/item>/gi) || []
+      for (const item of items.slice(0, 5)) {
+        const title = extractXmlTag(item, "title")
+        const rawLink = extractXmlTag(item, "link")
+        const url = unwrapUrl(rawLink)
+        const snippet = extractXmlTag(item, "description")
+        const pubDate = extractXmlTag(item, "pubDate")
+        const sourceName = extractXmlTag(item, "News:Source")
+        const domain = getDomain(url, sourceName || "news")
+
+        if (title && url.startsWith("http")) {
+          sources.push({
+            title: title.slice(0, 150),
+            url,
+            domain,
+            snippet: snippet.slice(0, 300),
+            pubDate,
+            isLiveNews: true,
+          })
+        }
+      }
+    }
+  } catch {}
+
+  if (sources.length > 0) return sources
+
+  // 2. Fallback: Google News RSS
+  try {
+    const controller = new AbortController()
+    const tid = setTimeout(() => controller.abort(), 2800)
+    const gUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(clean)}&hl=en-US&gl=US&ceid=US:en`
+    const res = await fetch(gUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: controller.signal,
+    })
+    clearTimeout(tid)
+
+    if (res.ok) {
+      const xml = await res.text()
+      const items = xml.match(/<item>([\s\S]*?)<\/item>/gi) || []
+      for (const item of items.slice(0, 5)) {
+        const title = extractXmlTag(item, "title")
+        const url = extractXmlTag(item, "link")
+        const pubDate = extractXmlTag(item, "pubDate")
+        const sourceTag = item.match(/<source[^>]*url="([^"]+)"[^>]*>([^<]*)<\/source>/i)
+        const domain = sourceTag?.[1]
+          ? getDomain(sourceTag[1])
+          : sourceTag?.[2] || "news.google.com"
+
+        if (title && url.startsWith("http")) {
+          sources.push({
+            title: title.slice(0, 150),
+            url,
+            domain,
+            snippet: `Published ${pubDate || "recently"} via ${sourceTag?.[2] || domain}`,
+            pubDate,
+            isLiveNews: true,
+          })
+        }
+      }
+    }
+  } catch {}
+
+  return sources
+}
+
+async function fetchOpenSearchSources(query: string): Promise<GroundingSource[]> {
   const clusterUrl = readEnvVar("OPENSEARCH_URL")
   const user = readEnvVar("OPENSEARCH_USER")
   const pass = readEnvVar("OPENSEARCH_PASSWORD")
@@ -75,7 +208,7 @@ async function fetchGroundingSources(
             "Content-Type": "application/json",
             "Content-Length": Buffer.byteLength(payload),
           },
-          timeout: 2500,
+          timeout: 2200,
         },
         (res) => {
           let data = ""
@@ -112,6 +245,7 @@ async function fetchGroundingSources(
       snippet: String(
         h._source?.summary || h._source?.description || "",
       ).slice(0, 280),
+      isLiveNews: false,
     }))
   } catch {
     return []
@@ -176,16 +310,35 @@ export default async function handler(
     return sendJson(res, 503, { error: "VOID AI is not configured." })
   }
 
-  // Ground the answer in real OpenSearch results from VOID's index
-  const sources = await fetchGroundingSources(query)
+  // Run live news scraping + OpenSearch index lookup in parallel
+  const [liveNewsRes, openSearchRes] = await Promise.allSettled([
+    scrapeLiveNews(query),
+    fetchOpenSearchSources(query),
+  ])
+
+  const liveNews =
+    liveNewsRes.status === "fulfilled" ? liveNewsRes.value : []
+  const indexSources =
+    openSearchRes.status === "fulfilled" ? openSearchRes.value : []
+
+  // Merge live scraped news + OpenSearch index (deduped by URL, capped to 6)
+  const seenUrls = new Set<string>()
+  const sources: GroundingSource[] = []
+  for (const s of [...liveNews, ...indexSources]) {
+    if (s.url && !seenUrls.has(s.url)) {
+      seenUrls.add(s.url)
+      sources.push(s)
+      if (sources.length >= 6) break
+    }
+  }
 
   const contextBlock =
     sources.length > 0
-      ? "\n\nGrounding Web Sources from VOID Index:\n" +
+      ? "\n\nLive Scraped News & Web Context:\n" +
         sources
           .map(
             (s, i) =>
-              `[${i + 1}] ${s.title} (${s.domain})\n${s.snippet || ""}`,
+              `[${i + 1}] ${s.title} (${s.domain}${s.pubDate ? ` • ${s.pubDate}` : ""})\n${s.snippet || ""}`,
           )
           .join("\n\n")
       : ""
@@ -195,13 +348,17 @@ export default async function handler(
       ? `\nTime preference: Focus on context relevant to "${timeFilter}".`
       : ""
 
-  const systemInstruction = `You are VOID AI, an intelligent, objective, privacy-first AI search assistant.
+  const todayStr = new Date().toUTCString()
+
+  const systemInstruction = `You are VOID AI, an intelligent, objective, privacy-first AI search assistant with live web and news access.
+Current Date/Time: ${todayStr}
 ${
   reasoning
     ? "Reasoning Mode is ENABLED: Think step-by-step, compare nuances, and deliver a thorough, well-structured technical or analytical answer."
-    : "Deliver a clear, concise, direct, and helpful answer."
+    : "Deliver a clear, concise, direct, and helpful answer grounded in the provided live scraped news and web sources."
 }
 Formatting guidelines:
+- Prioritize the Live Scraped News & Web Context when answering about recent events, breaking news, or current facts. Mention dates/sources when helpful.
 - Use clean Markdown: **bold** for key terms, bullet lists (- item), and fenced code blocks (\`\`\`lang) for code.
 - Avoid conversational filler ("Sure!", "I'd be happy to help!"). Start directly with the answer.
 - Return valid JSON with exact keys:
@@ -223,9 +380,14 @@ Formatting guidelines:
     },
   ]
 
+  // Latest verified Gemini models
   const modelsToTry = reasoning
-    ? ["models/gemini-3.5-flash", "models/gemini-3.5-flash-lite"]
-    : ["models/gemini-3.5-flash-lite", "models/gemini-3.5-flash"]
+    ? [
+        "models/gemini-3.8-flash",
+        "models/gemini-flash-lite-latest",
+        "models/gemini-3.5-flash-lite",
+      ]
+    : ["models/gemini-flash-lite-latest", "models/gemini-3.5-flash-lite"]
 
   let parsedAi: any = null
   let lastError: any = null
@@ -234,7 +396,8 @@ Formatting guidelines:
     try {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 14000)
+      const timeoutMs = model.includes("3.8") ? 11000 : 8000
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -283,7 +446,11 @@ Formatting guidelines:
     followups: Array.isArray(parsedAi.followups)
       ? parsedAi.followups.slice(0, 3).map(String)
       : [],
-    sources: sources.map(({ title, url, domain }) => ({ title, url, domain })),
-    mode: reasoning ? "VOID AI · Reasoning" : "VOID AI",
+    sources: sources.slice(0, 4).map(({ title, url, domain }) => ({
+      title,
+      url,
+      domain,
+    })),
+    mode: reasoning ? "VOID AI · Reasoning" : "VOID AI · Live",
   })
 }

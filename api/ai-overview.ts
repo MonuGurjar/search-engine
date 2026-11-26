@@ -40,6 +40,84 @@ function setCache(key: string, data: any) {
   })
 }
 
+function decodeXmlEntities(str: string): string {
+  return str
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/<[^>]+>/g, "")
+    .trim()
+}
+
+function extractXmlTag(block: string, tag: string): string {
+  const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "i"))
+  return match ? decodeXmlEntities(match[1]) : ""
+}
+
+function unwrapBingUrl(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl)
+    if (parsed.hostname.includes("bing.com") && parsed.searchParams.get("url")) {
+      return parsed.searchParams.get("url") || rawUrl
+    }
+  } catch {}
+  return rawUrl
+}
+
+async function scrapeLiveNewsForOverview(query: string) {
+  const itemsOut: Array<{
+    title: string
+    url: string
+    domain: string
+    snippet?: string
+    pubDate?: string
+  }> = []
+
+  try {
+    const controller = new AbortController()
+    const tid = setTimeout(() => controller.abort(), 2200)
+    const res = await fetch(
+      `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss`,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        signal: controller.signal,
+      },
+    )
+    clearTimeout(tid)
+    if (res.ok) {
+      const xml = await res.text()
+      const items = xml.match(/<item>([\s\S]*?)<\/item>/gi) || []
+      for (const item of items.slice(0, 4)) {
+        const title = extractXmlTag(item, "title")
+        const url = unwrapBingUrl(extractXmlTag(item, "link"))
+        const snippet = extractXmlTag(item, "description")
+        const pubDate = extractXmlTag(item, "pubDate")
+        let domain = "news"
+        try {
+          domain = new URL(url).hostname.replace(/^www\./, "")
+        } catch {}
+        if (title && url.startsWith("http")) {
+          itemsOut.push({
+            title: title.slice(0, 150),
+            url,
+            domain,
+            snippet: snippet.slice(0, 260),
+            pubDate,
+          })
+        }
+      }
+    }
+  } catch {}
+
+  return itemsOut
+}
+
 function sendJson(res: ServerResponse, status: number, body: any) {
   res.statusCode = status
   res.setHeader("Content-Type", "application/json; charset=utf-8")
@@ -149,36 +227,64 @@ export default async function handler(
     })
   }
 
+  // Scrape live news in parallel when query asks for news/latest or lacks local context
+  const isNewsQuery =
+    /\b(news|latest|today|recent|update|updates|breaking|2026|current|live|score|release)\b/i.test(
+      query,
+    )
+  const wantsLiveNews = isNewsQuery || contextSources.length < 3
+
+  let mergedSources = [...contextSources]
+  if (wantsLiveNews) {
+    const liveItems = await scrapeLiveNewsForOverview(query)
+    if (liveItems.length > 0) {
+      const seen = new Set<string>()
+      const combined = isNewsQuery
+        ? [...liveItems, ...contextSources]
+        : [...contextSources, ...liveItems]
+      mergedSources = combined
+        .filter((s) => {
+          if (!s.url || seen.has(s.url)) return false
+          seen.add(s.url)
+          return true
+        })
+        .slice(0, 6)
+    }
+  }
+
   // Format context for grounding
   let contextText = ""
-  if (contextSources.length > 0) {
+  if (mergedSources.length > 0) {
     contextText =
-      "\n\nGrounding Search Context:\n" +
-      contextSources
+      "\n\nGrounding Live News & Search Context:\n" +
+      mergedSources
         .map(
-          (s, i) =>
-            `[Source ${i + 1}] Title: ${s.title}\nDomain: ${s.domain}\nSnippet: ${s.snippet || ""}`,
+          (s: any, i) =>
+            `[Source ${i + 1}] Title: ${s.title}\nDomain: ${s.domain}${s.pubDate ? ` (${s.pubDate})` : ""}\nSnippet: ${s.snippet || ""}`,
         )
         .join("\n\n")
   }
 
-  const systemPrompt = `You are VOID Search AI, an intelligent, objective, privacy-first search assistant.
+  const todayStr = new Date().toUTCString()
+
+  const systemPrompt = `You are VOID Search AI, an intelligent, objective, privacy-first search assistant with live news grounding.
+Current Date/Time: ${todayStr}
 Generate a concise, high-quality VOID AI Overview answering the user query.
 Guidelines:
 - Deliver a clear, direct explanation (2-3 concise paragraphs).
 - Bold key terms and technical concepts (**like this**).
 - Provide 2-4 key bullet takeaways where appropriate.
-- Ground your response in factual truth and the provided search results context.
+- Ground your response in factual truth and the provided live news & search results context. Mention dates/sources when summarizing recent news.
 - Do NOT use conversational intro phrases (e.g. "Sure!", "Here is a summary"). Begin directly with the factual explanation.
-- Return valid JSON matching the exact schema.`
+- Return valid JSON with keys: "summary" (string), "keyPoints" (string[]), "suggestedFollowups" (string[]).`
 
   const userPrompt = `Search Query: "${query}"${contextText}
 
 Generate the AI Overview JSON.`
 
   const modelsToTry = [
+    "models/gemini-flash-lite-latest",
     "models/gemini-3.5-flash-lite",
-    "models/gemini-3.5-flash",
   ]
 
   let aiResponseData: any = null
@@ -248,7 +354,7 @@ Generate the AI Overview JSON.`
     suggestedFollowups: Array.isArray(aiResponseData.suggestedFollowups)
       ? aiResponseData.suggestedFollowups
       : [],
-    sources: contextSources.map((s) => ({
+    sources: mergedSources.slice(0, 4).map((s) => ({
       title: s.title,
       url: s.url,
       domain: s.domain,

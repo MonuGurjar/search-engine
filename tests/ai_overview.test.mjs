@@ -120,6 +120,28 @@ describe("AI Overview (Gemini Integration)", () => {
     assert.ok(data.answer && data.answer.length > 20)
     assert.ok(Array.isArray(data.followups))
     assert.ok(Array.isArray(data.sources))
-    assert.equal(data.mode, "VOID AI")
+    assert.ok(data.mode.startsWith("VOID AI"))
+  })
+
+  it("7. Live news scraping grounds Ask AI with real-time news sources", async () => {
+    const { req, res } = createMockReqRes({
+      method: "POST",
+      url: "/api/ask-ai",
+    })
+
+    const payload = JSON.stringify({
+      query: "latest technology news today",
+      reasoning: false,
+    })
+
+    const promise = askAiHandler(req, res)
+    req.emit("data", payload)
+    req.emit("end")
+    await promise
+
+    assert.equal(res.statusCode, 200)
+    const data = JSON.parse(res.body)
+    assert.ok(data.answer && data.answer.length > 30)
+    assert.ok(Array.isArray(data.sources) && data.sources.length > 0)
   })
 })
